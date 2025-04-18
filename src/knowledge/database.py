@@ -53,13 +53,19 @@ class DatabaseManager:
         logger.info(f"Database manager initialized. SQLite URI: {self.database_uri}, PostgreSQL URI: {self.postgres_uri if self.postgres_uri else 'Not Configured'}")
     
     def _determine_db_type(self) -> str:
-        """Determine primary database type from URI (SQLite)."""
-        # Keep this for now, but its significance decreases
-        if self.database_uri and self.database_uri.startswith("sqlite:"):
+        """Determine primary database type from URI configuration."""
+        # First check for PostgreSQL
+        if self.postgres_uri and self.postgres_uri.startswith("postgresql:"):
+            logger.info("Using PostgreSQL as primary database.")
+            return "postgres"
+        # Fallback to SQLite
+        elif self.database_uri and self.database_uri.startswith("sqlite:"):
+            logger.info("Using SQLite as primary database.")
             return "sqlite"
         else:
-            logger.warning(f"Primary database URI is not SQLite or missing: {self.database_uri}")
-            return "unknown"
+            logger.warning(f"No valid database URI found. PostgreSQL URI: {self.postgres_uri}, SQLite URI: {self.database_uri}")
+            logger.warning("Defaulting to SQLite (memory) as fallback.")
+            return "sqlite" # Default to SQLite for safety
     
     def _initialize_sqlite_connection(self) -> None:
         """Initialize SQLite database connection."""
@@ -98,12 +104,124 @@ class DatabaseManager:
             with self.postgres_connection.cursor() as cursor:
                 cursor.execute("SELECT 1")
             logger.info(f"PostgreSQL connection established successfully to {self.postgres_uri.split('@')[-1]}") # Log sanitized URI
+            
+            # Create tables if they don't exist
+            self._create_postgres_tables()
+            
         except psycopg2.OperationalError as e:
             logger.error(f"Failed to connect to PostgreSQL database: {e}")
             self.postgres_connection = None
         except Exception as e:
             logger.error(f"An unexpected error occurred during PostgreSQL initialization: {e}")
             self.postgres_connection = None
+            
+    def _create_postgres_tables(self) -> None:
+        """Create PostgreSQL tables if they don't exist."""
+        if not self.postgres_connection:
+            logger.warning("Cannot create PostgreSQL tables: PostgreSQL connection not available.")
+            return 
+            
+        try:
+            with self.postgres_connection.cursor() as cursor:
+                # Attractions table
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS attractions (
+                        id TEXT PRIMARY KEY,
+                        name_en TEXT NOT NULL,
+                        name_ar TEXT,
+                        type TEXT,
+                        city TEXT,
+                        region TEXT,
+                        latitude FLOAT,
+                        longitude FLOAT,
+                        description_en TEXT,
+                        description_ar TEXT,
+                        data JSONB,
+                        created_at TEXT,
+                        updated_at TEXT
+                    )
+                ''')
+                
+                # Accommodations table
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS accommodations (
+                        id TEXT PRIMARY KEY,
+                        name_en TEXT NOT NULL,
+                        name_ar TEXT,
+                        type TEXT,
+                        category TEXT,
+                        city TEXT,
+                        region TEXT,
+                        latitude FLOAT,
+                        longitude FLOAT,
+                        description_en TEXT,
+                        description_ar TEXT,
+                        price_min FLOAT,
+                        price_max FLOAT,
+                        data JSONB,
+                        created_at TEXT,
+                        updated_at TEXT
+                    )
+                ''')
+                
+                # Restaurants table
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS restaurants (
+                        id TEXT PRIMARY KEY,
+                        name_en TEXT NOT NULL,
+                        name_ar TEXT,
+                        cuisine TEXT,
+                        city TEXT,
+                        region TEXT,
+                        latitude FLOAT,
+                        longitude FLOAT,
+                        description_en TEXT,
+                        description_ar TEXT,
+                        price_range TEXT,
+                        data JSONB,
+                        created_at TEXT,
+                        updated_at TEXT
+                    )
+                ''')
+                
+                # Sessions table
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS sessions (
+                        id TEXT PRIMARY KEY,
+                        data JSONB,
+                        created_at TEXT,
+                        updated_at TEXT,
+                        expires_at TEXT
+                    )
+                ''')
+                
+                # Analytics table - uses PostgreSQL specific types like JSONB
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS analytics (
+                        id SERIAL PRIMARY KEY,
+                        event_type TEXT NOT NULL,
+                        event_data JSONB,
+                        session_id TEXT,
+                        user_id TEXT,
+                        timestamp TEXT NOT NULL
+                    )
+                ''')
+                
+                # Create indexes
+                cursor.execute('CREATE INDEX IF NOT EXISTS idx_attractions_city ON attractions (city)')
+                cursor.execute('CREATE INDEX IF NOT EXISTS idx_attractions_type ON attractions (type)')
+                cursor.execute('CREATE INDEX IF NOT EXISTS idx_accommodations_city ON accommodations (city)')
+                cursor.execute('CREATE INDEX IF NOT EXISTS idx_accommodations_type ON accommodations (type)')
+                cursor.execute('CREATE INDEX IF NOT EXISTS idx_restaurants_city ON restaurants (city)')
+                cursor.execute('CREATE INDEX IF NOT EXISTS idx_restaurants_cuisine ON restaurants (cuisine)')
+                cursor.execute('CREATE INDEX IF NOT EXISTS idx_analytics_session_id ON analytics (session_id)')
+                cursor.execute('CREATE INDEX IF NOT EXISTS idx_analytics_event_type ON analytics (event_type)')
+                cursor.execute('CREATE INDEX IF NOT EXISTS idx_analytics_timestamp ON analytics (timestamp)')
+                
+                logger.info("PostgreSQL tables created successfully.")
+                
+        except Exception as e:
+            logger.error(f"Failed to create PostgreSQL tables: {e}")
     
     def _create_sqlite_tables(self) -> None:
         """Create SQLite tables if they don't exist."""

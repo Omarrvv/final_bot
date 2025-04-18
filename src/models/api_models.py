@@ -47,17 +47,19 @@ class ResetRequest(BaseModel):
 class Language(BaseModel):
     code: str
     name: str
-    flag: str
-    direction: str
+    flag: Optional[str] = None
+    direction: Optional[str] = "ltr"
 
 class LanguagesResponse(BaseModel):
     languages: List[Dict[str, str]]
-    default: str
+    default: str = "en"
 
 class FeedbackRequest(BaseModel):
     message_id: str
     rating: int # Or float, or specific values
     comment: Optional[str] = None
+    session_id: Optional[str] = None
+    user_id: Optional[str] = None
 
 class FeedbackResponse(BaseModel):
     success: bool

@@ -6,7 +6,7 @@ import sys
 import logging
 from logging.handlers import RotatingFileHandler
 from datetime import datetime
-from fastapi import FastAPI, Request, Depends, Query
+from fastapi import FastAPI, Request, Depends, Query, HTTPException
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware # Import CORS
 import time
@@ -75,17 +75,21 @@ logger.info("Logging setup complete.") # Add confirmation log
 
 # --- End Logging Setup ---
 
-# --- Initialize Chatbot Components --- (COMMENTED OUT FOR DEBUGGING)
-# from src.utils.factory import component_factory
-# from src.utils.container import container # Import the container
+# --- Initialize Chatbot Components --- # (UNCOMMENTED)
+from src.utils.factory import component_factory
+# from src.utils.container import container # Import the container # Keep container commented if not directly used here
 
-# try:
-#     component_factory.initialize()
-#     logger.info("Chatbot components initialized successfully.")
-# except Exception as e:
-#     logger.error(f"CRITICAL: Failed to initialize chatbot components: {e}", exc_info=True)
-#     # Depending on the desired behavior, you might want to exit or raise the exception
-#     # raise # Re-raise the exception to potentially stop the server from starting
+try:
+    component_factory.initialize()
+    chatbot = component_factory.create_chatbot() # Use factory to create chatbot
+    # Ensure chatbot is initialized if factory doesn't handle it
+    # chatbot.initialize() # Assuming create_chatbot returns an initialized instance or handles it
+    logger.info("Chatbot components initialized successfully.")
+except Exception as e:
+    logger.error(f"CRITICAL: Failed to initialize chatbot components: {e}", exc_info=True)
+    chatbot = None # Ensure chatbot is None if init fails
+    # Depending on the desired behavior, you might want to exit or raise the exception
+    # raise # Re-raise the exception to potentially stop the server from starting
 # --- End Component Initialization ---
 
 # --- Lifespan Event Handler --- 
@@ -102,13 +106,19 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         # Check if we're in local environment (not Docker) by trying to resolve redis hostname
         import socket
         try:
-            socket.gethostbyname('redis')
-            # If we get here, redis hostname resolved, we're in Docker
-            logger.info("Redis hostname resolved - using container networking")
+            # Only attempt to resolve hostname if the URI contains redis:// and redis: hostname
+            if "redis://redis:" in redis_uri:
+                socket.gethostbyname('redis')
+                # If we get here, redis hostname resolved, we're in Docker
+                logger.info("Redis hostname resolved - using container networking")
+            else:
+                # If URI doesn't contain redis: hostname, no need to modify
+                logger.info(f"Using provided Redis URI: {redis_uri}")
         except socket.gaierror:
             # Cannot resolve redis hostname, we're running locally
             logger.info("Redis hostname not resolved - switching to localhost for local testing")
-            redis_uri = redis_uri.replace('redis://', 'redis://localhost:')
+            # Correctly replace the hostname part
+            redis_uri = redis_uri.replace('redis://redis:', 'redis://localhost:')
         
         logger.info(f"Using Redis URI: {redis_uri}")
         
@@ -131,7 +141,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Shutdown: Clean up resources if needed
     logger.info("Application shutdown: Cleaning up resources...")
     if redis_connection:
-        await redis_connection.close()
+        await redis_connection.aclose()  # Use aclose() instead of close() to fix the deprecation warning
         logger.info("Redis connection closed")
 
 # Create FastAPI app instance with lifespan
@@ -168,14 +178,14 @@ logger.info("CORS middleware added.")
 
 # --- Add Minimal API routes --- 
 
-# Import necessary components and models (COMMENT OUT UNUSED)
-# from src.models.api_models import (
-#     ChatMessageRequest, ChatbotResponse, SuggestionsResponse, 
-#     ResetResponse, LanguagesResponse, FeedbackRequest, FeedbackResponse,
-#     ResetRequest # Import the moved model
-# )
-# from src.chatbot import Chatbot # Ensure Chatbot import exists or add it
-# from src.knowledge.database import DatabaseManager # Import DatabaseManager
+# Import necessary components and models # (UNCOMMENTED)
+from src.models.api_models import (
+    ChatMessageRequest, ChatbotResponse, SuggestionsResponse, 
+    ResetResponse, LanguagesResponse, FeedbackRequest, FeedbackResponse,
+    ResetRequest # Import the moved model
+)
+from src.chatbot import Chatbot # Ensure Chatbot import exists or add it
+# from src.knowledge.database import DatabaseManager # Import DatabaseManager # Keep commented if chatbot handles it
 # Potentially import Request for accessing query params/headers if needed later
 # from fastapi import HTTPException, Request, Query # Add Query if needed for optional param definition
 # from typing import Optional # Add Optional if not present
@@ -185,20 +195,21 @@ logger.info("CORS middleware added.")
 # from fastapi.responses import FileResponse 
 
 # Import Routers (COMMENT OUT)
-# from src.api.analytics_api import analytics_router
+from src.api.analytics_api import analytics_router
 # Import other routers as they are created (e.g., auth router)
 
 # Include Routers (COMMENT OUT)
-# app.include_router(analytics_router) # Includes all routes from analytics_api with /stats prefix
+app.include_router(analytics_router) # Includes all routes from analytics_api with /stats prefix
 # app.include_router(auth_router, prefix="/api/auth", tags=["Authentication"])
 
-# --- Base App Routes (Keep only health check) ---
+logger.info("Analytics router included.")
 
+# --- Base App Routes ---
 @app.get("/api/health", tags=["Health"])
 async def health_check():
-    """Minimal health check endpoint."""
+    """Health check endpoint."""
     logger.info("Health check endpoint called.")
-    return {"status": "ok", "timestamp": datetime.now().isoformat()}
+    return {"status": "ok", "service": "Egypt Tourism Chatbot FastAPI backend", "timestamp": datetime.now().isoformat()}
 
 # --- Test Rate Limiting with Redis ---
 @app.get("/api/test-rate-limit", tags=["Test"], dependencies=[Depends(RateLimiter(times=5, seconds=60))])
@@ -214,19 +225,81 @@ async def test_rate_limit():
         "timestamp": datetime.now().isoformat()
     }
 
-logger.info("Application routes defined. App ready.")
+# --- Chat and Other Endpoints ---
+@app.post("/api/chat", response_model=ChatbotResponse, tags=["Chatbot"])
+async def chat_endpoint(chat_request: ChatMessageRequest):
+    """Handles incoming chat messages and returns the chatbot's response."""
+    if chatbot is None:
+        raise HTTPException(status_code=503, detail="Chatbot service is unavailable due to initialization error.")
+    try:
+        # Call the chatbot instance to process the message - remove await since it's not an async method
+        response = chatbot.process_message(
+            user_message=chat_request.message,
+            session_id=chat_request.session_id,
+            language=chat_request.language
+        )
+        return response
+    except Exception as e:
+        logger.error(f"Error in /api/chat endpoint: {e}", exc_info=True)
+        # Return a generic error response
+        raise HTTPException(status_code=500, detail="An error occurred while processing your message.")
 
-# --- COMMENT OUT OTHER ROUTES --- 
-# @app.post("/api/chat", ...)
-# async def chat_endpoint(...): ...
-# @app.get("/api/suggestions", ...)
-# async def get_suggestions(...): ...
-# @app.post("/api/reset", ...)
-# async def reset_session(...): ...
-# @app.get("/api/languages", ...)
-# async def get_languages(...): ...
-# @.post("/api/feedback", ...)
-# async def submit_feedback(...): ...
+@app.get("/api/suggestions", response_model=SuggestionsResponse, tags=["Chatbot"])
+async def get_suggestions(session_id: Optional[str] = None, language: str = "en"):
+    """Get suggested messages based on the current conversation state."""
+    if chatbot is None:
+        raise HTTPException(status_code=503, detail="Chatbot service is unavailable due to initialization error.")
+    try:
+        suggestions = chatbot.get_suggestions(session_id=session_id, language=language)
+        return {"suggestions": suggestions}
+    except Exception as e:
+        logger.error(f"Error in /api/suggestions endpoint: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to get suggestions.")
+
+@app.post("/api/reset", response_model=ResetResponse, tags=["Chatbot"])
+async def reset_session(reset_request: ResetRequest):
+    """Reset a conversation session."""
+    if chatbot is None:
+        raise HTTPException(status_code=503, detail="Chatbot service is unavailable due to initialization error.")
+    try:
+        result = chatbot.reset_session(session_id=reset_request.session_id)
+        return result
+    except Exception as e:
+        logger.error(f"Error in /api/reset endpoint: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to reset session.")
+
+@app.get("/api/languages", response_model=LanguagesResponse, tags=["Chatbot"])
+async def get_languages():
+    """Get the list of supported languages."""
+    # This might eventually come from a config or language detector
+    supported_languages = [
+        {"code": "en", "name": "English"},
+        {"code": "ar", "name": "العربية"}
+    ]
+    return {"languages": supported_languages}
+
+@app.post("/api/feedback", response_model=FeedbackResponse, tags=["Chatbot"])
+async def submit_feedback(feedback: FeedbackRequest):
+    """Submit user feedback about a conversation."""
+    if chatbot is None:
+        raise HTTPException(status_code=503, detail="Chatbot service is unavailable due to initialization error.")
+    try:
+        db_manager = chatbot.db_manager
+        success = db_manager.log_feedback(
+            message_id=feedback.message_id,
+            rating=feedback.rating,
+            comment=feedback.comment,
+            session_id=feedback.session_id,
+            user_id=feedback.user_id
+        )
+        if success:
+            return {"success": True, "message": "Feedback recorded successfully"}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to record feedback")
+    except Exception as e:
+        logger.error(f"Error in /api/feedback endpoint: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="An error occurred while processing feedback.")
+
 # @app.get("/{full_path:path}", ...)
 # async def serve_react_app(...): ...
 

@@ -15,12 +15,23 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - APP_MODULE=src.main:app
-    command:
+    # command:  # Original command commented out
+    #   [
+    #     "conda",
+    #     "run",
+    #     "-n",
+    #     "egypt-tourism1",
+    #     "uvicorn",
+    #     "src.main:app",
+    #     "--host",
+    #     "0.0.0.0",
+    #     "--port",
+    #     "5050",
+    #   ]
+    command: # New command using direct python invocation
       [
-        "conda",
-        "run",
-        "-n",
-        "egypt-tourism1",
+        "/opt/conda/envs/egypt-tourism1/bin/python",
+        "-m",
         "uvicorn",
         "src.main:app",
         "--host",

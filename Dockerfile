@@ -19,8 +19,9 @@ RUN conda run -n egypt-tourism1 conda install -y gcc_linux-aarch64 gxx_linux-aar
 COPY . .
 
 # Install pip requirements WITHIN the correct conda env explicitly
-# Now it should find the compiler installed by conda
-RUN conda run -n egypt-tourism1 pip install --no-cache-dir -r requirements.txt
+# Force conda install for key scientific packages first to ensure library compatibility
+RUN conda run -n egypt-tourism1 conda install -y scipy scikit-learn && \
+    conda run -n egypt-tourism1 pip install --no-cache-dir -r requirements.txt
 
 # Download spacy models using explicit conda run
 RUN conda run -n egypt-tourism1 python -m spacy download en_core_web_md && \

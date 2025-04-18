@@ -13,8 +13,8 @@ echo -e "${YELLOW}This script will start the backend server.${NC}"
 # Activate Conda Environment (handle potential errors)
 echo -e "${YELLOW}Activating conda environment...${NC}"
 source $(conda info --base)/etc/profile.d/conda.sh
-if ! conda activate egypt-tourism; then
-    echo -e "${RED}Error: Failed to activate conda environment 'egypt-tourism'.${NC}"
+if ! conda activate egypt-tourism1; then
+    echo -e "${RED}Error: Failed to activate conda environment 'egypt-tourism1'.${NC}"
     echo -e "${RED}Please ensure the environment exists and conda is initialized.${NC}"
     # Consider exiting here: exit 1
 fi
