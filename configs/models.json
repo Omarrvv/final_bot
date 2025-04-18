@@ -1,0 +1,94 @@
+{
+  "language_detection": {
+    "model_path": "lid.176.bin",
+    "confidence_threshold": 0.8
+  },
+  "nlp_models": {
+    "en": "en_core_web_md",
+    "ar": "xx_ent_wiki_sm"
+  },
+  "transformer_models": {
+    "multilingual": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
+    "en": "sentence-transformers/all-mpnet-base-v2",
+    "ar": "asafaya/bert-base-arabic"
+  },
+  "intent_classification": {
+    "min_confidence": 0.65,
+    "intents": {
+      "greeting": {
+        "examples": [
+          "hello",
+          "hi",
+          "hey there",
+          "good morning",
+          "good afternoon",
+          "how are you",
+          "مرحبا",
+          "اهلا",
+          "السلام عليكم",
+          "صباح الخير",
+          "مساء الخير"
+        ]
+      },
+      "farewell": {
+        "examples": [
+          "goodbye",
+          "bye",
+          "see you later",
+          "take care",
+          "quit",
+          "exit",
+          "مع السلامة",
+          "باي",
+          "اشوفك بعدين",
+          "الى اللقاء"
+        ]
+      },
+      "attraction_info": {
+        "examples": [
+          "tell me about the pyramids",
+          "what is luxor temple",
+          "info about valley of the kings",
+          "details about abu simbel",
+          "can you describe karnak?",
+          "what can you tell me about the egyptian museum?",
+          "معلومات عن الاهرامات",
+          "ما هو معبد الاقصر",
+          "تفاصيل عن وادي الملوك",
+          "حدثني عن ابو سمبل",
+          "اوصف الكرنك",
+          "المتحف المصري"
+        ]
+      },
+      "location_query": {
+        "examples": [
+          "what is there to do in cairo?",
+          "things to see in luxor",
+          "attractions near aswan",
+          "what's famous in alexandria?",
+          "recommend places in hurghada",
+          "ماذا افعل في القاهرة",
+          "اشياء لرؤيتها في الاقصر",
+          "معالم قريبة من اسوان",
+          "اماكن مشهورة في الاسكندرية"
+        ]
+      },
+      "general_query": {
+        "examples": [
+          "what is the capital of egypt",
+          "how big is the nile",
+          "who was cleopatra",
+          "general information",
+          "help",
+          "what can you do",
+          "ما هي عاصمة مصر",
+          "ما حجم النيل",
+          "من هي كليوباترا",
+          "معلومات عامة",
+          "مساعدة"
+        ]
+      }
+    }
+  },
+  "entity_extraction": {}
+}

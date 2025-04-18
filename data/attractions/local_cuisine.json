@@ -1,0 +1,18 @@
+{
+  "dishes": [
+    {
+      "name": "Koshari",
+      "description": "A hearty mix of rice, lentils, pasta, and chickpeas topped with a spicy tomato sauce."
+    },
+    {
+      "name": "Ful Medames",
+      "description": "A traditional Egyptian breakfast of mashed fava beans served with olive oil and spices."
+    }
+  ],
+  "drinks": [
+    {
+      "name": "Hibiscus Tea",
+      "description": "A refreshing drink made from dried hibiscus flowers."
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "en": {
+    "default": "I'm here to help with your questions about Egypt tourism. How can I assist you today?",
+    "fallback": "I'm sorry, I don't have enough information to answer that question."
+  },
+  "ar": {
+    "default": "أنا هنا للمساعدة في أسئلتك حول السياحة في مصر. كيف يمكنني مساعدتك اليوم؟",
+    "fallback": "آسف، ليس لدي معلومات كافية للإجابة على هذا السؤال."
+  }
+}

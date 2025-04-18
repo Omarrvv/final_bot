@@ -1,0 +1,12 @@
+{
+  "id": "c2a8a1ef-c5c9-45a6-bbf3-b69423b6737c",
+  "created_at": "2025-04-15T20:39:38.789660",
+  "last_activity": "2025-04-15T20:41:39.107893",
+  "expires_at": "2025-04-15T21:41:39.107913",
+  "context": {
+    "dialog_state": "greeting",
+    "entities": {},
+    "last_intent": "general_query",
+    "language": "en"
+  }
+}

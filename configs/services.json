@@ -1,0 +1,30 @@
+{
+  "services": {
+    "anthropic_service": {
+      "enabled": true,
+      "class": "src.services.anthropic_service.AnthropicService"
+    },
+    "weather": {
+      "type": "api",
+      "base_url": "https://api.example.com/weather/",
+      "api_key": "REPLACE_WITH_ACTUAL_API_KEY",
+      "cache_ttl": 3600
+    },
+    "translation": {
+      "type": "plugin",
+      "plugin_name": "translation_service",
+      "config": {
+        "api_key": "REPLACE_WITH_ACTUAL_API_KEY",
+        "cache_ttl": 86400
+      }
+    },
+    "itinerary": {
+      "type": "builtin",
+      "methods": ["generate", "modify"],
+      "config": {
+        "max_days": 14,
+        "cache_ttl": 3600
+      }
+    }
+  }
+}

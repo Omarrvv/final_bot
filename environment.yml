@@ -1,0 +1,32 @@
+name: egypt-tourism1
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.12
+  - pip
+  - numpy
+  - scipy
+  - pandas
+  - scikit-learn
+  - spacy
+  - pip:
+      - torch>=2.5.2
+      - torchvision
+      - torchaudio
+      - transformers
+      - flask==2.2.3
+      - flask-cors==3.0.10
+      - gunicorn==20.1.0
+      - flask-swagger-ui==4.11.1
+      - werkzeug==2.2.3
+      - python-dotenv==1.0.0
+      - pyjwt==2.6.0
+      - flask-limiter==3.3.1
+      - sentence-transformers==2.2.2
+      - anthropic==0.49.0
+      - requests==2.28.2
+      - python-dateutil==2.8.2
+      - markdown==3.4.3
+      - redis>=3.0.0
+prefix: /opt/miniconda3/envs/egypt-tourism1

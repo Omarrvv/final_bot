@@ -1,0 +1,24 @@
+{
+  "Cairo": [
+    {
+      "name": "Nile Ritz-Carlton",
+      "type": "luxury",
+      "location": "Downtown Cairo",
+      "amenities": ["spa", "pool", "fine dining"]
+    },
+    {
+      "name": "Kempinski Nile Hotel",
+      "type": "luxury",
+      "location": "Garden City",
+      "amenities": ["rooftop pool", "fitness center", "river view"]
+    }
+  ],
+  "Luxor": [
+    {
+      "name": "Sofitel Winter Palace Luxor",
+      "type": "historic",
+      "location": "Nile Corniche",
+      "amenities": ["garden", "pool", "fine dining"]
+    }
+  ]
+}

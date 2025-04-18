@@ -1,0 +1,27 @@
+
+**File: README.md.outline**
+```markdown
+# README.md Outline
+
+*   **Project Title:** Egypt Tourism Chatbot  
+*   **Overview:** Brief description, purpose  
+*   **Features:** List key features (target state)  
+*   **Architecture:** High-level overview, link to `ARCHITECTURE.md`  
+*   **Tech Stack:** Summary list, link to `tech_stack_document.md`  
+*   **Setup and Installation:**  
+    1. Clone repo  
+    2. Create Conda env (`conda env create -f environment.yml`)  
+    3. Install Python deps (`pip install -r requirements.txt`)  
+    4. Set up `.env` (copy from `.env.example`)  
+    5. Initialize DB (`python init_db.py`)  
+    6. **Populate KB** (`python scripts/populate_kb.py`)  
+    7. Build frontend (`cd react-frontend && npm install && npm run build`)  
+*   **Running the Application:**  
+    - Dev: `./start_chatbot.sh`  
+    - Prod: `docker-compose up --build`  
+*   **Testing:**  
+    - Backend: `pytest -v`  
+    - Frontend: `cd react-frontend && npm test`  
+*   **API Docs:** Access Swagger UI at `/api/docs`  
+*   **Development:** Link to `DEVELOPMENT.md`  
+*   **License:** (If applicable)

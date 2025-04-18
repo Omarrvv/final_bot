@@ -1,0 +1,82 @@
+{
+  "greeting": {
+    "responses": [
+      "Hello! How can I assist you with your trip to Egypt today?",
+      "Hi there! What would you like to know about Egypt?",
+      "Welcome! How can I help you explore Egypt?"
+    ],
+    "follow_up_questions": [
+      "Are you interested in historical sites, local cuisine, or transportation?",
+      "Would you like recommendations for popular destinations or accommodations?",
+      "Do you need help with planning your itinerary or booking tours?"
+    ],
+    "suggestions": ["attractions", "hotels", "restaurants", "practical_info"],
+    "next_states": {
+      "*": "information_gathering"
+    }
+  },
+  "information_gathering": {
+    "requires_entities": [],
+    "follow_up_questions": {
+      "attraction_info": "Which type of attraction are you interested in? (historical, cultural, natural)",
+      "restaurant_query": "What type of cuisine are you looking for? (local, international, vegetarian)",
+      "hotel_query": "What is your budget range? (luxury, mid-range, budget)"
+    },
+    "next_states": {
+      "attraction_info": "attraction_details",
+      "restaurant_query": "restaurant_details",
+      "hotel_query": "hotel_details",
+      "practical_info": "provide_practical_info",
+      "transportation": "transportation_info",
+      "*": "information_gathering"
+    }
+  },
+  "attraction_details": {
+    "personalized_recommendations": true,
+    "next_states": {
+      "*": "information_gathering"
+    }
+  },
+  "restaurant_details": {
+    "personalized_recommendations": true,
+    "next_states": {
+      "*": "information_gathering"
+    }
+  },
+  "hotel_details": {
+    "personalized_recommendations": true,
+    "next_states": {
+      "*": "information_gathering"
+    }
+  },
+  "transportation_inquiry": {
+    "responses": [
+      "Egypt offers various transportation options including metros, taxis, and buses. Which city are you interested in?",
+      "Getting around Egypt is easy with options like ride-sharing apps, trams, and felucca boats. Where are you planning to travel?",
+      "Transportation in Egypt includes everything from modern metros to traditional horse carriages. What's your destination?"
+    ],
+    "follow_up_questions": [
+      "Do you need information about public transport, taxis, or ride-sharing?",
+      "Would you like to know about the cost or operating hours of transportation options?",
+      "Are you looking for specific routes or popular transportation apps?"
+    ],
+    "next_states": {
+      "*": "information_gathering"
+    }
+  },
+  "accommodation_inquiry": {
+    "responses": [
+      "Egypt has a wide range of accommodations from luxury hotels to budget hostels. What type of accommodation are you looking for?",
+      "Whether you prefer a beach resort or a city hotel, Egypt has it all. What's your budget and preferred location?",
+      "From Nile-view hotels to desert camps, Egypt offers unique stays. What are your preferences?"
+    ],
+    "follow_up_questions": [
+      "Do you need help with booking or finding the best deals?",
+      "Would you like recommendations based on your travel dates?",
+      "Are you looking for family-friendly or romantic accommodations?"
+    ],
+    "next_states": {
+      "*": "information_gathering"
+    }
+  }
+}

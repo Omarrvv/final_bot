@@ -1,0 +1,21 @@
+# ARCHITECTURE.md Outline
+
+*   **Title:** Egypt Tourism Chatbot Architecture  
+*   **Overview:** Modular Flask app with DI, Redis sessions, SQLite KB  
+*   **Diagram:** Include Mermaid/text diagram from `target_backend_structure.md`  
+*   **Components:**  
+    - Flask Wrapper (`app.py`)  
+    - DI Container (`src/utils/`)  
+    - Chatbot Orchestrator  
+    - NLU Engine (SpaCy/Transformers)  
+    - Dialog Manager  
+    - Knowledge Base + DatabaseManager  
+    - RAG Pipeline  
+    - Service Hub  
+*   **Data Flow:** Describe request lifecycle (NLU->Dialog->KB/Service->Response)  
+*   **Database Schema:**  
+    - `attractions` table structure  
+    - `accommodations` table  
+    - `analytics` logging  
+*   **Session Management:** Redis integration  
+*   **Deployment:** Docker/K8s considerations

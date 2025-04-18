@@ -1,0 +1,59 @@
+name: Deploy Egypt Tourism Chatbot
+
+on:
+  workflow_run:
+    workflows: ["Build and Push Docker Image"]
+    branches: [main]
+    types: [completed]
+
+jobs:
+  deploy-to-staging:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Kubectl
+        uses: azure/setup-kubectl@v1
+
+      - name: Set Kubernetes context
+        uses: azure/k8s-set-context@v1
+        with:
+          kubeconfig: ${{ secrets.KUBE_CONFIG_STAGING }}
+
+      - name: Update deployment
+        run: |
+          # Update image tag in kustomization.yaml
+          cd k8s/environments/staging
+          kustomize edit set image ${{ secrets.DOCKERHUB_USERNAME }}/egypt-tourism-chatbot:${{ github.sha }}
+          # Apply changes
+          kubectl apply -k .
+          # Wait for rollout to complete
+          kubectl rollout status deployment/egypt-tourism-chatbot -n egypt-chatbot-staging
+
+  deploy-to-production:
+    needs: deploy-to-staging
+    runs-on: ubuntu-latest
+    environment: production # Requires approval
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Kubectl
+        uses: azure/setup-kubectl@v1
+
+      - name: Set Kubernetes context
+        uses: azure/k8s-set-context@v1
+        with:
+          kubeconfig: ${{ secrets.KUBE_CONFIG_PRODUCTION }}
+
+      - name: Update deployment
+        run: |
+          # Update image tag in kustomization.yaml
+          cd k8s/environments/production
+          kustomize edit set image ${{ secrets.DOCKERHUB_USERNAME }}/egypt-tourism-chatbot:${{ github.sha }}
+          # Apply changes
+          kubectl apply -k .
+          # Wait for rollout to complete
+          kubectl rollout status deployment/egypt-tourism-chatbot -n egypt-chatbot-production
