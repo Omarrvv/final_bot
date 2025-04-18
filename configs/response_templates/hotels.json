@@ -1,0 +1,10 @@
+{
+  "luxury": [
+    "For a luxurious stay, I recommend {hotel}. It offers world-class amenities and stunning views.",
+    "{hotel} is an excellent choice for a luxury experience. Their {feature} is particularly impressive."
+  ],
+  "mid-range": [
+    "{hotel} offers great value for money with comfortable rooms and excellent service.",
+    "For a comfortable stay without breaking the bank, {hotel} is a great choice."
+  ]
+}

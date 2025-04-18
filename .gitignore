@@ -1,0 +1,8 @@
+node_modules/
+chatbot_env_311/
+*.bin
+chatbot_env_311/
+lid.176.bin
+logs/
+logs/
+*.log

@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Egypt Tourism Chatbot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1a56db;
+            --secondary-color: #f59e0b;
+            --accent-color: #10b981;
+            --text-color: #1f2937;
+            --light-gray: #f3f4f6;
+            --mid-gray: #e5e7eb;
+            --dark-gray: #374151;
+            --white: #ffffff;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-color);
+            background-color: #f9fafb;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: var(--dark-gray);
+            font-size: 1rem;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--white);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .message {
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message-content {
+            padding: 12px 16px;
+            border-radius: 8px;
+            max-width: 80%;
+            position: relative;
+        }
+
+        .user-message {
+            align-items: flex-end;
+        }
+
+        .user-message .message-content {
+            background-color: var(--primary-color);
+            color: var(--white);
+            border-bottom-right-radius: 0;
+        }
+
+        .bot-message {
+            align-items: flex-start;
+        }
+
+        .bot-message .message-content {
+            background-color: var(--light-gray);
+            border-bottom-left-radius: 0;
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            margin-top: 4px;
+            color: var(--dark-gray);
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 16px;
+            background-color: var(--white);
+            border-top: 1px solid var(--mid-gray);
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--mid-gray);
+            border-radius: 24px;
+            margin-right: 10px;
+            font-size: 0.95rem;
+        }
+
+        .message-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .send-button {
+            background-color: var(--primary-color);
+            color: var(--white);
+            border: none;
+            border-radius: 24px;
+            padding: 0 20px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .send-button:hover {
+            background-color: #1542a8;
+        }
+
+        .send-button:disabled {
+            background-color: var(--mid-gray);
+            cursor: not-allowed;
+        }
+
+        .suggestions-container {
+            padding: 16px;
+            border-top: 1px solid var(--mid-gray);
+        }
+
+        .suggestion-title {
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            color: var(--dark-gray);
+            font-weight: 500;
+        }
+
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .suggestion {
+            padding: 8px 12px;
+            background-color: var(--light-gray);
+            border-radius: 16px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .suggestion:hover {
+            background-color: var(--mid-gray);
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .loading-dots {
+            display: flex;
+        }
+
+        .loading-dot {
+            width: 8px;
+            height: 8px;
+            margin: 0 2px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            animation: loading 1.4s infinite ease-in-out both;
+        }
+
+        .loading-dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .loading-dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes loading {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
+        }
+
+        .language-selector {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 10px;
+        }
+
+        .language-button {
+            background-color: transparent;
+            border: 1px solid var(--mid-gray);
+            border-radius: 4px;
+            padding: 4px 8px;
+            margin-left: 4px;
+            cursor: pointer;
+        }
+
+        .language-button.active {
+            background-color: var(--primary-color);
+            color: var(--white);
+            border-color: var(--primary-color);
+        }
+
+        .paragraph {
+            margin-bottom: 10px;
+        }
+
+        .error-message {
+            color: #e11d48;
+            padding: 10px;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Egypt Tourism Chatbot</h1>
+            <p class="subtitle">Your virtual guide to discovering Egypt's wonders</p>
+        </header>
+
+        <div class="language-selector">
+            <button class="language-button active" data-lang="en">English</button>
+            <button class="language-button" data-lang="ar">العربية</button>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-messages" id="chat-messages">
+                <!-- Chat messages will appear here -->
+            </div>
+
+            <div class="suggestions-container">
+                <div class="suggestion-title">Suggested questions:</div>
+                <div class="suggestions" id="suggestions">
+                    <!-- Suggestions will appear here -->
+                </div>
+            </div>
+
+            <div class="chat-input">
+                <input
+                    type="text"
+                    class="message-input"
+                    id="message-input"
+                    placeholder="Type your message here..."
+                    autocomplete="off"
+                >
+                <button class="send-button" id="send-button">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let sessionId = null;
+        let currentLanguage = 'en';
+        let isProcessing = false;
+
+        // DOM Elements
+        const chatMessages = document.getElementById('chat-messages');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        const suggestionsContainer = document.getElementById('suggestions');
+        const languageButtons = document.querySelectorAll('.language-button');
+
+        // Initialize the chatbot
+        async function initializeChat() {
+            try {
+                // Create a new session
+                const response = await fetch('/api/session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                sessionId = data.session_id;
+                
+                // Add welcome message
+                addBotMessage("Welcome to Egypt Tourism Chatbot! I can help you discover Egypt's amazing destinations, attractions, cuisine, and practical travel tips. What would you like to know about Egypt?");
+                
+                // Load suggestions
+                loadSuggestions();
+            } catch (error) {
+                console.error('Error initializing chat:', error);
+                showErrorMessage('Failed to connect to the chatbot. Please refresh and try again.');
+            }
+        }
+
+        // Load suggested questions
+        async function loadSuggestions() {
+            try {
+                const response = await fetch('/api/suggestions');
+                const data = await response.json();
+                
+                suggestionsContainer.innerHTML = '';
+                
+                data.suggestions.forEach(suggestion => {
+                    const suggestionElement = document.createElement('div');
+                    suggestionElement.className = 'suggestion';
+                    suggestionElement.textContent = suggestion;
+                    suggestionElement.addEventListener('click', () => {
+                        messageInput.value = suggestion;
+                        sendMessage();
+                    });
+                    
+                    suggestionsContainer.appendChild(suggestionElement);
+                });
+            } catch (error) {
+                console.error('Error loading suggestions:', error);
+            }
+        }
+
+        // Send a message to the chatbot
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            
+            if (message === '' || isProcessing) return;
+            
+            // Disable input while processing
+            isProcessing = true;
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+            
+            // Add user message to the chat
+            addUserMessage(message);
+            
+            // Clear input
+            messageInput.value = '';
+            
+            // Show loading indicator
+            const loadingElement = document.createElement('div');
+            loadingElement.className = 'loading bot-message';
+            loadingElement.innerHTML = `
+                <div class="message-content">
+                    <div class="loading-dots">
+                        <div class="loading-dot"></div>
+                        <div class="loading-dot"></div>
+                        <div class="loading-dot"></div>
+                    </div>
+                </div>
+            `;
+            chatMessages.appendChild(loadingElement);
+            scrollToBottom();
+            
+            try {
+                // Send message to API
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message,
+                        session_id: sessionId,
+                        language: currentLanguage
+                    })
+                });
+                
+                // Remove loading indicator
+                chatMessages.removeChild(loadingElement);
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Format and add bot message
+                    const formattedMessage = formatMessage(data.message);
+                    addBotMessage(formattedMessage);
+                } else {
+                    addBotMessage("I'm sorry, I couldn't process your request. Please try again.");
+                }
+            } catch (error) {
+                // Remove loading indicator
+                if (loadingElement.parentNode === chatMessages) {
+                    chatMessages.removeChild(loadingElement);
+                }
+                
+                console.error('Error sending message:', error);
+                addBotMessage("I'm sorry, there was an error processing your message. Please try again later.");
+            } finally {
+                // Re-enable input
+                isProcessing = false;
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+                messageInput.focus();
+            }
+        }
+
+        // Format message with paragraphs
+        function formatMessage(message) {
+            return message.split('\n\n').map(paragraph => {
+                if (paragraph.trim() === '') return '';
+                return `<p class="paragraph">${paragraph}</p>`;
+            }).join('');
+        }
+
+        // Add user message to the chat
+        function addUserMessage(message) {
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message user-message';
+            messageElement.innerHTML = `
+                <div class="message-content">${message}</div>
+                <div class="message-time">${time}</div>
+            `;
+            
+            chatMessages.appendChild(messageElement);
+            scrollToBottom();
+        }
+
+        // Add bot message to the chat
+        function addBotMessage(message) {
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message bot-message';
+            messageElement.innerHTML = `
+                <div class="message-content">${message}</div>
+                <div class="message-time">${time}</div>
+            `;
+            
+            chatMessages.appendChild(messageElement);
+            scrollToBottom();
+        }
+
+        // Show error message
+        function showErrorMessage(message) {
+            const errorElement = document.createElement('div');
+            errorElement.className = 'error-message';
+            errorElement.textContent = message;
+            
+            chatMessages.appendChild(errorElement);
+            scrollToBottom();
+        }
+
+        // Scroll to the bottom of the chat
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Change language
+        function changeLanguage(lang) {
+            currentLanguage = lang;
+            
+            // Update active button
+            languageButtons.forEach(button => {
+                if (button.dataset.lang === lang) {
+                    button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
+            });
+        }
+
+        // Event listeners
+        sendButton.addEventListener('click', sendMessage);
+        
+        messageInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        languageButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                changeLanguage(button.dataset.lang);
+            });
+        });
+
+        // Start the chat when the page loads
+        window.addEventListener('load', initializeChat);
+    </script>
+</body>
+</html>

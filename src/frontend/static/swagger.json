@@ -1,0 +1,404 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Egypt Tourism Chatbot API",
+    "description": "API documentation for the Egypt Tourism Chatbot",
+    "contact": {
+      "email": "support@egypttourismchatbot.com"
+    }
+  },
+  "host": "localhost:8000",
+  "basePath": "/api",
+  "schemes": ["http", "https"],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "paths": {
+    "/chat": {
+      "post": {
+        "summary": "Process a user message",
+        "description": "Send a message to the chatbot and get a response",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "User message and session information",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ChatRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "$ref": "#/definitions/ChatResponse"
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Check API health",
+        "description": "Check if the API is functioning correctly",
+        "responses": {
+          "200": {
+            "description": "API is healthy",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "example": "ok"
+                },
+                "version": {
+                  "type": "string",
+                  "example": "1.0.0"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "API is not healthy",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/suggestions": {
+      "get": {
+        "summary": "Get message suggestions",
+        "description": "Get suggested messages based on the current conversation state",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "query",
+            "description": "Session ID",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "description": "Language code (e.g., 'en', 'ar')",
+            "required": false,
+            "type": "string",
+            "default": "en"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "suggestions": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Suggestion"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/languages": {
+      "get": {
+        "summary": "Get supported languages",
+        "description": "Get the list of languages supported by the chatbot",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "languages": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Language"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/reset": {
+      "post": {
+        "summary": "Reset session",
+        "description": "Reset the current session and start a new conversation",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Reset request",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "session_id": {
+                  "type": "string",
+                  "description": "Session ID to reset. If not provided, a new session will be created."
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "session_id": {
+                  "type": "string",
+                  "example": "1234567890"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "Session reset successfully"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/feedback": {
+      "post": {
+        "summary": "Submit feedback",
+        "description": "Submit user feedback about a chatbot response",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Feedback information",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/FeedbackRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Feedback submitted successfully",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "example": "success"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "Feedback received. Thank you!"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "ChatRequest": {
+      "type": "object",
+      "required": ["message"],
+      "properties": {
+        "message": {
+          "type": "string",
+          "description": "User message text"
+        },
+        "session_id": {
+          "type": "string",
+          "description": "Session ID for continuing a conversation"
+        },
+        "language": {
+          "type": "string",
+          "description": "Language code (e.g., 'en', 'ar')"
+        }
+      }
+    },
+    "ChatResponse": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "description": "Response message text"
+        },
+        "session_id": {
+          "type": "string",
+          "description": "Session ID"
+        },
+        "language": {
+          "type": "string",
+          "description": "Language of the response"
+        },
+        "media": {
+          "type": "array",
+          "description": "Media content in the response",
+          "items": {
+            "$ref": "#/definitions/Media"
+          }
+        },
+        "suggestions": {
+          "type": "array",
+          "description": "Suggested follow-up messages",
+          "items": {
+            "$ref": "#/definitions/Suggestion"
+          }
+        }
+      }
+    },
+    "Media": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Media type (image, video, map, etc.)",
+          "enum": ["image", "video", "map", "audio", "document"]
+        },
+        "url": {
+          "type": "string",
+          "description": "URL to the media resource"
+        },
+        "alt": {
+          "type": "string",
+          "description": "Alternative text for the media"
+        },
+        "caption": {
+          "type": "string",
+          "description": "Caption for the media"
+        }
+      }
+    },
+    "Suggestion": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "description": "Suggested message text"
+        },
+        "action": {
+          "type": "string",
+          "description": "Action associated with the suggestion"
+        }
+      }
+    },
+    "Language": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "Language code",
+          "example": "en"
+        },
+        "name": {
+          "type": "string",
+          "description": "Language name",
+          "example": "English"
+        },
+        "flag": {
+          "type": "string",
+          "description": "Country flag code",
+          "example": "us"
+        },
+        "direction": {
+          "type": "string",
+          "description": "Text direction",
+          "enum": ["ltr", "rtl"],
+          "example": "ltr"
+        }
+      }
+    },
+    "FeedbackRequest": {
+      "type": "object",
+      "required": ["session_id", "message_id", "rating"],
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "description": "Session ID"
+        },
+        "message_id": {
+          "type": "string",
+          "description": "ID of the message being rated"
+        },
+        "rating": {
+          "type": "integer",
+          "description": "Rating (1 for positive, 0 for negative)",
+          "enum": [0, 1]
+        },
+        "comment": {
+          "type": "string",
+          "description": "Optional feedback comment"
+        }
+      }
+    },
+    "ErrorResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "example": "error"
+        },
+        "message": {
+          "type": "string",
+          "example": "An error occurred"
+        },
+        "error_code": {
+          "type": "string",
+          "example": "INTERNAL_SERVER_ERROR"
+        }
+      }
+    }
+  }
+}

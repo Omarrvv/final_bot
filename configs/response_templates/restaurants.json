@@ -1,0 +1,10 @@
+{
+  "local": [
+    "For authentic Egyptian cuisine, try {restaurant}. Their {dish} is particularly delicious!",
+    "{restaurant} offers a great selection of local dishes. I recommend their {dish}."
+  ],
+  "international": [
+    "If you're craving international flavors, {restaurant} has an excellent menu with dishes from around the world.",
+    "{restaurant} is known for its diverse international cuisine. You'll find something for every taste."
+  ]
+}

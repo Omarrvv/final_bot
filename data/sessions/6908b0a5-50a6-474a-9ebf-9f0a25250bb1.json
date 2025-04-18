@@ -1,0 +1,17 @@
+{
+  "id": "6908b0a5-50a6-474a-9ebf-9f0a25250bb1",
+  "created_at": "2025-03-10T16:36:04.335936",
+  "last_activity": "2025-03-10T16:36:05.914725",
+  "expires_at": "2025-03-10T17:36:05.914739",
+  "context": {
+    "dialog_state": "greeting",
+    "entities": {
+      "attraction": [],
+      "hotel": [],
+      "restaurant": [],
+      "cuisine": []
+    },
+    "last_intent": "general_query",
+    "language": "en"
+  }
+}

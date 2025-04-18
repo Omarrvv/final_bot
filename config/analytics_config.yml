@@ -1,0 +1,47 @@
+# Analytics configuration for Egypt Tourism Chatbot
+
+# Event batching settings
+event_batching:
+  max_cache_size: 100 # Maximum number of events to keep in memory before flushing
+  flush_interval: 60 # How often to flush events to storage (in seconds)
+  background_flush: true # Whether to use a background thread for flushing
+
+# Data retention settings
+data_retention:
+  detailed_events_days: 90 # How long to keep detailed event data (in days)
+  aggregated_stats_days: 365 # How long to keep aggregated statistics (in days)
+  auto_cleanup: true # Whether to automatically clean up old data
+
+# Tracking settings
+tracking:
+  track_ip_addresses: false # Whether to track user IP addresses
+  track_user_agents: true # Whether to track user agent strings
+  track_referrers: true # Whether to track referrer URLs
+  anonymize_user_data: true # Whether to anonymize user data
+  track_message_content: true # Whether to track full message content
+
+# Dashboard settings
+dashboard:
+  refresh_interval: 300 # Dashboard refresh interval (in seconds)
+  default_time_period: 30 # Default time period for stats (in days)
+  enable_export: true # Whether to enable data export
+  export_formats: # Supported export formats
+    - json
+    - csv
+
+# API rate limiting
+rate_limiting:
+  enabled: true # Whether to enable rate limiting
+  max_requests_per_minute: 60 # Maximum number of requests per minute
+
+# Custom metrics
+custom_metrics:
+  - name: response_time # Track chatbot response time
+    description: "Time taken to generate a response"
+    unit: "ms"
+  - name: intent_success_rate # Track intent recognition success rate
+    description: "Percentage of successfully recognized intents"
+    unit: "%"
+  - name: session_engagement # Track user engagement per session
+    description: "Average number of messages per session"
+    unit: "messages"

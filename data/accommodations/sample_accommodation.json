@@ -1,0 +1,49 @@
+[
+  {
+    "id": "hotel_winter_palace",
+    "name": {
+      "en": "Sofitel Winter Palace Luxor",
+      "ar": "فندق سوفيتيل وينتر بالاس الأقصر"
+    },
+    "type": "Hotel",
+    "category": "5-star",
+    "location": {
+      "city": "Luxor",
+      "region": "Upper Egypt",
+      "address": {
+        "en": "Kornish El Nile St",
+        "ar": "شارع كورنيش النيل"
+      },
+      "coordinates": {
+        "latitude": 25.6961,
+        "longitude": 32.6372
+      }
+    },
+    "description": {
+      "en": "Historic luxury hotel built in 1886 on the banks of the Nile, near Luxor Temple. Features Victorian architecture, lush gardens, and multiple restaurants.",
+      "ar": "فندق تاريخي فاخر بني عام 1886 على ضفاف النيل بالقرب من معبد الأقصر. يتميز بالهندسة المعمارية الفيكتورية وحدائق غناء ومطاعم متعددة."
+    },
+    "price_min": 150,
+    "price_max": 500,
+    "currency": "USD",
+    "rating": 4.6,
+    "amenities": [
+      "Pool",
+      "Restaurant",
+      "Bar",
+      "Garden",
+      "WiFi",
+      "Air Conditioning"
+    ],
+    "room_types": ["Classic", "Superior", "Luxury", "Suite"],
+    "keywords": [
+      "luxor",
+      "hotel",
+      "luxury",
+      "nile view",
+      "historic",
+      "winter palace",
+      "sofitel"
+    ]
+  }
+]

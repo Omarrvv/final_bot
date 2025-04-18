@@ -1,0 +1,13 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: egypt-tourism-chatbot
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: chatbot
+          env:
+            - name: FLASK_ENV
+              value: "development"

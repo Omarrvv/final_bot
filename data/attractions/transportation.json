@@ -1,0 +1,53 @@
+{
+  "Cairo": {
+    "public_transport": ["metro", "buses", "trams"],
+    "ride_sharing": ["Uber", "Careem"],
+    "taxis": true,
+    "metro": {
+      "lines": ["Line 1", "Line 2", "Line 3"],
+      "operating_hours": "5:00 AM - 12:00 AM",
+      "tickets": "Single ride: 5 EGP, Day pass: 20 EGP"
+    },
+    "taxi_details": {
+      "types": ["White Taxis", "Black Taxis"],
+      "average_cost": "20-50 EGP per ride",
+      "apps": ["Uber", "Careem"]
+    }
+  },
+  "Luxor": {
+    "public_transport": ["buses"],
+    "ride_sharing": ["Uber"],
+    "taxis": true,
+    "taxi_details": {
+      "types": ["White Taxis"],
+      "average_cost": "10-30 EGP per ride"
+    },
+    "horse_carriages": {
+      "average_cost": "50-100 EGP per ride",
+      "popular_routes": ["Luxor Temple to Karnak Temple"]
+    }
+  },
+  "Alexandria": {
+    "trams": {
+      "lines": ["Ramleh Line", "City Line"],
+      "operating_hours": "6:00 AM - 11:00 PM",
+      "tickets": "Single ride: 2 EGP"
+    },
+    "taxis": true,
+    "taxi_details": {
+      "types": ["White Taxis"],
+      "average_cost": "15-40 EGP per ride"
+    }
+  },
+  "Aswan": {
+    "felucca_boats": {
+      "average_cost": "100-200 EGP per hour",
+      "popular_routes": ["Elephantine Island", "Botanical Garden"]
+    },
+    "taxis": true,
+    "taxi_details": {
+      "types": ["White Taxis"],
+      "average_cost": "10-30 EGP per ride"
+    }
+  }
+}
