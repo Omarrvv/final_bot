@@ -196,6 +196,11 @@ class ComponentFactory:
             # Use configured/default URI for non-testing environments
             storage_uri = self.env_vars["session_storage_uri"]
             
+            # Set USE_REDIS environment variable if session_storage_uri starts with redis://
+            if storage_uri and storage_uri.startswith("redis://"):
+                os.environ["USE_REDIS"] = "true"
+                logger.info("Detected Redis URI in session_storage_uri, setting USE_REDIS=true")
+            
         return SessionManager(
             session_ttl=3600,  # 1 hour by default
             storage_uri=storage_uri # Pass the determined URI

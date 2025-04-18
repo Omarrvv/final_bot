@@ -21,8 +21,8 @@ passlib[bcrypt]==1.7.4 # For password hashing (replaces standalone bcrypt)
 spacy==3.7.4 # Keep as is for now, check compatibility if issues arise
 transformers==4.41.0 # Updated from 4.28.1
 tokenizers==0.19.1 # Updated from 0.13.3 (often needed with transformers update)
-torch==2.2.2 # Updated from 2.2.0 (CPU or specific CUDA version might be needed depending on deployment)
-scikit-learn==1.3.0 # Updated from 1.2.2
+torch==2.6.0 # Updated from 2.2.2 to resolve torchvision/torchaudio conflict
+# scikit-learn==1.3.0 # Updated from 1.2.2 <-- Commented out, will install via Conda
 sentence-transformers==2.7.0 # Updated from 2.2.2
 
 # HTTP Client
@@ -35,15 +35,19 @@ anthropic==0.27.0 # Pinned from >=0.5.0 to recent version
 python-dateutil==2.9.0.post0 # Updated from 2.8.2
 Markdown==3.6 # Updated from 3.4.3
 email-validator==2.1.1 # Added for Pydantic email validation
+wheel>=0.38.0 # Added for building wheels (e.g., fasttext)
+fasttext-wheel>=0.9.2 # Added for NLU language detection
 
 # Database (Assuming SQLite for now)
 # sqlalchemy==2.0.30 # Add if using SQLAlchemy ORM later
 # alembic==1.13.1 # For migrations if using SQLAlchemy
 
 # Development/Testing
-# pytest==8.2.2
-# pytest-asyncio==0.23.7
-# httpx==0.27.0 # For testing async FastAPI clients
+pytest==8.2.2
+pytest-asyncio==0.23.7
+httpx==0.27.0 # For testing async FastAPI clients
+pytest-cov>=2.10.1 # Added for coverage reporting
+typer==0.9.0 # Pinned to avoid spacy 3.7.4 import error from typer.main
 
 # --- Removed Packages ---
 # Flask==2.2.3
