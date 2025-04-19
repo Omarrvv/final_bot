@@ -1,0 +1,68 @@
+{
+  "id": "fish_market_alex",
+  "name": {
+    "en": "Fish Market",
+    "ar": "فيش ماركت"
+  },
+  "type": "seafood",
+  "cuisine": [
+    "Seafood",
+    "Mediterranean"
+  ],
+  "location": {
+    "city": "Alexandria",
+    "city_ar": "الإسكندرية",
+    "address": "Corniche Road, Bahary Area (multiple locations)",
+    "address_ar": "طريق الكورنيش، منطقة بحري (عدة فروع)",
+    "coordinates": {
+      "latitude": 31.2011,
+      "longitude": 29.8895
+    }
+  },
+  "description": {
+    "en": "A landmark Alexandria seafood restaurant where diners choose fresh fish from a large display, which is then cooked to order (grilled, fried, baked). Known for its freshness and often great sea views.",
+    "ar": "مطعم مأكولات بحرية بارز في الإسكندرية حيث يختار رواد المطعم الأسماك الطازجة من عرض كبير، ثم يتم طهيها حسب الطلب (مشوية، مقلية، مخبوزة). يشتهر بطزاجته وغالبًا ما يوفر إطلالات رائعة على البحر."
+  },
+  "price_range": "$$-$$$ (Moderate to Expensive, depends on fish weight)",
+  "opening_hours": "12:00 PM - 1:00 AM daily",
+  "popular_dishes": [
+    {
+      "name": {
+        "en": "Grilled Sea Bass",
+        "ar": "قاروص مشوي"
+      },
+      "price": "By weight"
+    },
+    {
+      "name": {
+        "en": "Fried Calamari",
+        "ar": "كاليماري مقلي"
+      },
+      "price": "LE 100-150"
+    },
+    {
+      "name": {
+        "en": "Shrimp Tagine",
+        "ar": "طاجن جمبري"
+      },
+      "price": "LE 150-200"
+    }
+  ],
+  "contact": {
+    "phone": "+20 3 4805114",
+    "email": null,
+    "website": null
+  },
+  "images": [
+    "fish_market_display.jpg",
+    "fish_market_grilled_fish.jpg"
+  ],
+  "tags": [
+    "seafood",
+    "fresh",
+    "alexandria",
+    "corniche",
+    "sea view"
+  ],
+  "last_updated": "2025-04-19T16:25:27.286619"
+}

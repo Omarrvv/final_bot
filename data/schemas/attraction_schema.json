@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["id", "name", "type", "location", "description"],
+  "properties": {
+    "id": { "type": "string" },
+    "name": {
+      "type": "object",
+      "required": ["en", "ar"],
+      "properties": {
+        "en": { "type": "string" },
+        "ar": { "type": "string" }
+      }
+    },
+    "type": { "type": "string" },
+    "location": {
+      "type": "object",
+      "required": ["city", "city_ar", "coordinates"],
+      "properties": {
+        "city": { "type": "string" },
+        "city_ar": { "type": "string" },
+        "region": { "type": "string" },
+        "region_ar": { "type": "string" },
+        "coordinates": {
+          "type": "object",
+          "required": ["latitude", "longitude"],
+          "properties": {
+            "latitude": { "type": "number" },
+            "longitude": { "type": "number" }
+          }
+        }
+      }
+    },
+    "description": {
+      "type": "object",
+      "required": ["en", "ar"],
+      "properties": {
+        "en": { "type": "string" },
+        "ar": { "type": "string" }
+      }
+    }
+  }
+}

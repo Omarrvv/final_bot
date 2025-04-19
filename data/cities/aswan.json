@@ -1,0 +1,87 @@
+{
+  "id": "aswan",
+  "name": {
+    "en": "Aswan",
+    "ar": "أسوان"
+  },
+  "region": {
+    "en": "Upper Egypt",
+    "ar": "صعيد مصر"
+  },
+  "coordinates": {
+    "latitude": 24.0889,
+    "longitude": 32.8998
+  },
+  "description": {
+    "en": "Aswan is a city in the south of Egypt, the capital of the Aswan Governorate. It stands on the east bank of the Nile at the first cataract and is a busy market and tourist center. Aswan is considered the southern gateway to Egypt and has a more African atmosphere than other Egyptian cities. The pace of life is slower, the air is cleaner, and the city is famous for its beautiful Nile setting with feluccas sailing around the small islands.",
+    "ar": "أسوان هي مدينة في جنوب مصر، عاصمة محافظة أسوان. تقع على الضفة الشرقية للنيل عند الشلال الأول وهي مركز سوق وسياحة مزدحم. تعتبر أسوان البوابة الجنوبية لمصر ولديها أجواء أفريقية أكثر من المدن المصرية الأخرى. وتيرة الحياة أبطأ، والهواء أنظف، والمدينة مشهورة بموقعها الجميل على النيل مع المراكب الشراعية التي تبحر حول الجزر الصغيرة."
+  },
+  "history": {
+    "en": "Aswan has been southern Egypt's strategic and commercial gateway since antiquity, controlling the trade routes from Nubia to the north. It was also important for the stone quarries that supplied granite for obelisks and sculptures throughout ancient Egypt. During Greco-Roman times, it was a military outpost and was known as Syene.",
+    "ar": "كانت أسوان بوابة جنوب مصر الاستراتيجية والتجارية منذ العصور القديمة، حيث تسيطر على طرق التجارة من النوبة إلى الشمال. كانت أيضًا مهمة لمحاجر الحجارة التي زودت الجرانيت للمسلات والمنحوتات في جميع أنحاء مصر القديمة. خلال العصور اليونانية الرومانية، كانت موقعًا عسكريًا وكانت تعرف باسم سيينه."
+  },
+  "practical_info": {
+    "population": 290000,
+    "area": 34.6,
+    "timezone": "EET (UTC+2)",
+    "language": "Arabic",
+    "currency": "Egyptian Pound (EGP)",
+    "weather": "Hot desert climate. Very hot summers and warm winters. Almost no rainfall throughout the year. Considered one of the sunniest places on Earth.",
+    "best_time_to_visit": "October to April, when temperatures are more comfortable",
+    "transportation": {
+      "en": "Aswan is small enough to explore on foot, particularly around the Corniche area. Taxis and horse-drawn carriages are available for longer journeys. Ferries cross to Elephantine Island regularly, and feluccas can be hired for trips on the Nile. For trips to nearby attractions like Abu Simbel, organized tours or private drivers are the best options.",
+      "ar": "أسوان صغيرة بما يكفي لاستكشافها سيراً على الأقدام، خاصة حول منطقة الكورنيش. تتوفر سيارات الأجرة والعربات التي تجرها الخيول للرحلات الأطول. تعبر العبارات إلى جزيرة الفنتين بانتظام، ويمكن استئجار المراكب الشراعية للرحلات على النيل. بالنسبة للرحلات إلى المعالم السياحية القريبة مثل أبو سمبل، فإن الجولات المنظمة أو السائقين الخاصين هي الخيارات الأفضل."
+    }
+  },
+  "highlights": [
+    {
+      "id": "philae_temple",
+      "name": {
+        "en": "Temple of Philae",
+        "ar": "معبد فيلة"
+      }
+    },
+    {
+      "id": "abu_simbel",
+      "name": {
+        "en": "Abu Simbel Temples",
+        "ar": "معابد أبو سمبل"
+      }
+    },
+    {
+      "id": "unfinished_obelisk",
+      "name": {
+        "en": "Unfinished Obelisk",
+        "ar": "المسلة الناقصة"
+      }
+    },
+    {
+      "id": "elephantine_island",
+      "name": {
+        "en": "Elephantine Island",
+        "ar": "جزيرة الفنتين"
+      }
+    },
+    {
+      "id": "nubian_museum",
+      "name": {
+        "en": "Nubian Museum",
+        "ar": "المتحف النوبي"
+      }
+    }
+  ],
+  "images": [
+    "aswan_nile.jpg",
+    "philae_temple.jpg",
+    "nubian_village.jpg"
+  ],
+  "tags": [
+    "nile",
+    "nubian",
+    "temples",
+    "islands",
+    "dam",
+    "relaxing"
+  ],
+  "last_updated": "2025-04-19T16:25:27.245366"
+}

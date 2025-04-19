@@ -1,0 +1,68 @@
+{
+  "id": "abou_el_sid_cairo",
+  "name": {
+    "en": "Abou El Sid",
+    "ar": "أبو السيد"
+  },
+  "type": "traditional_egyptian",
+  "cuisine": [
+    "Egyptian",
+    "Middle Eastern"
+  ],
+  "location": {
+    "city": "Cairo",
+    "city_ar": "القاهرة",
+    "address": "157 26th of July St, Zamalek",
+    "address_ar": "١٥٧ شارع ٢٦ يوليو، الزمالك",
+    "coordinates": {
+      "latitude": 30.0571,
+      "longitude": 31.2203
+    }
+  },
+  "description": {
+    "en": "A highly atmospheric restaurant offering authentic Egyptian cuisine in a setting evoking 1940s Cairo grandeur. Famous for its ambiance and traditional dishes.",
+    "ar": "مطعم ذو أجواء رائعة يقدم المأكولات المصرية الأصيلة في مكان يستحضر عظمة القاهرة في الأربعينيات. يشتهر بأجوائه وأطباقه التقليدية."
+  },
+  "price_range": "$$ (Moderate)",
+  "opening_hours": "1:00 PM - 1:00 AM daily",
+  "popular_dishes": [
+    {
+      "name": {
+        "en": "Molokhia with Chicken/Rabbit",
+        "ar": "ملوخية بالدجاج/الأرانب"
+      },
+      "price": "LE 150-200"
+    },
+    {
+      "name": {
+        "en": "Hamam Mahshi (Stuffed Pigeon)",
+        "ar": "حمام محشي"
+      },
+      "price": "LE 180-220"
+    },
+    {
+      "name": {
+        "en": "Fattah",
+        "ar": "فتة"
+      },
+      "price": "LE 160-200"
+    }
+  ],
+  "contact": {
+    "phone": "+20 2 27359640",
+    "email": "info@abouelsid.com",
+    "website": "https://www.abouelsid.com"
+  },
+  "images": [
+    "abou_el_sid_interior.jpg",
+    "abou_el_sid_molokhia.jpg"
+  ],
+  "tags": [
+    "traditional",
+    "authentic",
+    "ambiance",
+    "zamalek",
+    "cairo"
+  ],
+  "last_updated": "2025-04-19T16:25:27.286604"
+}

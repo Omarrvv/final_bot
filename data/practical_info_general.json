@@ -1,0 +1,175 @@
+{
+  "visa": {
+    "description": {
+      "en": "Visa requirements vary by nationality. Many can obtain a visa on arrival, others need to apply in advance.",
+      "ar": "تختلف متطلبات التأشيرة حسب الجنسية. يمكن للكثيرين الحصول على تأشيرة عند الوصول، بينما يحتاج آخرون إلى التقديم مسبقًا."
+    },
+    "types": [
+      {
+        "name": { "en": "Visa on Arrival", "ar": "تأشيرة عند الوصول" },
+        "eligibility": "Specific nationalities (check official sources)",
+        "duration": "30 days",
+        "cost": "Approx. $25 USD"
+      },
+      {
+        "name": { "en": "E-Visa", "ar": "تأشيرة إلكترونية" },
+        "eligibility": "Specific nationalities (apply online)",
+        "duration": "30 days",
+        "cost": "Approx. $25 USD"
+      },
+      {
+        "name": { "en": "Consular Visa", "ar": "تأشيرة قنصلية" },
+        "eligibility": "All other nationalities (apply at embassy/consulate)",
+        "duration": "Varies",
+        "cost": "Varies"
+      }
+    ],
+    "requirements": [
+      "Valid passport (6+ months validity)",
+      "Completed application form (if required)",
+      "Passport photos (if required)"
+    ]
+  },
+  "currency": {
+    "name": { "en": "Egyptian Pound", "ar": "الجنيه المصري" },
+    "code": "EGP",
+    "symbol": "£",
+    "exchange_info": {
+      "en": "Foreign currency can be exchanged at banks, official exchange offices, and major hotels. ATMs are widely available.",
+      "ar": "يمكن صرف العملات الأجنبية في البنوك ومكاتب الصرافة الرسمية والفنادق الكبرى. أجهزة الصراف الآلي متوفرة على نطاق واسع."
+    },
+    "tips": {
+      "en": "Credit cards accepted in major establishments, but carry cash for smaller shops and markets. Inform your bank before traveling.",
+      "ar": "تُقبل بطاقات الائتمان في المؤسسات الكبرى، ولكن احمل نقودًا للمحلات الصغيرة والأسواق. أبلغ البنك الذي تتعامل معه قبل السفر."
+    }
+  },
+  "weather": {
+    "description": {
+      "en": "Egypt has a hot desert climate. Summers are very hot and dry, winters are mild.",
+      "ar": "تتمتع مصر بمناخ صحراوي حار. الصيف حار جدًا وجاف، والشتاء معتدل."
+    },
+    "best_time_to_visit": {
+      "en": "October to April offers the most pleasant weather, especially for sightseeing in Upper Egypt (Luxor, Aswan).",
+      "ar": "الفترة من أكتوبر إلى أبريل توفر الطقس الأكثر متعة، خاصة لمشاهدة المعالم السياحية في صعيد مصر (الأقصر، أسوان)."
+    },
+    "seasons": [
+      {
+        "name": { "en": "Winter (Dec-Feb)", "ar": "الشتاء (ديسمبر-فبراير)" },
+        "description": {
+          "en": "Mild days, cool nights. Occasional rain in the north (Cairo, Alexandria). Ideal for Nile cruises and sightseeing.",
+          "ar": "أيام معتدلة، ليالي باردة. أمطار متقطعة في الشمال (القاهرة، الإسكندرية). مثالي للرحلات النيلية ومشاهدة المعالم السياحية."
+        },
+        "temperature_range": "14-22°C (57-72°F)"
+      },
+      {
+        "name": { "en": "Spring (Mar-May)", "ar": "الربيع (مارس-مايو)" },
+        "description": {
+          "en": "Warm to hot temperatures. Occasional Khamsin winds bringing sandstorms.",
+          "ar": "درجات حرارة دافئة إلى حارة. رياح الخماسين العرضية التي تجلب العواصف الرملية."
+        },
+        "temperature_range": "20-35°C (68-95°F)"
+      },
+      {
+        "name": { "en": "Summer (Jun-Aug)", "ar": "الصيف (يونيو-أغسطس)" },
+        "description": {
+          "en": "Very hot and sunny, especially inland. Coastal areas offer some relief. Best for Red Sea resorts.",
+          "ar": "حار جدًا ومشمس، خاصة في الداخل. توفر المناطق الساحلية بعض الراحة. الأفضل لمنتجعات البحر الأحمر."
+        },
+        "temperature_range": "28-40°C+ (82-104°F+)"
+      },
+      {
+        "name": { "en": "Autumn (Sep-Nov)", "ar": "الخريف (سبتمبر-نوفمبر)" },
+        "description": {
+          "en": "Temperatures cool down, pleasant weather returns. Good for all activities.",
+          "ar": "تنخفض درجات الحرارة، ويعود الطقس اللطيف. جيد لجميع الأنشطة."
+        },
+        "temperature_range": "22-33°C (72-91°F)"
+      }
+    ]
+  },
+  "health_safety": {
+    "health": {
+      "en": "Consult your doctor for recommended vaccinations. Drink bottled water only. Be cautious with street food. Protect yourself from the sun.",
+      "ar": "استشر طبيبك للحصول على التطعيمات الموصى بها. اشرب المياه المعبأة فقط. كن حذراً مع طعام الشارع. احمِ نفسك من الشمس."
+    },
+    "safety": {
+      "en": "Egypt is generally safe for tourists, but be aware of petty crime like pickpocketing in crowded areas. Follow advice from tour guides and authorities. Avoid political demonstrations.",
+      "ar": "مصر آمنة بشكل عام للسياح، ولكن كن على دراية بالجرائم الصغيرة مثل النشل في المناطق المزدحمة. اتبع نصائح المرشدين السياحيين والسلطات. تجنب المظاهرات السياسية."
+    },
+    "emergency_contacts": {
+      "Police": "122",
+      "Ambulance": "123",
+      "Tourist Police": "126"
+    }
+  },
+  "telecommunications": {
+    "phone": {
+      "en": "You can buy local SIM cards easily at the airport or phone shops (e.g., Vodafone, Orange, Etisalat). Ensure your phone is unlocked.",
+      "ar": "يمكنك شراء بطاقات SIM محلية بسهولة في المطار أو متاجر الهواتف (مثل فودافون، أورانج، اتصالات). تأكد من أن هاتفك غير مقفل."
+    },
+    "internet": {
+      "en": "Wi-Fi is available in most hotels and many cafes, but quality varies. Mobile data packages are affordable.",
+      "ar": "تتوفر خدمة الواي فاي في معظم الفنادق والعديد من المقاهي، لكن الجودة تختلف. باقات بيانات الهاتف المحمول ميسورة التكلفة."
+    }
+  },
+  "holidays_events": {
+    "description": {
+      "en": "Egypt observes both Islamic and national holidays. Islamic holidays follow the lunar calendar, so dates vary annually.",
+      "ar": "تحتفل مصر بالأعياد الإسلامية والوطنية. تتبع الأعياد الإسلامية التقويم القمري، لذا تختلف التواريخ سنويًا."
+    },
+    "major_holidays": [
+      {
+        "name": { "en": "Ramadan", "ar": "رمضان" },
+        "type": "Islamic",
+        "description": {
+          "en": "Month of fasting. Business hours may change.",
+          "ar": "شهر الصيام. قد تتغير ساعات العمل."
+        }
+      },
+      {
+        "name": { "en": "Eid al-Fitr", "ar": "عيد الفطر" },
+        "type": "Islamic",
+        "description": {
+          "en": "Celebration marking the end of Ramadan.",
+          "ar": "احتفال بمناسبة انتهاء شهر رمضان."
+        }
+      },
+      {
+        "name": { "en": "Eid al-Adha", "ar": "عيد الأضحى" },
+        "type": "Islamic",
+        "description": { "en": "Festival of Sacrifice.", "ar": "عيد الأضحى." }
+      },
+      {
+        "name": { "en": "Coptic Christmas", "ar": "عيد الميلاد القبطي" },
+        "type": "National",
+        "date": "January 7th"
+      },
+      {
+        "name": { "en": "Revolution Day (2011)", "ar": "عيد ثورة 25 يناير" },
+        "type": "National",
+        "date": "January 25th"
+      },
+      {
+        "name": { "en": "Armed Forces Day", "ar": "عيد القوات المسلحة" },
+        "type": "National",
+        "date": "October 6th"
+      }
+    ],
+    "major_events": [
+      {
+        "name": {
+          "en": "Cairo International Book Fair",
+          "ar": "معرض القاهرة الدولي للكتاب"
+        },
+        "period": "Jan/Feb"
+      },
+      {
+        "name": {
+          "en": "Abu Simbel Sun Festival",
+          "ar": "مهرجان تعامد الشمس بأبو سمبل"
+        },
+        "period": "Feb 22 & Oct 22"
+      }
+    ]
+  }
+}

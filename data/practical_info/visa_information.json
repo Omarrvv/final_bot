@@ -1,0 +1,155 @@
+{
+  "id": "visa_information",
+  "name": {
+    "en": "Egypt Visa Information",
+    "ar": "معلومات تأشيرة مصر"
+  },
+  "type": "travel_document",
+  "overview": {
+    "en": "Information about visa requirements, types, and application processes for entering Egypt",
+    "ar": "معلومات عن متطلبات التأشيرة وأنواعها وإجراءات التقديم لدخول مصر"
+  },
+  "visa_types": [
+    {
+      "id": "tourist_visa",
+      "name": {
+        "en": "Tourist Visa",
+        "ar": "تأشيرة سياحية"
+      },
+      "duration": "30 days",
+      "cost": "25 USD",
+      "processing_time": "3-5 working days",
+      "description": {
+        "en": "Standard tourist visa for leisure travel to Egypt",
+        "ar": "تأشيرة سياحية قياسية للسفر الترفيهي إلى مصر"
+      }
+    },
+    {
+      "id": "e_visa",
+      "name": {
+        "en": "Electronic Visa",
+        "ar": "التأشيرة الإلكترونية"
+      },
+      "duration": "30 days",
+      "cost": "25 USD",
+      "processing_time": "7 working days",
+      "description": {
+        "en": "Online visa application available for eligible nationalities",
+        "ar": "طلب التأشيرة عبر الإنترنت متاح للجنسيات المؤهلة"
+      }
+    },
+    {
+      "id": "visa_on_arrival",
+      "name": {
+        "en": "Visa on Arrival",
+        "ar": "تأشيرة عند الوصول"
+      },
+      "duration": "30 days",
+      "cost": "25 USD",
+      "processing_time": "Immediate",
+      "description": {
+        "en": "Available at major Egyptian airports for eligible nationalities",
+        "ar": "متوفرة في المطارات المصرية الرئيسية للجنسيات المؤهلة"
+      }
+    }
+  ],
+  "application_methods": [
+    {
+      "id": "embassy",
+      "name": {
+        "en": "Embassy Application",
+        "ar": "التقديم في السفارة"
+      },
+      "requirements": [
+        "Valid passport with at least 6 months validity",
+        "Completed visa application form",
+        "Passport-size photos",
+        "Travel itinerary",
+        "Hotel reservations",
+        "Bank statements"
+      ],
+      "process": {
+        "en": "Visit your nearest Egyptian embassy or consulate with required documents",
+        "ar": "قم بزيارة أقرب سفارة أو قنصلية مصرية مع المستندات المطلوبة"
+      }
+    },
+    {
+      "id": "online",
+      "name": {
+        "en": "Online Application",
+        "ar": "التقديم عبر الإنترنت"
+      },
+      "requirements": [
+        "Valid passport scan",
+        "Digital passport photo",
+        "Credit/debit card for payment"
+      ],
+      "process": {
+        "en": "Apply through the official e-visa portal: visa2egypt.gov.eg",
+        "ar": "قدم عبر بوابة التأشيرة الإلكترونية الرسمية: visa2egypt.gov.eg"
+      }
+    }
+  ],
+  "eligible_countries": {
+    "visa_on_arrival": [
+      "United States",
+      "United Kingdom",
+      "European Union countries",
+      "Canada",
+      "Australia",
+      "New Zealand",
+      "Japan"
+    ],
+    "e_visa": [
+      "United States",
+      "United Kingdom",
+      "European Union countries",
+      "Canada",
+      "Australia",
+      "New Zealand",
+      "Japan",
+      "Russia"
+    ]
+  },
+  "exemptions": {
+    "no_visa_required": [
+      {
+        "country": "Bahrain",
+        "duration": "3 months"
+      },
+      {
+        "country": "Kuwait",
+        "duration": "3 months"
+      },
+      {
+        "country": "Saudi Arabia",
+        "duration": "3 months"
+      }
+    ]
+  },
+  "important_notes": [
+    {
+      "en": "Visa fees must be paid in USD or EUR",
+      "ar": "يجب دفع رسوم التأشيرة بالدولار الأمريكي أو اليورو"
+    },
+    {
+      "en": "Overstaying your visa may result in fines",
+      "ar": "قد يؤدي تجاوز مدة التأشيرة إلى غرامات"
+    },
+    {
+      "en": "Business travelers require additional documentation",
+      "ar": "يحتاج المسافرون لأغراض تجارية إلى وثائق إضافية"
+    }
+  ],
+  "contact_info": {
+    "website": "visa2egypt.gov.eg",
+    "email": "support@visa2egypt.gov.eg",
+    "phone": "+20 XXXXXXXXX",
+    "support_hours": "24/7"
+  },
+  "last_updated": "2024-03-19",
+  "disclaimer": {
+    "en": "Visa requirements and fees are subject to change. Please verify the latest information with official sources.",
+    "ar": "متطلبات ورسوم التأشيرة عرضة للتغيير. يرجى التحقق من أحدث المعلومات من المصادر الرسمية."
+  }
+}

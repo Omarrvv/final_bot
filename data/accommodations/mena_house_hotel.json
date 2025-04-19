@@ -1,0 +1,161 @@
+{
+  "id": "mena_house_hotel",
+  "name": {
+    "en": "Marriott Mena House, Cairo",
+    "ar": "ماريوت منا هاوس، القاهرة"
+  },
+  "type": "luxury_hotel",
+  "stars": 5,
+  "location": {
+    "city": "Cairo",
+    "city_ar": "القاهرة",
+    "address": "6 Pyramids Road, Giza",
+    "address_ar": "٦ طريق الأهرامات، الجيزة",
+    "coordinates": {
+      "latitude": 29.9902,
+      "longitude": 31.1339
+    }
+  },
+  "description": {
+    "en": "Marriott Mena House is a historic hotel located at the foot of the Great Pyramids of Giza. Originally a hunting lodge built in 1869, it has hosted royalty, dignitaries, and celebrities throughout its storied history. The hotel combines luxurious modern accommodations with breathtaking views of the pyramids and extensive gardens. It features elegant rooms, multiple dining options, a spa, and a swimming pool, all while preserving its historical charm and offering an unparalleled proximity to Egypt's most iconic ancient monuments.",
+    "ar": "ماريوت منا هاوس هو فندق تاريخي يقع عند سفح أهرامات الجيزة العظيمة. كان في الأصل نزلاً للصيد تم بناؤه في عام 1869، وقد استضاف ملوكًا ووجهاء ومشاهير على مر تاريخه الحافل. يجمع الفندق بين أماكن إقامة فاخرة حديثة مع إطلالات خلابة على الأهرامات وحدائق واسعة. يضم غرفًا أنيقة وخيارات متعددة لتناول الطعام ومنتجع صحي وحمام سباحة، كل ذلك مع الحفاظ على سحره التاريخي وتوفير قرب لا مثيل له من أكثر المعالم القديمة شهرة في مصر."
+  },
+  "amenities": [
+    "Free WiFi",
+    "Swimming pool",
+    "Spa and wellness center",
+    "Fitness center",
+    "Multiple restaurants and bars",
+    "24-hour room service",
+    "Concierge service",
+    "Business center",
+    "Meeting/banquet facilities",
+    "Currency exchange",
+    "Tour desk",
+    "Gardens",
+    "Terrace",
+    "Air conditioning",
+    "Elevator",
+    "Family rooms",
+    "Non-smoking rooms",
+    "Room service"
+  ],
+  "price_range": {
+    "min": "$200",
+    "max": "$1000+",
+    "currency": "USD"
+  },
+  "rooms": [
+    {
+      "type": {
+        "en": "Deluxe Room",
+        "ar": "غرفة ديلوكس"
+      },
+      "description": {
+        "en": "Elegant rooms with modern amenities and garden views.",
+        "ar": "غرف أنيقة مع وسائل راحة حديثة وإطلالات على الحديقة."
+      },
+      "price": "$200-300"
+    },
+    {
+      "type": {
+        "en": "Pyramid View Room",
+        "ar": "غرفة بإطلالة على الأهرامات"
+      },
+      "description": {
+        "en": "Luxurious rooms offering stunning views of the Great Pyramids of Giza.",
+        "ar": "غرف فاخرة توفر إطلالات مذهلة على أهرامات الجيزة العظيمة."
+      },
+      "price": "$350-500"
+    },
+    {
+      "type": {
+        "en": "Executive Suite",
+        "ar": "جناح تنفيذي"
+      },
+      "description": {
+        "en": "Spacious suites with separate living areas, premium amenities, and pyramid views.",
+        "ar": "أجنحة فسيحة مع مناطق معيشة منفصلة ووسائل راحة متميزة وإطلالات على الأهرامات."
+      },
+      "price": "$600-800"
+    },
+    {
+      "type": {
+        "en": "Royal Suite",
+        "ar": "الجناح الملكي"
+      },
+      "description": {
+        "en": "Opulent suites offering the ultimate luxury experience with panoramic pyramid views.",
+        "ar": "أجنحة فخمة توفر تجربة فاخرة مطلقة مع إطلالات بانورامية على الأهرامات."
+      },
+      "price": "$1000+"
+    }
+  ],
+  "dining": [
+    {
+      "name": {
+        "en": "139 Pavilion",
+        "ar": "جناح ١٣٩"
+      },
+      "description": {
+        "en": "All-day dining restaurant offering international cuisine with outdoor seating options and views of the pyramids.",
+        "ar": "مطعم يقدم الطعام طوال اليوم ويقدم المأكولات العالمية مع خيارات جلوس في الهواء الطلق وإطلالات على الأهرامات."
+      },
+      "cuisine": [
+        "International",
+        "Mediterranean",
+        "Egyptian"
+      ]
+    },
+    {
+      "name": {
+        "en": "Alfredo Restaurant",
+        "ar": "مطعم الفريدو"
+      },
+      "description": {
+        "en": "Elegant Italian restaurant serving authentic dishes in a refined setting.",
+        "ar": "مطعم إيطالي أنيق يقدم أطباقًا أصيلة في أجواء راقية."
+      },
+      "cuisine": [
+        "Italian"
+      ]
+    },
+    {
+      "name": {
+        "en": "Sultan Bar",
+        "ar": "بار السلطان"
+      },
+      "description": {
+        "en": "Sophisticated lounge offering cocktails, fine wines, and light snacks with views of the pyramids.",
+        "ar": "صالة متطورة تقدم الكوكتيلات والنبيذ الفاخر والوجبات الخفيفة مع إطلالات على الأهرامات."
+      },
+      "cuisine": [
+        "Snacks",
+        "Beverages"
+      ]
+    }
+  ],
+  "contact": {
+    "phone": "+20 2 33773222",
+    "email": "menahouse.reservation@marriott.com",
+    "website": "https://www.marriott.com/hotels/travel/caimn-marriott-mena-house-cairo/"
+  },
+  "images": [
+    "mena_house_exterior.jpg",
+    "mena_house_pyramid_view.jpg",
+    "mena_house_pool.jpg",
+    "mena_house_garden.jpg",
+    "mena_house_room.jpg",
+    "mena_house_dining.jpg"
+  ],
+  "tags": [
+    "luxury",
+    "historical",
+    "pyramids",
+    "Giza",
+    "resort",
+    "spa",
+    "5-star"
+  ],
+  "last_updated": "2025-04-19T16:25:27.305968"
+}

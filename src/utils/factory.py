@@ -35,7 +35,7 @@ class ComponentFactory:
             "database_uri": os.getenv("DATABASE_URI", "sqlite:///./data/egypt_chatbot.db"),
             "vector_db_uri": os.getenv("VECTOR_DB_URI", "./data/vector_db"),
             "content_path": os.getenv("CONTENT_PATH", "./data"),
-            "session_storage_uri": os.getenv("SESSION_STORAGE_URI", "file://./data/sessions"),
+            "session_storage_uri": os.getenv("SESSION_STORAGE_URI", "redis://localhost:6379/0"),
             "models_config": os.getenv("MODELS_CONFIG", "./configs/models.json"),
             "flows_config": os.getenv("FLOWS_CONFIG", "./configs/dialog_flows.json"),
             "services_config": os.getenv("SERVICES_CONFIG", "./configs/services.json"),
@@ -183,27 +183,29 @@ class ComponentFactory:
         # Determine storage URI based on testing environment
         is_testing = os.getenv("TESTING") == "true"
         if is_testing:
-            # Force file storage during testing, using the path set in test setup
-            # Note: Assumes CONTENT_PATH is set correctly in test setup for temp dir
-            temp_dir = self.env_vars.get("CONTENT_PATH") # Get temp path from env_vars
+            # Force file storage during testing
+            temp_dir = self.env_vars.get("CONTENT_PATH")
             if temp_dir:
-                 storage_uri = f"file:///{os.path.join(temp_dir, '..' ,'sessions')}" # Construct path relative to CONTENT_PATH parent
-                 logger.info(f"Forcing file session storage for testing: {storage_uri}")
+                storage_uri = f"file:///{os.path.join(temp_dir, '..', 'sessions')}"
+                logger.info(f"Forcing file session storage for testing: {storage_uri}")
             else:
-                 logger.warning("CONTENT_PATH not found in env_vars during testing, defaulting session storage URI.")
-                 storage_uri = self.env_vars["session_storage_uri"] 
+                logger.warning("CONTENT_PATH not found in env_vars during testing, defaulting session storage URI.")
+                storage_uri = self.env_vars["session_storage_uri"]
         else:
-            # Use configured/default URI for non-testing environments
-            storage_uri = self.env_vars["session_storage_uri"]
+            # Use Redis in Docker, local Redis for development
+            is_docker = os.path.exists("/.dockerenv")
+            if is_docker:
+                storage_uri = "redis://redis:6379/1"  # Use Docker service name
+            else:
+                storage_uri = "redis://localhost:6379/1"  # Use localhost for local development
             
-            # Set USE_REDIS environment variable if session_storage_uri starts with redis://
-            if storage_uri and storage_uri.startswith("redis://"):
+            if storage_uri.startswith("redis://"):
                 os.environ["USE_REDIS"] = "true"
                 logger.info("Detected Redis URI in session_storage_uri, setting USE_REDIS=true")
             
         return SessionManager(
             session_ttl=3600,  # 1 hour by default
-            storage_uri=storage_uri # Pass the determined URI
+            storage_uri=storage_uri
         )
 
 # Create a global factory instance

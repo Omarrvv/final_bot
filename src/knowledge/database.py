@@ -25,47 +25,49 @@ class DatabaseManager:
     """
     
     def __init__(self, database_uri: Optional[str] = None):
-        """
-        Initialize the database manager with the specified database URIs.
-        Connects to SQLite (primary/fallback) and optionally PostgreSQL.
+        """Initialize database manager with URI."""
+        self.database_uri = database_uri or os.getenv("DATABASE_URI", "sqlite:///./data/egypt_chatbot.db")
+        self.postgres_uri = os.getenv("POSTGRES_URI")  # Keep for future use
+        self.connection = None
+        self.postgres_connection = None
+        self.lock = threading.Lock()
         
-        Args:
-            database_uri (str, optional): URI for the primary (SQLite) database connection.
-        """
-        self.database_uri = database_uri or os.getenv("DATABASE_URI", "sqlite:///data/chatbot.db")
-        self.postgres_uri = os.getenv("POSTGRES_URI") # Get Postgres URI
+        # Determine and set up primary database
+        self.db_type = self._determine_db_type()
+        logger.info(f"Initializing DatabaseManager with type: {self.db_type}")
         
-        self.connection = None # For SQLite
-        self.postgres_connection = None # For PostgreSQL
-        
-        self.db_type = self._determine_db_type() # This might need adjustment or removal if primary focus shifts
-        self.lock = threading.Lock() # Keep lock for SQLite operations
-        
-        # Initialize primary (SQLite) connection
-        self._initialize_sqlite_connection() # Renamed for clarity
-        
-        # Initialize secondary (PostgreSQL) connection if URI is provided
-        if self.postgres_uri:
+        if self.db_type == "sqlite":
+            self._initialize_sqlite_connection()
+            if not self.connection:
+                raise RuntimeError("Failed to initialize SQLite connection")
+        elif self.db_type == "postgres":
             self._initialize_postgres_connection()
+            if not self.postgres_connection:
+                raise RuntimeError("Failed to initialize PostgreSQL connection")
         else:
-            logger.info("POSTGRES_URI not found in environment. PostgreSQL connection skipped.")
+            raise ValueError(f"Unsupported database type: {self.db_type}")
             
-        logger.info(f"Database manager initialized. SQLite URI: {self.database_uri}, PostgreSQL URI: {self.postgres_uri if self.postgres_uri else 'Not Configured'}")
+        logger.info("DatabaseManager initialized successfully")
     
     def _determine_db_type(self) -> str:
         """Determine primary database type from URI configuration."""
-        # First check for PostgreSQL
-        if self.postgres_uri and self.postgres_uri.startswith("postgresql:"):
-            logger.info("Using PostgreSQL as primary database.")
-            return "postgres"
-        # Fallback to SQLite
-        elif self.database_uri and self.database_uri.startswith("sqlite:"):
-            logger.info("Using SQLite as primary database.")
-            return "sqlite"
-        else:
-            logger.warning(f"No valid database URI found. PostgreSQL URI: {self.postgres_uri}, SQLite URI: {self.database_uri}")
-            logger.warning("Defaulting to SQLite (memory) as fallback.")
-            return "sqlite" # Default to SQLite for safety
+        # --- TEMP OVERRIDE FOR PHASE 1 --- 
+        # Force SQLite to ensure tests run against the primary planned DB for Phase 1/2
+        logger.warning("DatabaseManager._determine_db_type is temporarily forced to return 'sqlite' for Phase 1 testing.")
+        return "sqlite"
+        # --- Original Logic (Commented out) ---
+        # # First check for PostgreSQL
+        # if self.postgres_uri and self.postgres_uri.startswith("postgresql:"):
+        #     logger.info("Using PostgreSQL as primary database.")
+        #     return "postgres"
+        # # Fallback to SQLite
+        # elif self.database_uri and self.database_uri.startswith("sqlite:"):
+        #     logger.info("Using SQLite as primary database.")
+        #     return "sqlite"
+        # else:
+        #     logger.warning(f"No valid database URI found. PostgreSQL URI: {self.postgres_uri}, SQLite URI: {self.database_uri}")
+        #     logger.warning("Defaulting to SQLite (memory) as fallback.")
+        #     return "sqlite" # Default to SQLite for safety
     
     def _initialize_sqlite_connection(self) -> None:
         """Initialize SQLite database connection."""
@@ -225,125 +227,115 @@ class DatabaseManager:
     
     def _create_sqlite_tables(self) -> None:
         """Create SQLite tables if they don't exist."""
-        if not self.connection:
-            logger.warning("Cannot create SQLite tables: SQLite connection not available.")
-            return 
-        with self.lock:
-            cursor = self.connection.cursor()
-            
-            # Attractions table
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS attractions (
-                    id TEXT PRIMARY KEY,
-                    name_en TEXT NOT NULL,
-                    name_ar TEXT,
-                    type TEXT,
-                    city TEXT,
-                    region TEXT,
-                    latitude REAL,
-                    longitude REAL,
-                    description_en TEXT,
-                    description_ar TEXT,
-                    data JSON,
-                    created_at TEXT,
-                    updated_at TEXT
-                )
-            ''')
-            
-            # Accommodations table
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS accommodations (
-                    id TEXT PRIMARY KEY,
-                    name_en TEXT NOT NULL,
-                    name_ar TEXT,
-                    type TEXT,
-                    category TEXT,
-                    city TEXT,
-                    region TEXT,
-                    latitude REAL,
-                    longitude REAL,
-                    description_en TEXT,
-                    description_ar TEXT,
-                    price_min REAL,
-                    price_max REAL,
-                    data JSON,
-                    created_at TEXT,
-                    updated_at TEXT
-                )
-            ''')
-            
-            # Restaurants table
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS restaurants (
-                    id TEXT PRIMARY KEY,
-                    name_en TEXT NOT NULL,
-                    name_ar TEXT,
-                    cuisine TEXT,
-                    city TEXT,
-                    region TEXT,
-                    latitude REAL,
-                    longitude REAL,
-                    description_en TEXT,
-                    description_ar TEXT,
-                    price_range TEXT,
-                    data JSON,
-                    created_at TEXT,
-                    updated_at TEXT
-                )
-            ''')
-            
-            # Sessions table
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS sessions (
-                    id TEXT PRIMARY KEY,
-                    data JSON,
-                    created_at TEXT,
-                    updated_at TEXT,
-                    expires_at TEXT
-                )
-            ''')
-            
-            # Users table
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS users (
-                    id TEXT PRIMARY KEY,
-                    username TEXT UNIQUE NOT NULL,
-                    email TEXT UNIQUE,
-                    password_hash TEXT NOT NULL,
-                    salt TEXT NOT NULL,
-                    role TEXT,
-                    data JSON,
-                    created_at TEXT,
-                    last_login TEXT
-                )
-            ''')
-            
-            # Analytics table (Ensure name matches actual table)
-            # Note: Table name in log_analytics_event is 'analytics'. Keep consistent.
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS analytics (
-                    id TEXT PRIMARY KEY,
-                    session_id TEXT,
-                    user_id TEXT,
-                    event_type TEXT,
-                    event_data JSON,
-                    timestamp TEXT
-                )
-            ''')
-            
-            # Create indexes
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_attractions_type ON attractions (type)')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_attractions_city ON attractions (city)')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_accommodations_city ON accommodations (city)')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_restaurants_city ON restaurants (city)')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_restaurants_cuisine ON restaurants (cuisine)')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions (expires_at)')
-            # Add indexes for analytics table
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_analytics_session_id ON analytics (session_id)')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_analytics_event_type ON analytics (event_type)')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_analytics_timestamp ON analytics (timestamp)')
-            
-            self.connection.commit()
+        try:
+            with self.lock:
+                cursor = self.connection.cursor()
+                
+                # Create attractions table
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS attractions (
+                        id TEXT PRIMARY KEY,
+                        name_en TEXT,
+                        name_ar TEXT,
+                        type TEXT,
+                        city TEXT,
+                        region TEXT,
+                        latitude REAL,
+                        longitude REAL,
+                        description_en TEXT,
+                        description_ar TEXT,
+                        data TEXT,  -- JSON field for additional data
+                        created_at TEXT,
+                        updated_at TEXT
+                    )
+                """)
+                
+                # Create restaurants table
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS restaurants (
+                        id TEXT PRIMARY KEY,
+                        name_en TEXT,
+                        name_ar TEXT,
+                        cuisine TEXT,  -- Comma-separated list
+                        city TEXT,
+                        region TEXT,
+                        latitude REAL,
+                        longitude REAL,
+                        description_en TEXT,
+                        description_ar TEXT,
+                        price_range TEXT,
+                        data TEXT,  -- JSON field for additional data
+                        created_at TEXT,
+                        updated_at TEXT
+                    )
+                """)
+                
+                # Create accommodations table
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS accommodations (
+                        id TEXT PRIMARY KEY,
+                        name_en TEXT,
+                        name_ar TEXT,
+                        type TEXT,
+                        category TEXT,
+                        city TEXT,
+                        region TEXT,
+                        latitude REAL,
+                        longitude REAL,
+                        description_en TEXT,
+                        description_ar TEXT,
+                        price_min REAL,
+                        price_max REAL,
+                        data TEXT,  -- JSON field for additional data
+                        created_at TEXT,
+                        updated_at TEXT
+                    )
+                """)
+                
+                # Create sessions table
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS sessions (
+                        id TEXT PRIMARY KEY,
+                        data TEXT,  -- JSON field for session data
+                        created_at TEXT,
+                        updated_at TEXT,
+                        expires_at TEXT
+                    )
+                """)
+                
+                # Create analytics_events table
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS analytics_events (
+                        id TEXT PRIMARY KEY,
+                        event_type TEXT,
+                        event_data TEXT,  -- JSON field
+                        session_id TEXT,
+                        user_id TEXT,
+                        timestamp TEXT,
+                        FOREIGN KEY(session_id) REFERENCES sessions(id) ON DELETE SET NULL
+                    )
+                """)
+                
+                # Create feedback table
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS feedback (
+                        id TEXT PRIMARY KEY,
+                        message_id TEXT,
+                        rating INTEGER,
+                        comment TEXT,
+                        session_id TEXT,
+                        user_id TEXT,
+                        created_at TEXT,
+                        FOREIGN KEY(session_id) REFERENCES sessions(id) ON DELETE SET NULL
+                    )
+                """)
+                
+                self.connection.commit()
+                logger.info("SQLite tables created successfully")
+                
+        except Exception as e:
+            logger.error(f"Error creating SQLite tables: {str(e)}", exc_info=True)
+            raise
     
     def close(self) -> None:
         """Close all active database connections."""
@@ -434,17 +426,22 @@ class DatabaseManager:
                     sql = "SELECT * FROM attractions WHERE 1=1"
                     params = []
                     
-                    if "type" in query:
-                        sql += " AND type = ?"
-                        params.append(query["type"])
-                    
-                    if "city" in query:
-                        sql += " AND city = ?"
-                        params.append(query["city"])
-                    
-                    if "region" in query:
-                        sql += " AND region = ?"
-                        params.append(query["region"])
+                    # --- MODIFICATION START: Handle LIKE queries ---
+                    for field, value in query.items():
+                        if isinstance(value, dict) and '$like' in value:
+                            # Handle LIKE operator
+                            sql += f" AND {field} LIKE ?"
+                            params.append(value['$like'])
+                        elif field == 'id' and isinstance(value, list): # Example: handle list of IDs
+                            placeholders = ', '.join('?' * len(value))
+                            sql += f" AND id IN ({placeholders})"
+                            params.extend(value)
+                        elif field in ['type', 'city', 'region']: # Add other exact match fields here
+                            # Handle exact match for specific fields
+                            sql += f" AND {field} = ?"
+                            params.append(value)
+                        # Add more conditions as needed (e.g., ranges, etc.)
+                    # --- MODIFICATION END ---
                     
                     # Add sorting
                     sql += " ORDER BY name_en"
@@ -454,6 +451,7 @@ class DatabaseManager:
                     params.extend([limit, offset])
                     
                     # Execute query
+                    logger.debug(f"Executing SQL: {sql} with params: {params}") # Log the query
                     cursor.execute(sql, params)
                     rows = cursor.fetchall()
                     
@@ -527,7 +525,7 @@ class DatabaseManager:
             return results
             
         except Exception as e:
-            logger.error(f"Error searching attractions: {str(e)}")
+            logger.error(f"Error searching attractions: {str(e)}", exc_info=True) # Log full traceback
             return []
     
     def save_attraction(self, attraction: Dict) -> bool:
@@ -1139,6 +1137,9 @@ class DatabaseManager:
             bool: Success flag
         """
         try:
+            # Generate event ID first, needed for both SQLite and potentially Postgres
+            event_id = str(uuid.uuid4()) 
+
             # Create event document
             event = {
                 "timestamp": datetime.now().isoformat(),
@@ -1149,30 +1150,24 @@ class DatabaseManager:
                 "user_id": user_id
             }
 
+            # TEMP FIX: Prioritize SQLite for analytics logging as per Phase 1/2 goals
+            # The Postgres branch causes errors due to potential schema mismatch (UUID vs INT ID)
+            # We will revisit Postgres consolidation in Phase 2.
             if self.db_type == "sqlite":
                 with self.lock:
                     cursor = self.connection.cursor()
-                    # Generate UUID for SQLite ID
-                    event_id = str(uuid.uuid4())
                     cursor.execute("""
                         INSERT INTO analytics (id, session_id, user_id, event_type, event_data, timestamp)
                         VALUES (?, ?, ?, ?, ?, ?)
                     """, (event_id, session_id, user_id, event_type, event['event_data'], event['timestamp']))
                     self.connection.commit()
                 return True
-            elif self.db_type == "postgres":
-                cursor = self.postgres_connection.cursor()
-                cursor.execute("""
-                    INSERT INTO analytics (id, session_id, user_id, event_type, event_data, timestamp)
-                    VALUES (%s, %s, %s, %s, %s, %s)
-                """, (
-                    event_id, session_id, user_id, event_type, event['event_data'], event['timestamp']
-                ))
-                self.postgres_connection.commit()
-                return True
+            # elif self.db_type == "postgres":
+            #     # ... (Postgres code causing error) ...
+            #     return True 
             else:
-                # Handle other DB types or log unsupported operation
-                logger.warning(f"Analytics logging only implemented for SQLite and PostgreSQL. DB type: {self.db_type}") # Adjusted warning
+                # If not SQLite, log warning and return False for now
+                logger.warning(f"Analytics logging currently only functional for SQLite. DB type: {self.db_type}")
                 return False
 
         except Exception as e:
@@ -1407,54 +1402,440 @@ class DatabaseManager:
     # ---- Accommodation Methods ----
 
     def search_accommodations(self, query: Dict = None, limit: int = 10, offset: int = 0) -> List[Dict]:
-        """(Placeholder) Search accommodations."""
-        logger.warning("search_accommodations not fully implemented yet.")
-        # TODO: Implement based on search_attractions logic
-        return []
+        """Search accommodations with filters."""
+        query = query or {}
+        results = []
+        logger.debug(f"Searching accommodations with query: {query}")
+        
+        try:
+            if self.db_type == "sqlite":
+                with self.lock:
+                    cursor = self.connection.cursor()
+                    sql = "SELECT * FROM accommodations WHERE 1=1"
+                    params = []
+
+                    # --- ADDED: Handle LIKE queries and filters ---
+                    for field, value in query.items():
+                        if isinstance(value, dict) and '$like' in value:
+                            sql += f" AND {field} LIKE ?"
+                            params.append(value['$like'])
+                        elif field in ['type', 'category', 'city', 'region']: # Add searchable fields
+                            sql += f" AND {field} = ?"
+                            params.append(value)
+                        # Add price range filters if needed
+                        elif field == 'price_min' and value is not None:
+                            sql += " AND price_min >= ?"
+                            params.append(value)
+                        elif field == 'price_max' and value is not None:
+                             sql += " AND price_max <= ?"
+                             params.append(value)
+                    # --- END ADDED ---
+
+                    sql += " ORDER BY name_en LIMIT ? OFFSET ?"
+                    params.extend([limit, offset])
+                    
+                    logger.debug(f"Executing SQL: {sql} with params: {params}")
+                    cursor.execute(sql, params)
+                    rows = cursor.fetchall()
+
+                    for row in rows:
+                        item = dict(row)
+                        if "data" in item and item["data"]:
+                            item.update(json.loads(item["data"]))
+                            del item["data"]
+                        results.append(item)
+            # Add elif for postgres if needed
+
+            return results
+        except Exception as e:
+            logger.error(f"Error searching accommodations: {str(e)}", exc_info=True)
+            return []
 
     def get_accommodation(self, accommodation_id: str) -> Optional[Dict]:
-        """(Placeholder) Get accommodation by ID."""
-        logger.warning(f"get_accommodation({accommodation_id}) not implemented yet.")
-        # TODO: Implement based on get_attraction logic
-        return None
+        """Get accommodation by ID."""
+        logger.debug(f"Getting accommodation by ID: {accommodation_id}")
+        try:
+            if self.db_type == "sqlite":
+                with self.lock:
+                    cursor = self.connection.cursor()
+                    cursor.execute("SELECT * FROM accommodations WHERE id = ?", (accommodation_id,))
+                    row = cursor.fetchone()
+                    if row:
+                        item = dict(row)
+                        if "data" in item and item["data"]:
+                            item.update(json.loads(item["data"]))
+                            del item["data"]
+                        return item
+            # Add elif for postgres if needed
+            return None
+        except Exception as e:
+            logger.error(f"Error getting accommodation {accommodation_id}: {str(e)}", exc_info=True)
+            return None
 
     def save_accommodation(self, accommodation: Dict) -> bool:
-        """(Placeholder) Save accommodation data."""
-        logger.warning("save_accommodation not implemented yet.")
-        # TODO: Implement based on save_attraction logic
-        return False
+        """
+        Save accommodation data.
+        
+        Args:
+            accommodation (dict): Accommodation data
+            
+        Returns:
+            bool: Success status
+        """
+        try:
+            # Ensure accommodation has an ID
+            if "id" not in accommodation:
+                logger.warning("Cannot save accommodation: missing ID")
+                return False
+            
+            # Set timestamps
+            now = datetime.now().isoformat()
+            if "updated_at" not in accommodation:
+                accommodation["updated_at"] = now
+            
+            if "created_at" not in accommodation:
+                accommodation["created_at"] = now
+            
+            if self.db_type == "sqlite":
+                with self.lock:
+                    cursor = self.connection.cursor()
+                    
+                    # Extract primary fields
+                    accommodation_id = accommodation["id"]
+                    name_en = accommodation.get("name", {}).get("en", "")
+                    name_ar = accommodation.get("name", {}).get("ar", "")
+                    accommodation_type = accommodation.get("type", "")
+                    category = accommodation.get("category", "")
+                    city = accommodation.get("location", {}).get("city", "")
+                    region = accommodation.get("location", {}).get("region", "")
+                    latitude = accommodation.get("location", {}).get("coordinates", {}).get("latitude")
+                    longitude = accommodation.get("location", {}).get("coordinates", {}).get("longitude")
+                    description_en = accommodation.get("description", {}).get("en", "")
+                    description_ar = accommodation.get("description", {}).get("ar", "")
+                    
+                    # Get price range if available
+                    price_min = None
+                    price_max = None
+                    if "price_range" in accommodation and isinstance(accommodation["price_range"], dict):
+                        price_min = accommodation["price_range"].get("min")
+                        if isinstance(price_min, str) and price_min.startswith("$"):
+                            # Strip $ and convert to float, handle any non-numeric parts
+                            try:
+                                price_min = float(price_min.lstrip("$").split("-")[0].strip().replace("+", ""))
+                            except ValueError:
+                                logger.warning(f"Could not convert price_min to float: {price_min}")
+                                price_min = None
+                        
+                        price_max = accommodation["price_range"].get("max")
+                        if isinstance(price_max, str) and price_max.startswith("$"):
+                            # Strip $ and convert to float, handle any non-numeric parts
+                            try:
+                                price_max = float(price_max.lstrip("$").split("-")[0].strip().replace("+", ""))
+                            except ValueError:
+                                logger.warning(f"Could not convert price_max to float: {price_max}")
+                                price_max = None
+                    elif "price_min" in accommodation:
+                        price_min = accommodation.get("price_min")
+                        price_max = accommodation.get("price_max")
+                    
+                    # Store full data as JSON
+                    data_json = json.dumps(accommodation)
+                    
+                    # Check if accommodation exists
+                    cursor.execute("SELECT COUNT(*) FROM accommodations WHERE id = ?", (accommodation_id,))
+                    count = cursor.fetchone()[0]
+                    
+                    if count > 0:
+                        # Update existing accommodation
+                        cursor.execute("""
+                            UPDATE accommodations 
+                            SET name_en = ?, name_ar = ?, type = ?, category = ?, city = ?, region = ?,
+                                latitude = ?, longitude = ?, description_en = ?, description_ar = ?,
+                                price_min = ?, price_max = ?, data = ?, updated_at = ?
+                            WHERE id = ?
+                        """, (
+                            name_en, name_ar, accommodation_type, category, city, region,
+                            latitude, longitude, description_en, description_ar,
+                            price_min, price_max, data_json, now, accommodation_id
+                        ))
+                    else:
+                        # Insert new accommodation
+                        insert_sql = """
+                            INSERT INTO accommodations 
+                            (id, name_en, name_ar, type, category, city, region,
+                             latitude, longitude, description_en, description_ar,
+                             price_min, price_max, data, created_at, updated_at)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """
+                        
+                        # Count the params to debug
+                        param_count = len([
+                            accommodation_id, name_en, name_ar, accommodation_type, category, city, region,
+                            latitude, longitude, description_en, description_ar,
+                            price_min, price_max, data_json, now, now
+                        ])
+                        logger.debug(f"INSERT accommodations with {param_count} params: {insert_sql.count('?')} placeholders")
+                        
+                        cursor.execute(insert_sql, (
+                            accommodation_id, name_en, name_ar, accommodation_type, category, city, region,
+                            latitude, longitude, description_en, description_ar,
+                            price_min, price_max, data_json, now, now
+                        ))
+                    
+                    self.connection.commit()
+                    logger.info(f"Successfully saved accommodation: {accommodation_id}")
+                    return True
+                    
+            # Add implementations for other DB types if needed
+            else:
+                logger.warning(f"Save accommodation not implemented for DB type: {self.db_type}")
+                return False
+            
+        except Exception as e:
+            logger.error(f"Error saving accommodation: {str(e)}", exc_info=True)
+            return False
 
     def delete_accommodation(self, accommodation_id: str) -> bool:
-        """(Placeholder) Delete accommodation by ID."""
-        logger.warning(f"delete_accommodation({accommodation_id}) not implemented yet.")
-        # TODO: Implement based on delete_attraction logic
-        return False
+        """
+        Delete accommodation by ID.
+        
+        Args:
+            accommodation_id (str): Accommodation ID
+            
+        Returns:
+            bool: Success status
+        """
+        try:
+            if self.db_type == "sqlite":
+                with self.lock:
+                    cursor = self.connection.cursor()
+                    cursor.execute("DELETE FROM accommodations WHERE id = ?", (accommodation_id,))
+                    self.connection.commit()
+                    return cursor.rowcount > 0
+                    
+            elif self.db_type == "postgres":
+                cursor = self.postgres_connection.cursor()
+                cursor.execute("DELETE FROM accommodations WHERE id = %s", (accommodation_id,))
+                self.postgres_connection.commit()
+                return cursor.rowcount > 0
+                
+            elif self.db_type == "redis":
+                key = f"accommodation:{accommodation_id}"
+                count = self.connection.delete(key)
+                return count > 0
+                
+            return False
+            
+        except Exception as e:
+            logger.error(f"Error deleting accommodation {accommodation_id}: {str(e)}")
+            return False
 
     # ---- Restaurant Methods ----
 
     def search_restaurants(self, query: Dict = None, limit: int = 10, offset: int = 0) -> List[Dict]:
-        """(Placeholder) Search restaurants."""
-        logger.warning("search_restaurants not fully implemented yet.")
-        # TODO: Implement based on search_attractions logic
-        return []
+        """Search restaurants with filters."""
+        query = query or {}
+        results = []
+        logger.debug(f"Searching restaurants with query: {query}")
+        
+        try:
+            if self.db_type == "sqlite":
+                with self.lock:
+                    cursor = self.connection.cursor()
+                    sql = "SELECT * FROM restaurants WHERE 1=1"
+                    params = []
+
+                    # --- ADDED: Handle LIKE queries and filters ---
+                    for field, value in query.items():
+                        if isinstance(value, dict) and '$like' in value:
+                            sql += f" AND {field} LIKE ?"
+                            params.append(value['$like'])
+                        elif field in ['cuisine', 'city', 'region', 'price_range']: # Add searchable fields
+                            # Special handling for cuisine since it's comma-separated
+                            if field == 'cuisine' and isinstance(value, str):
+                                sql += " AND cuisine LIKE ?"
+                                params.append(f'%{value}%') # Use LIKE for comma-separated string
+                            elif field != 'cuisine':
+                                sql += f" AND {field} = ?"
+                                params.append(value)
+                    # --- END ADDED ---
+
+                    sql += " ORDER BY name_en LIMIT ? OFFSET ?"
+                    params.extend([limit, offset])
+
+                    logger.debug(f"Executing SQL: {sql} with params: {params}")
+                    cursor.execute(sql, params)
+                    rows = cursor.fetchall()
+
+                    for row in rows:
+                        item = dict(row)
+                        if "data" in item and item["data"]:
+                            item.update(json.loads(item["data"]))
+                            del item["data"]
+                        # Optionally convert comma-separated cuisine back to list
+                        if 'cuisine' in item and isinstance(item['cuisine'], str):
+                             item['cuisine'] = [c.strip() for c in item['cuisine'].split(',') if c.strip()]
+                        results.append(item)
+            # Add elif for postgres if needed
+
+            return results
+        except Exception as e:
+            logger.error(f"Error searching restaurants: {str(e)}", exc_info=True)
+            return []
 
     def get_restaurant(self, restaurant_id: str) -> Optional[Dict]:
-        """(Placeholder) Get restaurant by ID."""
-        logger.warning(f"get_restaurant({restaurant_id}) not implemented yet.")
-        # TODO: Implement based on get_attraction logic
-        return None
+        """Get restaurant by ID."""
+        logger.debug(f"Getting restaurant by ID: {restaurant_id}")
+        try:
+            if self.db_type == "sqlite":
+                with self.lock:
+                    cursor = self.connection.cursor()
+                    cursor.execute("SELECT * FROM restaurants WHERE id = ?", (restaurant_id,))
+                    row = cursor.fetchone()
+                    if row:
+                        item = dict(row)
+                        if "data" in item and item["data"]:
+                            item.update(json.loads(item["data"]))
+                            del item["data"]
+                         # Optionally convert comma-separated cuisine back to list
+                        if 'cuisine' in item and isinstance(item['cuisine'], str):
+                             item['cuisine'] = [c.strip() for c in item['cuisine'].split(',') if c.strip()]
+                        return item
+            # Add elif for postgres if needed
+            return None
+        except Exception as e:
+            logger.error(f"Error getting restaurant {restaurant_id}: {str(e)}", exc_info=True)
+            return None
 
     def save_restaurant(self, restaurant: Dict) -> bool:
-        """(Placeholder) Save restaurant data."""
-        logger.warning("save_restaurant not implemented yet.")
-        # TODO: Implement based on save_attraction logic
-        return False
+        """
+        Save restaurant data.
+        
+        Args:
+            restaurant (dict): Restaurant data
+            
+        Returns:
+            bool: Success status
+        """
+        try:
+            # Ensure restaurant has an ID
+            if "id" not in restaurant:
+                logger.warning("Cannot save restaurant: missing ID")
+                return False
+            
+            # Set timestamps
+            now = datetime.now().isoformat()
+            if "updated_at" not in restaurant:
+                restaurant["updated_at"] = now
+            
+            if "created_at" not in restaurant:
+                restaurant["created_at"] = now
+            
+            if self.db_type == "sqlite":
+                with self.lock:
+                    cursor = self.connection.cursor()
+                    
+                    # Extract primary fields
+                    restaurant_id = restaurant["id"]
+                    name_en = restaurant.get("name", {}).get("en", "")
+                    name_ar = restaurant.get("name", {}).get("ar", "")
+                    cuisine = restaurant.get("cuisine", [])
+                    
+                    # Handle cuisine - could be list or string
+                    if isinstance(cuisine, list):
+                        cuisine_str = ", ".join(cuisine)
+                    else:
+                        cuisine_str = str(cuisine)
+                    
+                    city = restaurant.get("location", {}).get("city", "")
+                    region = restaurant.get("location", {}).get("region", "")
+                    latitude = restaurant.get("location", {}).get("coordinates", {}).get("latitude")
+                    longitude = restaurant.get("location", {}).get("coordinates", {}).get("longitude")
+                    description_en = restaurant.get("description", {}).get("en", "")
+                    description_ar = restaurant.get("description", {}).get("ar", "")
+                    price_range = restaurant.get("price_range", "")
+                    
+                    # Store full data as JSON
+                    data_json = json.dumps(restaurant)
+                    
+                    # Check if restaurant exists
+                    cursor.execute("SELECT COUNT(*) FROM restaurants WHERE id = ?", (restaurant_id,))
+                    count = cursor.fetchone()[0]
+                    
+                    if count > 0:
+                        # Update existing restaurant
+                        cursor.execute("""
+                            UPDATE restaurants 
+                            SET name_en = ?, name_ar = ?, cuisine = ?, city = ?, region = ?,
+                                latitude = ?, longitude = ?, description_en = ?, description_ar = ?,
+                                price_range = ?, data = ?, updated_at = ?
+                            WHERE id = ?
+                        """, (
+                            name_en, name_ar, cuisine_str, city, region,
+                            latitude, longitude, description_en, description_ar,
+                            price_range, data_json, now, restaurant_id
+                        ))
+                    else:
+                        # Insert new restaurant
+                        cursor.execute("""
+                            INSERT INTO restaurants 
+                            (id, name_en, name_ar, cuisine, city, region,
+                             latitude, longitude, description_en, description_ar,
+                             price_range, data, created_at, updated_at)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """, (
+                            restaurant_id, name_en, name_ar, cuisine_str, city, region,
+                            latitude, longitude, description_en, description_ar,
+                            price_range, data_json, now, now
+                        ))
+                    
+                    self.connection.commit()
+                    logger.info(f"Successfully saved restaurant: {restaurant_id}")
+                    return True
+                    
+            # Add implementations for other DB types if needed
+            else:
+                logger.warning(f"Save restaurant not implemented for DB type: {self.db_type}")
+                return False
+            
+        except Exception as e:
+            logger.error(f"Error saving restaurant: {str(e)}", exc_info=True)
+            return False
 
     def delete_restaurant(self, restaurant_id: str) -> bool:
-        """(Placeholder) Delete restaurant by ID."""
-        logger.warning(f"delete_restaurant({restaurant_id}) not implemented yet.")
-        # TODO: Implement based on delete_attraction logic
-        return False
+        """
+        Delete restaurant by ID.
+        
+        Args:
+            restaurant_id (str): Restaurant ID
+            
+        Returns:
+            bool: Success status
+        """
+        try:
+            if self.db_type == "sqlite":
+                with self.lock:
+                    cursor = self.connection.cursor()
+                    cursor.execute("DELETE FROM restaurants WHERE id = ?", (restaurant_id,))
+                    self.connection.commit()
+                    return cursor.rowcount > 0
+                    
+            elif self.db_type == "postgres":
+                cursor = self.postgres_connection.cursor()
+                cursor.execute("DELETE FROM restaurants WHERE id = %s", (restaurant_id,))
+                self.postgres_connection.commit()
+                return cursor.rowcount > 0
+                
+            elif self.db_type == "redis":
+                key = f"restaurant:{restaurant_id}"
+                count = self.connection.delete(key)
+                return count > 0
+                
+            return False
+            
+        except Exception as e:
+            logger.error(f"Error deleting restaurant {restaurant_id}: {str(e)}")
+            return False
 
     # ---- Utility Methods ----
     def _build_sqlite_query(self, table_name: str, query: Dict = None, limit: int = 10, offset: int = 0) -> Tuple[str, List]:

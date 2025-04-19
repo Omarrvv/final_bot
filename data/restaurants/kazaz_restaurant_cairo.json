@@ -1,0 +1,69 @@
+{
+  "id": "kazaz_restaurant_cairo",
+  "name": {
+    "en": "Kazaz Restaurant",
+    "ar": "مطعم قزاز"
+  },
+  "type": "upscale_egyptian",
+  "cuisine": [
+    "Egyptian",
+    "Middle Eastern"
+  ],
+  "location": {
+    "city": "Cairo",
+    "city_ar": "القاهرة",
+    "address": "38 Abou El Feda St, Zamalek",
+    "address_ar": "٣٨ شارع أبو الفدا، الزمالك",
+    "coordinates": {
+      "latitude": 30.0618,
+      "longitude": 31.2195
+    }
+  },
+  "description": {
+    "en": "An upscale restaurant known for its classic Egyptian and Middle Eastern cuisine, particularly grilled meats and mezzes, served in an elegant setting.",
+    "ar": "مطعم راقٍ معروف بمأكولاته المصرية والشرق أوسطية الكلاسيكية، وخاصة اللحوم المشوية والمقبلات، ويقدم في أجواء أنيقة."
+  },
+  "price_range": "$$$ (Expensive)",
+  "opening_hours": "1:00 PM - 1:00 AM daily",
+  "popular_dishes": [
+    {
+      "name": {
+        "en": "Mixed Grill",
+        "ar": "مشويات مشكلة"
+      },
+      "price": "LE 300-400"
+    },
+    {
+      "name": {
+        "en": "Various Mezzes (Hummus, Baba Ghanoush)",
+        "ar": "مقبلات متنوعة (حمص، بابا غنوج)"
+      },
+      "price": "LE 50-80 each"
+    },
+    {
+      "name": {
+        "en": "Veal Fattah",
+        "ar": "فتة باللحم البتلو"
+      },
+      "price": "LE 250-300"
+    }
+  ],
+  "contact": {
+    "phone": "+20 2 27351111",
+    "email": null,
+    "website": null
+  },
+  "images": [
+    "kazaz_grills.jpg",
+    "kazaz_interior.jpg"
+  ],
+  "tags": [
+    "upscale",
+    "grills",
+    "mezzes",
+    "elegant",
+    "zamalek",
+    "cairo"
+  ],
+  "last_updated": "2025-04-19T16:25:27.286617"
+}

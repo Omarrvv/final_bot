@@ -1,0 +1,196 @@
+{
+  "id": "egyptian_museum",
+  "name": {
+    "en": "The Egyptian Museum",
+    "ar": "المتحف المصري"
+  },
+  "also_known_as": {
+    "en": ["Museum of Egyptian Antiquities", "Cairo Museum"],
+    "ar": ["متحف القاهرة", "المتحف المصري بالتحرير"]
+  },
+  "type": "museum",
+  "description": {
+    "en": "The Egyptian Museum in Cairo houses the world's largest collection of ancient Egyptian antiquities, featuring over 120,000 items. Founded in 1901, it showcases an unparalleled collection of pharaonic artifacts, including the treasures of Tutankhamun.",
+    "ar": "يضم المتحف المصري في القاهرة أكبر مجموعة من الآثار المصرية القديمة في العالم، حيث يعرض أكثر من 120,000 قطعة. تأسس عام 1901، ويعرض مجموعة لا مثيل لها من القطع الأثرية الفرعونية، بما في ذلك كنوز توت عنخ آمون."
+  },
+  "location": {
+    "address": {
+      "en": "Tahrir Square, Downtown Cairo",
+      "ar": "ميدان التحرير، وسط البلد"
+    },
+    "coordinates": {
+      "latitude": 30.0478,
+      "longitude": 31.2336
+    },
+    "nearby_landmarks": ["Tahrir Square", "Nile Corniche", "Downtown Cairo"]
+  },
+  "history": {
+    "founded": 1901,
+    "architect": "Marcel Dourgnon",
+    "building_style": "Neoclassical",
+    "significant_events": [
+      {
+        "year": 1902,
+        "event": {
+          "en": "Official opening of the museum",
+          "ar": "الافتتاح الرسمي للمتحف"
+        }
+      },
+      {
+        "year": 1922,
+        "event": {
+          "en": "Discovery of Tutankhamun's tomb and subsequent display of artifacts",
+          "ar": "اكتشاف مقبرة توت عنخ آمون وعرض مقتنياتها لاحقاً"
+        }
+      }
+    ]
+  },
+  "collections": {
+    "main_attractions": [
+      {
+        "name": {
+          "en": "Tutankhamun Collection",
+          "ar": "مجموعة توت عنخ آمون"
+        },
+        "description": {
+          "en": "Over 1,700 artifacts from the tomb of King Tutankhamun, including his golden mask, sarcophagus, and throne",
+          "ar": "أكثر من 1,700 قطعة أثرية من مقبرة الملك توت عنخ آمون، بما في ذلك قناعه الذهبي وتابوته وعرشه"
+        },
+        "location": "First Floor"
+      },
+      {
+        "name": {
+          "en": "Royal Mummies Hall",
+          "ar": "قاعة المومياوات الملكية"
+        },
+        "description": {
+          "en": "Collection of royal mummies from the New Kingdom period",
+          "ar": "مجموعة من المومياوات الملكية من عصر الدولة الحديثة"
+        },
+        "location": "Second Floor"
+      },
+      {
+        "name": {
+          "en": "Predynastic and Old Kingdom Collection",
+          "ar": "مجموعة ما قبل الأسرات والدولة القديمة"
+        },
+        "description": {
+          "en": "Artifacts from Egypt's earliest periods through the Old Kingdom",
+          "ar": "قطع أثرية من أقدم العصور المصرية حتى الدولة القديمة"
+        },
+        "location": "Ground Floor"
+      }
+    ],
+    "total_items": "120,000+",
+    "exhibition_areas": [
+      "Ground Floor - Chronological Display",
+      "First Floor - Tutankhamun Treasures",
+      "Second Floor - Royal Mummies"
+    ]
+  },
+  "practical_information": {
+    "opening_hours": {
+      "winter": {
+        "days": "Daily",
+        "hours": "9:00 AM - 5:00 PM"
+      },
+      "summer": {
+        "days": "Daily",
+        "hours": "9:00 AM - 7:00 PM"
+      },
+      "ramadan": "Hours may vary during Ramadan"
+    },
+    "admission": {
+      "egyptian": {
+        "adult": "30 EGP",
+        "student": "10 EGP"
+      },
+      "foreign": {
+        "adult": "200 EGP",
+        "student": "100 EGP"
+      },
+      "camera_fee": "50 EGP"
+    },
+    "guided_tours": {
+      "availability": "Available in multiple languages",
+      "booking": "At the entrance or through licensed tour operators",
+      "duration": "Approximately 2-3 hours"
+    },
+    "facilities": [
+      "Gift Shop",
+      "Cafeteria",
+      "Restrooms",
+      "Information Desk",
+      "Wheelchair Access"
+    ]
+  },
+  "visitor_tips": {
+    "best_time_to_visit": {
+      "en": "Early morning or late afternoon to avoid crowds. Weekdays are generally less crowded than weekends.",
+      "ar": "في الصباح الباكر أو في وقت متأخر من بعد الظهر لتجنب الازدحام. أيام الأسبوع عادة أقل ازدحاماً من عطلات نهاية الأسبوع."
+    },
+    "recommended_duration": "3-4 hours",
+    "photography": {
+      "rules": {
+        "en": "Photography allowed with regular cameras for an additional fee. No flash photography allowed.",
+        "ar": "يُسمح بالتصوير بالكاميرات العادية مقابل رسوم إضافية. لا يُسمح باستخدام الفلاش."
+      }
+    },
+    "what_to_bring": [
+      "Water bottle",
+      "Comfortable walking shoes",
+      "Camera (if planning to take photos)",
+      "Cash for tickets and extras"
+    ]
+  },
+  "accessibility": {
+    "wheelchair_access": true,
+    "elevators": true,
+    "rest_areas": "Available throughout the museum",
+    "special_services": {
+      "en": "Wheelchair rental available upon request",
+      "ar": "تتوفر كراسي متحركة عند الطلب"
+    }
+  },
+  "transportation": {
+    "metro": {
+      "nearest_station": "Sadat Station (Lines 1 and 2)",
+      "walking_distance": "2 minutes"
+    },
+    "bus": {
+      "nearby_stops": "Multiple stops at Tahrir Square",
+      "lines": ["Several public and tourist bus lines"]
+    },
+    "parking": {
+      "availability": "Limited street parking",
+      "recommendation": "Using public transport is recommended"
+    }
+  },
+  "contact": {
+    "phone": "+20 2 25796948",
+    "email": "info@egyptianmuseum.gov.eg",
+    "social_media": {
+      "facebook": "EgyptianMuseumCairo",
+      "instagram": "egyptianmuseum"
+    }
+  },
+  "nearby_attractions": [
+    {
+      "id": "tahrir_square",
+      "name": {
+        "en": "Tahrir Square",
+        "ar": "ميدان التحرير"
+      },
+      "distance": "0.1 km"
+    },
+    {
+      "id": "nile_corniche",
+      "name": {
+        "en": "Nile Corniche",
+        "ar": "كورنيش النيل"
+      },
+      "distance": "0.3 km"
+    }
+  ],
+  "last_updated": "2024-03-20"
+}

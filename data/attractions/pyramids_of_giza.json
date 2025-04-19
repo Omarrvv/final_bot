@@ -1,0 +1,153 @@
+{
+  "id": "pyramids_of_giza",
+  "name": {
+    "en": "Pyramids of Giza",
+    "ar": "أهرامات الجيزة"
+  },
+  "type": "ancient_monument",
+  "location": {
+    "city": "Giza",
+    "city_ar": "الجيزة",
+    "region": "Greater Cairo",
+    "region_ar": "القاهرة الكبرى",
+    "coordinates": {
+      "latitude": 29.9792,
+      "longitude": 31.1342
+    }
+  },
+  "description": {
+    "en": "The Pyramids of Giza are the most iconic symbols of ancient Egypt and the last surviving wonder of the ancient world. The complex includes three main pyramids built for the pharaohs Khufu, Khafre, and Menkaure, along with the Great Sphinx, several cemeteries, a workers' village, and an industrial complex.",
+    "ar": "أهرامات الجيزة هي أشهر رموز مصر القديمة وآخر عجائب العالم القديم الباقية. يضم المجمع ثلاثة أهرامات رئيسية بنيت للفراعنة خوفو وخفرع ومنقرع، إلى جانب تمثال أبو الهول العظيم، والعديد من المقابر، وقرية العمال، ومجمع صناعي."
+  },
+  "history": {
+    "en": "Built during the Fourth Dynasty of ancient Egypt, around 2560 BCE, the pyramids were constructed as tombs for the pharaohs and their consorts. The Great Pyramid of Khufu, the oldest and largest of the three, was built in approximately 20 years using over 2.3 million stone blocks. For more than 3,800 years, it was the tallest man-made structure in the world.",
+    "ar": "بنيت خلال الأسرة الرابعة من مصر القديمة، حوالي 2560 قبل الميلاد، وكانت الأهرامات مقابر للفراعنة وقريناتهم. الهرم الأكبر لخوفو، الأقدم والأكبر بين الثلاثة، تم بناؤه في حوالي 20 عامًا باستخدام أكثر من 2.3 مليون كتلة حجرية. ولأكثر من 3800 عام، كان أطول بناء من صنع الإنسان في العالم."
+  },
+  "practical_info": {
+    "opening_hours": "8:00 AM - 5:00 PM (October to March), 7:00 AM - 7:00 PM (April to September)",
+    "ticket_prices": {
+      "foreigners": {
+        "adults": "440 EGP",
+        "students": "220 EGP"
+      },
+      "egyptians": {
+        "adults": "60 EGP",
+        "students": "30 EGP"
+      },
+      "additional": {
+        "great_pyramid_entry": "440 EGP",
+        "khafre_pyramid_entry": "100 EGP",
+        "menkaure_pyramid_entry": "100 EGP",
+        "solar_boat_museum": "100 EGP"
+      }
+    },
+    "best_time_to_visit": "Early morning or late afternoon to avoid heat and crowds. Winter months (November to February) offer the most comfortable temperatures.",
+    "duration": "3-4 hours for a complete visit",
+    "facilities": [
+      "Restrooms",
+      "Gift shops",
+      "Cafeterias",
+      "Information center",
+      "Camel and horse rides",
+      "Parking"
+    ],
+    "accessibility": {
+      "en": "The site is partially accessible. The main viewing areas and plateau are accessible, but entering the pyramids requires climbing steep, narrow passages. Not recommended for visitors with mobility issues or claustrophobia.",
+      "ar": "الموقع متاح جزئياً. مناطق المشاهدة الرئيسية والهضبة يمكن الوصول إليها، لكن دخول الأهرامات يتطلب تسلق ممرات ضيقة وشديدة الانحدار. لا يُنصح به للزوار الذين يعانون من مشاكل في الحركة أو رهاب الأماكن المغلقة."
+    },
+    "visitor_tips": {
+      "en": "Bring plenty of water, sun protection, and comfortable walking shoes. Arrive early to avoid crowds and heat. Be prepared to negotiate with local vendors. Photography is allowed in most areas but tripods may require permits. Consider hiring a guide for historical context.",
+      "ar": "أحضر الكثير من الماء، وواقي من الشمس، وأحذية مريحة للمشي. احضر مبكراً لتجنب الزحام والحرارة. كن مستعداً للتفاوض مع البائعين المحليين. التصوير مسموح به في معظم المناطق ولكن قد تتطلب الحوامل ثلاثية القوائم تصاريح. فكر في استئجار مرشد للسياق التاريخي."
+    }
+  },
+  "must_see": [
+    {
+      "id": "great_pyramid",
+      "name": {
+        "en": "Great Pyramid of Khufu",
+        "ar": "الهرم الأكبر لخوفو"
+      },
+      "description": {
+        "en": "The largest and oldest of the three pyramids, originally 481 feet (146.5 meters) tall. Built with approximately 2.3 million limestone blocks, each weighing 2.5 to 15 tons.",
+        "ar": "أكبر وأقدم الأهرامات الثلاثة، كان ارتفاعه في الأصل 481 قدماً (146.5 متر). بني بحوالي 2.3 مليون كتلة من الحجر الجيري، يزن كل منها من 2.5 إلى 15 طناً."
+      }
+    },
+    {
+      "id": "great_sphinx",
+      "name": {
+        "en": "Great Sphinx",
+        "ar": "أبو الهول العظيم"
+      },
+      "description": {
+        "en": "A limestone statue of a mythical creature with a lion's body and human head, believed to represent Pharaoh Khafre. It measures 240 feet long and 66 feet high.",
+        "ar": "تمثال من الحجر الجيري لمخلوق أسطوري بجسد أسد ورأس إنسان، يُعتقد أنه يمثل الفرعون خفرع. يبلغ طوله 240 قدماً وارتفاعه 66 قدماً."
+      }
+    },
+    {
+      "id": "solar_boat_museum",
+      "name": {
+        "en": "Solar Boat Museum",
+        "ar": "متحف مركب الشمس"
+      },
+      "description": {
+        "en": "Houses a restored cedar wood boat discovered buried next to the Great Pyramid. This 144-foot vessel was likely used to transport Khufu's body to his tomb.",
+        "ar": "يضم قارباً مرمماً من خشب الأرز تم اكتشافه مدفوناً بجوار الهرم الأكبر. من المحتمل أن هذا المركب البالغ طوله 144 قدماً قد استخدم لنقل جثمان خوفو إلى مقبرته."
+      }
+    }
+  ],
+  "components": [
+    {
+      "id": "khafre_pyramid",
+      "name": {
+        "en": "Pyramid of Khafre",
+        "ar": "هرم خفرع"
+      },
+      "description": {
+        "en": "The second-largest pyramid, appears taller than the Great Pyramid due to its position on higher ground. Retains some of its original limestone casing at its apex.",
+        "ar": "ثاني أكبر هرم، يبدو أطول من الهرم الأكبر بسبب موقعه على أرض مرتفعة. يحتفظ ببعض من كسوته الأصلية من الحجر الجيري في قمته."
+      }
+    },
+    {
+      "id": "menkaure_pyramid",
+      "name": {
+        "en": "Pyramid of Menkaure",
+        "ar": "هرم منقرع"
+      },
+      "description": {
+        "en": "The smallest of the three main pyramids, built using granite for its lower courses. Features three subsidiary pyramids aligned along its southern face.",
+        "ar": "أصغر الأهرامات الثلاثة الرئيسية، بني باستخدام الجرانيت لمداميكه السفلية. يتميز بثلاثة أهرامات فرعية متحاذية على واجهته الجنوبية."
+      }
+    },
+    {
+      "id": "queens_pyramids",
+      "name": {
+        "en": "Queens' Pyramids",
+        "ar": "أهرامات الملكات"
+      },
+      "description": {
+        "en": "Three smaller pyramids east of the Great Pyramid, built for Khufu's queens. Each has its own temple and boat pit.",
+        "ar": "ثلاثة أهرامات أصغر شرق الهرم الأكبر، بنيت لملكات خوفو. لكل منها معبده الخاص وحفرة قارب."
+      }
+    }
+  ],
+  "festivals": [
+    {
+      "id": "sound_and_light",
+      "name": {
+        "en": "Pyramids Sound and Light Show",
+        "ar": "عرض الصوت والضوء بالأهرامات"
+      },
+      "description": {
+        "en": "Evening show that tells the story of ancient Egypt through dramatic lighting and narration projected onto the pyramids and Sphinx.",
+        "ar": "عرض مسائي يروي قصة مصر القديمة من خلال الإضاءة الدرامية والسرد المعروض على الأهرامات وأبو الهول."
+      }
+    }
+  ],
+  "images": [
+    "pyramids_aerial.jpg",
+    "great_pyramid_closeup.jpg",
+    "sphinx_sunset.jpg",
+    "solar_boat.jpg",
+    "sound_and_light_show.jpg"
+  ]
+}
