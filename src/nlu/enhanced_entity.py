@@ -165,7 +165,7 @@ class EnhancedEntityExtractor:
                 entity_lists["category"].append(category)
                 
         # Load hotels
-        hotels = self.knowledge_base.search_hotels(limit=300, language=self.language)
+        hotels = self.knowledge_base.search_hotels(query={}, limit=300)
         for hotel in hotels:
             name = hotel.get("name", {}).get(self.language)
             if name:
@@ -185,7 +185,7 @@ class EnhancedEntityExtractor:
                     entity_lists["facility"].append(facility_name)
                     
         # Load restaurants
-        restaurants = self.knowledge_base.search_restaurants(limit=300, language=self.language)
+        restaurants = self.knowledge_base.search_restaurants(query={}, limit=300)
         for restaurant in restaurants:
             name = restaurant.get("name", {}).get(self.language)
             if name:

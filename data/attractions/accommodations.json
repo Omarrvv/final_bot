@@ -1,24 +1,264 @@
 {
-  "Cairo": [
-    {
-      "name": "Nile Ritz-Carlton",
-      "type": "luxury",
-      "location": "Downtown Cairo",
-      "amenities": ["spa", "pool", "fine dining"]
+  "id": "accommodations",
+  "name": {
+    "en": "Accommodation Guide",
+    "ar": "دليل الإقامة"
+  },
+  "last_updated": "2024-03-20",
+  "cities": {
+    "Cairo": {
+      "hotels": [
+        {
+          "id": "nile_ritz_carlton",
+          "name": {
+            "en": "The Nile Ritz-Carlton",
+            "ar": "ريتز كارلتون النيل"
+          },
+          "type": "luxury",
+          "stars": 5,
+          "location": {
+            "area": {
+              "en": "Downtown Cairo",
+              "ar": "وسط القاهرة"
+            },
+            "address": {
+              "en": "1113 Corniche El Nil, Cairo, Egypt",
+              "ar": "١١١٣ كورنيش النيل، القاهرة، مصر"
+            },
+            "coordinates": {
+              "latitude": 30.0459,
+              "longitude": 31.2243
+            }
+          },
+          "description": {
+            "en": "Luxury hotel offering spectacular views of the Nile River and Egyptian Museum, featuring world-class amenities and exceptional service.",
+            "ar": "فندق فاخر يوفر إطلالات رائعة على نهر النيل والمتحف المصري، مع مرافق عالمية المستوى وخدمة استثنائية."
+          },
+          "amenities": {
+            "room": [
+              "Air conditioning",
+              "Mini bar",
+              "Free Wi-Fi",
+              "Safe",
+              "Flat-screen TV",
+              "24/7 room service"
+            ],
+            "property": [
+              "Spa",
+              "Outdoor pool",
+              "Fitness center",
+              "Multiple restaurants",
+              "Business center",
+              "Conference facilities"
+            ]
+          },
+          "dining": [
+            {
+              "name": {
+                "en": "Culina",
+                "ar": "كولينا"
+              },
+              "cuisine": "International",
+              "type": "Restaurant"
+            },
+            {
+              "name": {
+                "en": "Bab El-Sharq",
+                "ar": "باب الشرق"
+              },
+              "cuisine": "Middle Eastern",
+              "type": "Restaurant"
+            }
+          ],
+          "price_range": {
+            "currency": "USD",
+            "min": 250,
+            "max": 800
+          },
+          "booking": {
+            "phone": "+20-2-25778899",
+            "email": "reservations.cairo@ritzcarlton.com",
+            "website": "https://www.ritzcarlton.com/cairo"
+          },
+          "images": [
+            "nile_ritz_exterior.jpg",
+            "nile_ritz_room.jpg",
+            "nile_ritz_pool.jpg",
+            "nile_ritz_restaurant.jpg"
+          ],
+          "reviews": {
+            "rating": 4.7,
+            "total_reviews": 2500
+          },
+          "nearby_attractions": [
+            "egyptian_museum",
+            "tahrir_square",
+            "cairo_opera_house"
+          ]
+        },
+        {
+          "id": "kempinski_nile",
+          "name": {
+            "en": "Kempinski Nile Hotel",
+            "ar": "فندق كمبينسكي النيل"
+          },
+          "type": "luxury",
+          "stars": 5,
+          "location": {
+            "area": {
+              "en": "Garden City",
+              "ar": "جاردن سيتي"
+            },
+            "address": {
+              "en": "12 Ahmed Ragheb Street, Garden City, Cairo",
+              "ar": "١٢ شارع أحمد راغب، جاردن سيتي، القاهرة"
+            },
+            "coordinates": {
+              "latitude": 30.0371,
+              "longitude": 31.2297
+            }
+          },
+          "description": {
+            "en": "Contemporary luxury hotel with stunning Nile views, offering European elegance with Egyptian charm.",
+            "ar": "فندق فاخر معاصر مع إطلالات خلابة على النيل، يجمع بين الأناقة الأوروبية والسحر المصري."
+          },
+          "amenities": {
+            "room": [
+              "Air conditioning",
+              "Mini bar",
+              "Free Wi-Fi",
+              "Safe",
+              "Nile view options",
+              "24/7 room service"
+            ],
+            "property": [
+              "Rooftop pool",
+              "Spa",
+              "Fitness center",
+              "Multiple restaurants",
+              "Meeting rooms"
+            ]
+          },
+          "dining": [
+            {
+              "name": {
+                "en": "The Blue Restaurant",
+                "ar": "مطعم بلو"
+              },
+              "cuisine": "Mediterranean",
+              "type": "Restaurant"
+            }
+          ],
+          "price_range": {
+            "currency": "USD",
+            "min": 200,
+            "max": 600
+          },
+          "booking": {
+            "phone": "+20-2-27980000",
+            "email": "reservation.cairo@kempinski.com",
+            "website": "https://www.kempinski.com/cairo"
+          },
+          "images": [
+            "kempinski_exterior.jpg",
+            "kempinski_room.jpg",
+            "kempinski_pool.jpg",
+            "kempinski_restaurant.jpg"
+          ],
+          "reviews": {
+            "rating": 4.6,
+            "total_reviews": 1800
+          },
+          "nearby_attractions": [
+            "cairo_opera_house",
+            "tahrir_square",
+            "egyptian_museum"
+          ]
+        }
+      ]
     },
-    {
-      "name": "Kempinski Nile Hotel",
-      "type": "luxury",
-      "location": "Garden City",
-      "amenities": ["rooftop pool", "fitness center", "river view"]
+    "Luxor": {
+      "hotels": [
+        {
+          "id": "winter_palace",
+          "name": {
+            "en": "Sofitel Winter Palace Luxor",
+            "ar": "سوفيتل وينتر بالاس الأقصر"
+          },
+          "type": "historic",
+          "stars": 5,
+          "location": {
+            "area": {
+              "en": "Nile Corniche",
+              "ar": "كورنيش النيل"
+            },
+            "address": {
+              "en": "Corniche El Nile Street, Luxor",
+              "ar": "شارع كورنيش النيل، الأقصر"
+            },
+            "coordinates": {
+              "latitude": 25.7969,
+              "longitude": 32.6137
+            }
+          },
+          "description": {
+            "en": "Historic luxury hotel dating from 1886, offering colonial grandeur and royal history on the banks of the Nile.",
+            "ar": "فندق فاخر تاريخي يعود إلى عام 1886، يقدم الفخامة الاستعمارية والتاريخ الملكي على ضفاف النيل."
+          },
+          "amenities": {
+            "room": [
+              "Air conditioning",
+              "Mini bar",
+              "Free Wi-Fi",
+              "Safe",
+              "Period furniture",
+              "24/7 room service"
+            ],
+            "property": [
+              "Historic gardens",
+              "Outdoor pool",
+              "Fine dining",
+              "Victorian lounge",
+              "Tennis court"
+            ]
+          },
+          "dining": [
+            {
+              "name": {
+                "en": "1886 Restaurant",
+                "ar": "مطعم ١٨٨٦"
+              },
+              "cuisine": "French",
+              "type": "Fine Dining"
+            }
+          ],
+          "price_range": {
+            "currency": "USD",
+            "min": 180,
+            "max": 500
+          },
+          "booking": {
+            "phone": "+20-95-2380422",
+            "email": "H1661@sofitel.com",
+            "website": "https://www.sofitel.com/luxor-winter-palace"
+          },
+          "images": [
+            "winter_palace_exterior.jpg",
+            "winter_palace_room.jpg",
+            "winter_palace_garden.jpg",
+            "winter_palace_restaurant.jpg"
+          ],
+          "reviews": {
+            "rating": 4.5,
+            "total_reviews": 1200
+          },
+          "nearby_attractions": [
+            "luxor_temple",
+            "karnak_temple",
+            "valley_of_kings"
+          ]
+        }
+      ]
     }
-  ],
-  "Luxor": [
-    {
-      "name": "Sofitel Winter Palace Luxor",
-      "type": "historic",
-      "location": "Nile Corniche",
-      "amenities": ["garden", "pool", "fine dining"]
-    }
-  ]
+  }
 }

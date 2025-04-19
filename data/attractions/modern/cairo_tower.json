@@ -1,0 +1,205 @@
+{
+  "id": "cairo_tower",
+  "name": {
+    "en": "Cairo Tower",
+    "ar": "برج القاهرة"
+  },
+  "also_known_as": {
+    "en": ["Borg Al-Qahira", "Gezira Tower"],
+    "ar": ["برج الجزيرة"]
+  },
+  "type": "modern_landmark",
+  "description": {
+    "en": "The Cairo Tower is a free-standing concrete tower located in the Zamalek district. Standing at 187 meters (614 feet), it is one of Cairo's most prominent modern landmarks and offers panoramic views of the city from its observation deck and revolving restaurant.",
+    "ar": "برج القاهرة هو برج خرساني قائم بذاته يقع في حي الزمالك. يبلغ ارتفاعه 187 متراً (614 قدماً)، وهو أحد أبرز المعالم الحديثة في القاهرة ويوفر إطلالات بانورامية على المدينة من منصة المراقبة والمطعم الدوار."
+  },
+  "location": {
+    "address": {
+      "en": "Gezira Island, Zamalek, Cairo",
+      "ar": "جزيرة الجزيرة، الزمالك، القاهرة"
+    },
+    "coordinates": {
+      "latitude": 30.0459,
+      "longitude": 31.2243
+    },
+    "nearby_landmarks": ["Opera House", "Cairo Opera House", "Gezira Club"]
+  },
+  "history": {
+    "built": {
+      "started": 1956,
+      "completed": 1961
+    },
+    "architect": "Naoum Shebib",
+    "style": "Modern Architecture",
+    "historical_significance": {
+      "en": "Built as a symbol of Egyptian modernization and independence, its design was inspired by the lotus flower, a symbol of ancient Egypt",
+      "ar": "بُني كرمز للتحديث والاستقلال المصري، واستوحي تصميمه من زهرة اللوتس، رمز مصر القديمة"
+    }
+  },
+  "architecture": {
+    "height": "187 meters",
+    "floors": 16,
+    "structure": {
+      "material": "Reinforced concrete",
+      "design": "Latticed design resembling a lotus plant",
+      "features": [
+        "Observation deck",
+        "Revolving restaurant",
+        "Multiple viewing levels"
+      ]
+    },
+    "technical_details": {
+      "construction_method": "Continuous concrete pour",
+      "base_diameter": "20 meters",
+      "top_diameter": "17 meters"
+    }
+  },
+  "facilities": {
+    "observation_deck": {
+      "height": "170 meters",
+      "features": ["360-degree views", "Telescopes", "Information panels"]
+    },
+    "dining": {
+      "revolving_restaurant": {
+        "name": {
+          "en": "360 Restaurant",
+          "ar": "مطعم 360"
+        },
+        "cuisine": ["International", "Egyptian", "Mediterranean"],
+        "seating_capacity": 200,
+        "rotation_duration": "One complete rotation per hour"
+      },
+      "cafe": {
+        "name": {
+          "en": "Sky Garden Café",
+          "ar": "مقهى حديقة السماء"
+        },
+        "offerings": ["Light meals", "Beverages", "Snacks"]
+      }
+    },
+    "additional": ["Gift shop", "Restrooms", "Tourist information desk"]
+  },
+  "practical_information": {
+    "opening_hours": {
+      "daily": "9:00 AM - 12:00 AM",
+      "peak_hours": "Sunset hours"
+    },
+    "admission": {
+      "egyptian": {
+        "adult": "70 EGP",
+        "student": "35 EGP"
+      },
+      "foreign": {
+        "adult": "200 EGP",
+        "student": "100 EGP"
+      }
+    },
+    "restaurant_reservations": {
+      "phone": "+20 2 27365390",
+      "recommended": "Especially for sunset and dinner times"
+    }
+  },
+  "visitor_tips": {
+    "best_time_to_visit": {
+      "en": "Visit at sunset for spectacular views of the city as it lights up. Book restaurant reservations in advance for these times.",
+      "ar": "قم بالزيارة عند غروب الشمس لمشاهد رائعة للمدينة عندما تضيء. احجز في المطعم مسبقاً لهذه الأوقات."
+    },
+    "photography": {
+      "en": "Photography is allowed throughout the tower. Best photo opportunities are during golden hour and after dark.",
+      "ar": "يُسمح بالتصوير في جميع أنحاء البرج. أفضل فرص التصوير خلال الساعة الذهبية وبعد الظلام."
+    },
+    "what_to_bring": [
+      "Camera",
+      "Light jacket (it can be windy at the top)",
+      "Sunglasses for daytime visits"
+    ]
+  },
+  "views": {
+    "landmarks_visible": [
+      {
+        "name": {
+          "en": "Pyramids of Giza",
+          "ar": "أهرامات الجيزة"
+        },
+        "visibility": "Clear days only"
+      },
+      {
+        "name": {
+          "en": "Nile River",
+          "ar": "نهر النيل"
+        },
+        "visibility": "Always visible"
+      },
+      {
+        "name": {
+          "en": "Downtown Cairo",
+          "ar": "وسط البلد"
+        },
+        "visibility": "Always visible"
+      }
+    ],
+    "best_photo_spots": [
+      {
+        "location": "Observation deck - west side",
+        "subject": "Sunset and pyramids"
+      },
+      {
+        "location": "Observation deck - east side",
+        "subject": "Old Cairo and sunrise"
+      }
+    ]
+  },
+  "transportation": {
+    "metro": {
+      "nearest_station": "Opera Station",
+      "walking_distance": "15 minutes"
+    },
+    "bus": {
+      "nearby_stops": "Multiple stops on Gezira Island",
+      "lines": ["Several public bus lines"]
+    },
+    "parking": {
+      "availability": "Available on-site",
+      "capacity": "Limited"
+    },
+    "taxi": {
+      "recommendation": "Easily accessible by taxi or ride-sharing services"
+    }
+  },
+  "nearby_attractions": [
+    {
+      "id": "cairo_opera_house",
+      "name": {
+        "en": "Cairo Opera House",
+        "ar": "دار الأوبرا المصرية"
+      },
+      "distance": "0.5 km"
+    },
+    {
+      "id": "gezira_club",
+      "name": {
+        "en": "Gezira Sporting Club",
+        "ar": "نادي الجزيرة الرياضي"
+      },
+      "distance": "0.7 km"
+    }
+  ],
+  "accessibility": {
+    "elevator": "Available to all levels",
+    "wheelchair_access": "Available throughout the main areas",
+    "special_needs": "Staff available to assist visitors with special needs"
+  },
+  "events": [
+    {
+      "name": {
+        "en": "New Year's Eve Celebration",
+        "ar": "احتفالات رأس السنة"
+      },
+      "description": {
+        "en": "Special dinner and celebration with panoramic views of fireworks",
+        "ar": "عشاء خاص واحتفال مع إطلالات بانورامية على الألعاب النارية"
+      }
+    }
+  ],
+  "last_updated": "2024-03-20"
+}

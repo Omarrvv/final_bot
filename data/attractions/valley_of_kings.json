@@ -1,0 +1,141 @@
+{
+  "id": "valley_of_kings",
+  "name": {
+    "en": "Valley of the Kings",
+    "ar": "وادي الملوك"
+  },
+  "type": "necropolis",
+  "location": {
+    "city": "Luxor",
+    "city_ar": "الأقصر",
+    "region": "Upper Egypt",
+    "region_ar": "صعيد مصر",
+    "coordinates": {
+      "latitude": 25.7402,
+      "longitude": 32.6014
+    }
+  },
+  "description": {
+    "en": "The Valley of the Kings is a burial ground for pharaohs who ruled Egypt during the 18th, 19th, and 20th dynasties (New Kingdom period). For nearly 500 years, this valley was the burial place of Egypt's greatest pharaohs, including Tutankhamun, Seti I, and Ramesses II. The tombs are decorated with scenes from Egyptian mythology and give clues about the beliefs and funerary rituals of the period.",
+    "ar": "وادي الملوك هو مقبرة للفراعنة الذين حكموا مصر خلال الأسرات الثامنة عشرة والتاسعة عشرة والعشرين (فترة الدولة الحديثة). لما يقرب من 500 عام، كان هذا الوادي مكان دفن أعظم فراعنة مصر، بما في ذلك توت عنخ آمون وسيتي الأول ورمسيس الثاني. المقابر مزينة بمشاهد من الأساطير المصرية وتعطي أدلة حول المعتقدات والطقوس الجنائزية لتلك الفترة."
+  },
+  "history": {
+    "en": "The valley was used for primary burials from approximately 1539 BC to 1075 BC, and contains at least 63 tombs, beginning with Thutmose I and ending with Ramesses X or XI. The official name of the site in ancient times was The Great and Majestic Necropolis of the Millions of Years of the Pharaoh, Life, Strength, Health in The West of Thebes. The most famous discovery was that of Tutankhamun's nearly intact tomb by Howard Carter in 1922.",
+    "ar": "تم استخدام الوادي للدفن الأساسي من حوالي 1539 قبل الميلاد إلى 1075 قبل الميلاد، ويحتوي على 63 مقبرة على الأقل، بدءاً من تحتمس الأول وانتهاءً برمسيس العاشر أو الحادي عشر. كان الاسم الرسمي للموقع في العصور القديمة هو الجبانة العظيمة والمهيبة لملايين السنين للفرعون، الحياة، القوة، الصحة في غرب طيبة. كان أشهر اكتشاف هو مقبرة توت عنخ آمون شبه السليمة من قبل هوارد كارتر في عام 1922."
+  },
+  "practical_info": {
+    "opening_hours": "6:00 AM - 5:00 PM (Summer), 6:00 AM - 4:00 PM (Winter)",
+    "ticket_prices": {
+      "foreigners": {
+        "adults": "240 EGP",
+        "students": "120 EGP"
+      },
+      "egyptians": {
+        "adults": "40 EGP",
+        "students": "20 EGP"
+      },
+      "additional": {
+        "tutankhamun_tomb": "300 EGP",
+        "seti_tomb": "1000 EGP",
+        "ramesses_v_vi": "100 EGP"
+      }
+    },
+    "best_time_to_visit": "Early morning to avoid the heat and crowds. Winter months are more comfortable for visiting.",
+    "duration": "2-3 hours for a thorough visit",
+    "facilities": [
+      "Visitor center",
+      "Restrooms",
+      "Gift shop",
+      "Cafeteria",
+      "Electric tram service",
+      "Shaded rest areas"
+    ],
+    "accessibility": {
+      "en": "The site requires significant walking and climbing. Many tombs have steep entrances with steps. The electric tram helps with transportation around the site, but tomb access remains challenging for those with mobility issues.",
+      "ar": "يتطلب الموقع المشي والتسلق بشكل كبير. العديد من المقابر لها مداخل شديدة الانحدار مع درجات. يساعد الترام الكهربائي في التنقل حول الموقع، لكن الوصول إلى المقابر يظل صعباً لذوي صعوبات الحركة."
+    },
+    "visitor_tips": {
+      "en": "Photography inside tombs is prohibited. Bring water and sun protection. Not all tombs are open daily - check the rotation schedule. Consider hiring a guide for historical context. The Tutankhamun tomb requires a separate ticket.",
+      "ar": "التصوير داخل المقابر ممنوع. أحضر الماء وواقي من الشمس. ليست كل المقابر مفتوحة يومياً - تحقق من جدول التناوب. فكر في استئجار مرشد للسياق التاريخي. مقبرة توت عنخ آمون تتطلب تذكرة منفصلة."
+    }
+  },
+  "must_see": [
+    {
+      "id": "tutankhamun_tomb",
+      "name": {
+        "en": "Tomb of Tutankhamun (KV62)",
+        "ar": "مقبرة توت عنخ آمون"
+      },
+      "description": {
+        "en": "The most famous tomb in the valley, discovered nearly intact in 1922. Contains the mummy of Tutankhamun and original wall paintings. While smaller than many royal tombs, its significance lies in its remarkable state of preservation.",
+        "ar": "أشهر مقبرة في الوادي، اكتُشفت شبه سليمة في عام 1922. تحتوي على مومياء توت عنخ آمون ورسومات جدارية أصلية. رغم أنها أصغر من العديد من المقابر الملكية، إلا أن أهميتها تكمن في حالة حفظها الرائعة."
+      }
+    },
+    {
+      "id": "seti_tomb",
+      "name": {
+        "en": "Tomb of Seti I (KV17)",
+        "ar": "مقبرة سيتي الأول"
+      },
+      "description": {
+        "en": "The longest tomb in the valley at 137 meters, with exquisitely decorated walls featuring detailed relief carvings. Contains the most complete decorative scheme of any tomb in the valley.",
+        "ar": "أطول مقبرة في الوادي بطول 137 متراً، مع جدران مزينة بشكل رائع تضم نقوشاً بارزة مفصلة. تحتوي على أكمل نظام زخرفي من أي مقبرة في الوادي."
+      }
+    },
+    {
+      "id": "ramesses_vi_tomb",
+      "name": {
+        "en": "Tomb of Ramesses VI (KV9)",
+        "ar": "مقبرة رمسيس السادس"
+      },
+      "description": {
+        "en": "Features some of the best-preserved decorations, including astronomical ceiling decorations from the Book of the Day and Night. The tomb's construction inadvertently protected Tutankhamun's tomb from robbery.",
+        "ar": "تضم بعضاً من أفضل الزخارف المحفوظة، بما في ذلك زخارف السقف الفلكية من كتاب النهار والليل. ساهم بناء المقبرة دون قصد في حماية مقبرة توت عنخ آمون من السرقة."
+      }
+    }
+  ],
+  "components": [
+    {
+      "id": "visitor_center",
+      "name": {
+        "en": "Valley of the Kings Visitor Center",
+        "ar": "مركز زوار وادي الملوك"
+      },
+      "description": {
+        "en": "Modern facility with a detailed model of the valley, information about tomb construction and decoration, and screens showing tomb interiors.",
+        "ar": "منشأة حديثة مع نموذج مفصل للوادي، ومعلومات عن بناء وزخرفة المقابر، وشاشات تعرض المناظر الداخلية للمقابر."
+      }
+    },
+    {
+      "id": "conservation_lab",
+      "name": {
+        "en": "Conservation Laboratory",
+        "ar": "معمل الترميم"
+      },
+      "description": {
+        "en": "Working facility where archaeologists and conservators study and preserve artifacts and wall paintings from the tombs.",
+        "ar": "منشأة عمل حيث يدرس علماء الآثار والمرممون القطع الأثرية والرسومات الجدارية من المقابر ويحافظون عليها."
+      }
+    }
+  ],
+  "festivals": [
+    {
+      "id": "archaeological_season",
+      "name": {
+        "en": "Archaeological Research Season",
+        "ar": "موسم البحث الأثري"
+      },
+      "description": {
+        "en": "Annual period when archaeological teams conduct research, conservation, and potentially explore new tombs. Visitors may observe ongoing work during this time.",
+        "ar": "فترة سنوية عندما تجري الفرق الأثرية البحث والترميم واستكشاف مقابر جديدة محتملة. قد يراقب الزوار العمل الجاري خلال هذا الوقت."
+      }
+    }
+  ],
+  "images": [
+    "valley_aerial.jpg",
+    "tutankhamun_tomb.jpg",
+    "seti_tomb_reliefs.jpg",
+    "ramesses_vi_ceiling.jpg",
+    "visitor_center.jpg"
+  ]
+}

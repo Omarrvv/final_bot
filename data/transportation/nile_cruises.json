@@ -1,0 +1,97 @@
+{
+  "id": "nile_cruises",
+  "name": {
+    "en": "Nile Cruises",
+    "ar": "رحلات النيل النهرية"
+  },
+  "type": "water_transport",
+  "description": {
+    "en": "Nile cruises are one of the most popular and scenic ways to travel between Luxor and Aswan while experiencing the majesty of ancient Egypt. These floating hotels allow travelers to visit multiple historical sites along the Nile River while enjoying comfortable accommodations, meals, and entertainment on board. Cruises typically range from 3 to 7 nights, with most ships offering various categories of cabins, restaurants, swimming pools, and evening entertainment programs.",
+    "ar": "رحلات النيل النهرية هي من أكثر الطرق شعبية وجمالاً للسفر بين الأقصر وأسوان مع تجربة عظمة مصر القديمة. تسمح هذه الفنادق العائمة للمسافرين بزيارة مواقع تاريخية متعددة على طول نهر النيل مع الاستمتاع بأماكن إقامة مريحة ووجبات وترفيه على متن السفينة. تتراوح الرحلات عادة من 3 إلى 7 ليالٍ، مع تقديم معظم السفن لفئات مختلفة من الكبائن والمطاعم وحمامات السباحة وبرامج الترفيه المسائية."
+  },
+  "practical_info": {
+    "operating_schedule": "Year-round, with peak season from October to April",
+    "fares": {
+      "standard": "1,000-2,000 EGP per night per person",
+      "deluxe": "2,000-3,500 EGP per night per person",
+      "luxury": "3,500+ EGP per night per person"
+    },
+    "booking_info": {
+      "en": "Nile cruises can be booked through travel agencies, online booking platforms, or directly with cruise companies. Booking well in advance (3-6 months) is recommended during peak season. Most cruises include full board accommodation, guided tours to attractions, and some entertainment. Prices vary depending on the season, cruise duration, ship category, and cabin type.",
+      "ar": "يمكن حجز رحلات النيل النهرية من خلال وكالات السفر أو منصات الحجز عبر الإنترنت أو مباشرة مع شركات الرحلات البحرية. يوصى بالحجز قبل وقت طويل (3-6 أشهر) خلال موسم الذروة. تشمل معظم الرحلات البحرية إقامة كاملة مع وجبات وجولات بمرشدين إلى المعالم السياحية وبعض الترفيه. تختلف الأسعار حسب الموسم ومدة الرحلة وفئة السفينة ونوع الكابينة."
+    },
+    "routes": [
+      {
+        "name": "Luxor to Aswan",
+        "duration": "3-4 nights",
+        "stops": [
+          "Esna",
+          "Edfu",
+          "Kom Ombo"
+        ]
+      },
+      {
+        "name": "Aswan to Luxor",
+        "duration": "3-4 nights",
+        "stops": [
+          "Kom Ombo",
+          "Edfu",
+          "Esna"
+        ]
+      },
+      {
+        "name": "Luxor to Dendera and back",
+        "duration": "1-2 nights",
+        "stops": [
+          "Dendera"
+        ]
+      },
+      {
+        "name": "Cairo to Aswan",
+        "duration": "11-14 nights",
+        "stops": [
+          "Beni Suef",
+          "Minya",
+          "Asyut",
+          "Sohag",
+          "Qena",
+          "Luxor",
+          "Edfu",
+          "Kom Ombo"
+        ]
+      }
+    ],
+    "popular_attractions": [
+      "Karnak Temple",
+      "Luxor Temple",
+      "Valley of the Kings",
+      "Temple of Hatshepsut",
+      "Temple of Horus at Edfu",
+      "Temple of Kom Ombo",
+      "Philae Temple",
+      "Aswan High Dam",
+      "Unfinished Obelisk"
+    ]
+  },
+  "traveler_tips": {
+    "en": "Book at least 3 months in advance during peak season. Consider the direction of your cruise (upstream requires more sailing time than downstream). Pack layers for evening temperatures on the river, which can be cooler. Bring sun protection, comfortable walking shoes, and modest clothing for temple visits. Tipping is customary for cruise staff and guides (budget around 10% of your cruise cost). Most cruises include guided tours, but entrance fees to archaeological sites are sometimes extra. Check if WiFi is available on your cruise, as connectivity varies by ship.",
+    "ar": "احجز قبل 3 أشهر على الأقل خلال موسم الذروة. ضع في اعتبارك اتجاه رحلتك البحرية (التيار الصاعد يتطلب وقت إبحار أكثر من التيار الهابط). قم بإحضار طبقات للحرارة المسائية على النهر، والتي يمكن أن تكون أكثر برودة. أحضر واقي من الشمس وأحذية مريحة للمشي وملابس محتشمة لزيارات المعابد. من المعتاد إعطاء البقشيش لطاقم الرحلة والمرشدين (ميزانية حوالي 10٪ من تكلفة رحلتك). تشمل معظم الرحلات جولات بمرشدين، ولكن رسوم الدخول إلى المواقع الأثرية تكون أحيانًا إضافية. تحقق مما إذا كانت خدمة الواي فاي متوفرة في رحلتك البحرية، حيث يختلف الاتصال حسب السفينة."
+  },
+  "images": [
+    "nile_cruise_ship.jpg",
+    "nile_cruise_deck.jpg",
+    "nile_cruise_cabin.jpg",
+    "nile_cruise_dining.jpg",
+    "nile_cruise_sunset.jpg"
+  ],
+  "tags": [
+    "Nile",
+    "cruise",
+    "river travel",
+    "Luxor",
+    "Aswan",
+    "water transport",
+    "tourism"
+  ],
+  "last_updated": "2025-04-19T16:25:27.325072"
+}

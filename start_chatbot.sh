@@ -25,10 +25,11 @@ export PYTHONPATH=".:$PYTHONPATH"
 echo -e "${GREEN}PYTHONPATH set to: $PYTHONPATH${NC}"
 
 # Start Backend (FastAPI with Uvicorn)
-echo -e "${YELLOW}Starting FastAPI backend with Uvicorn on port 5050 (with reload)...${NC}"
+echo -e "${YELLOW}Starting FastAPI backend with Uvicorn on port 5050...${NC}"
 # Run Uvicorn directly - removed nohup for clearer foreground execution
 # Add --log-config configs/log_conf.yaml if you have a logging config file
-uvicorn src.main:app --host 0.0.0.0 --port 5050 --reload &
+# Removed --reload for consistency with production command
+uvicorn src.main:app --host 0.0.0.0 --port 5050 &
 BACKEND_PID=$!
 echo -e "${GREEN}Backend started with PID: $BACKEND_PID${NC}"
 

@@ -1,0 +1,70 @@
+{
+  "id": "mohamed_ahmed_alex",
+  "name": {
+    "en": "Mohamed Ahmed Restaurant",
+    "ar": "مطعم محمد أحمد"
+  },
+  "type": "traditional_egyptian_breakfast",
+  "cuisine": [
+    "Egyptian",
+    "Foul & Falafel"
+  ],
+  "location": {
+    "city": "Alexandria",
+    "city_ar": "الإسكندرية",
+    "address": "17 Shakour Basha St, Raml Station",
+    "address_ar": "١٧ شارع شكور باشا، محطة الرمل",
+    "coordinates": {
+      "latitude": 31.1988,
+      "longitude": 29.9043
+    }
+  },
+  "description": {
+    "en": "An absolute institution in Alexandria, famous for its traditional Egyptian breakfast, especially Foul (fava beans) and Ta'ameya (falafel). Always busy and very affordable.",
+    "ar": "مؤسسة حقيقية في الإسكندرية، تشتهر بوجبة الإفطار المصرية التقليدية، وخاصة الفول والطعمية. دائمًا مزدحم وبأسعار معقولة جدًا."
+  },
+  "price_range": "$ (Very Inexpensive)",
+  "opening_hours": "6:00 AM - 12:00 AM daily",
+  "popular_dishes": [
+    {
+      "name": {
+        "en": "Foul (various types)",
+        "ar": "فول (أنواع مختلفة)"
+      },
+      "price": "LE 10-20"
+    },
+    {
+      "name": {
+        "en": "Ta'ameya (Falafel)",
+        "ar": "طعمية (فلافل)"
+      },
+      "price": "LE 1-2 per piece"
+    },
+    {
+      "name": {
+        "en": "Eggah (Egyptian Omelette)",
+        "ar": "عجة"
+      },
+      "price": "LE 15-25"
+    }
+  ],
+  "contact": {
+    "phone": "+20 3 4873576",
+    "email": null,
+    "website": null
+  },
+  "images": [
+    "mohamed_ahmed_foul.jpg",
+    "mohamed_ahmed_falafel.jpg"
+  ],
+  "tags": [
+    "foul",
+    "falafel",
+    "breakfast",
+    "local",
+    "budget",
+    "alexandria",
+    "iconic"
+  ],
+  "last_updated": "2025-04-19T16:25:27.286621"
+}

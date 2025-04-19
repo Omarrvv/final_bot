@@ -19,6 +19,22 @@ from typing import Optional, AsyncGenerator
 from contextlib import asynccontextmanager # Add asynccontextmanager
 from pydantic import BaseModel # Import BaseModel if defining ResetRequest here temporarily
 
+# Add this to handle imports properly
+if __name__ == "__main__":
+    import os
+    import sys
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Change relative imports to absolute imports
+from src.chatbot import Chatbot
+from src.utils.factory import component_factory
+from src.models.api_models import (
+    ChatMessageRequest, ChatbotResponse, SuggestionsResponse, 
+    ResetResponse, LanguagesResponse, FeedbackRequest, FeedbackResponse,
+    ResetRequest # Import the moved model
+)
+from src.api.analytics_api import analytics_router
+
 # Load environment variables early
 load_dotenv()
 
@@ -27,6 +43,13 @@ load_dotenv()
 src_dir = os.path.dirname(os.path.abspath(__file__))
 # Go up one level to get the project root
 project_root_dir = os.path.dirname(src_dir)
+
+# Create necessary directories
+os.makedirs(os.path.join(project_root_dir, 'data'), exist_ok=True)
+os.makedirs(os.path.join(project_root_dir, 'logs'), exist_ok=True)
+os.makedirs(os.path.join(project_root_dir, 'configs'), exist_ok=True)
+os.makedirs(os.path.join(project_root_dir, 'configs/response_templates'), exist_ok=True)
+
 # --- End Project Root Path ---
 
 # Ensure proper Python path (using the calculated project_root_dir)
@@ -76,7 +99,6 @@ logger.info("Logging setup complete.") # Add confirmation log
 # --- End Logging Setup ---
 
 # --- Initialize Chatbot Components --- # (UNCOMMENTED)
-from src.utils.factory import component_factory
 # from src.utils.container import container # Import the container # Keep container commented if not directly used here
 
 try:
@@ -92,57 +114,69 @@ except Exception as e:
     # raise # Re-raise the exception to potentially stop the server from starting
 # --- End Component Initialization ---
 
-# --- Lifespan Event Handler --- 
+# --- Global variables ---
+chatbot_instance: Optional["Chatbot"] = None  # Use string literal for forward reference
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Handles application startup and shutdown events."""
-    # Startup: Initialize Rate Limiter
-    logger.info("Application startup: Initializing Rate Limiter...")
-    redis_connection = None
+    global chatbot_instance
+    logger.info("Application startup: Initializing components...")
+    
+    # Initialize components using the factory
     try:
-        # Get Redis URI from environment variable
-        redis_uri = os.getenv("SESSION_STORAGE_URI", "redis://redis:6379/0")
-        
-        # Check if we're in local environment (not Docker) by trying to resolve redis hostname
-        import socket
-        try:
-            # Only attempt to resolve hostname if the URI contains redis:// and redis: hostname
-            if "redis://redis:" in redis_uri:
-                socket.gethostbyname('redis')
-                # If we get here, redis hostname resolved, we're in Docker
-                logger.info("Redis hostname resolved - using container networking")
-            else:
-                # If URI doesn't contain redis: hostname, no need to modify
-                logger.info(f"Using provided Redis URI: {redis_uri}")
-        except socket.gaierror:
-            # Cannot resolve redis hostname, we're running locally
-            logger.info("Redis hostname not resolved - switching to localhost for local testing")
-            # Correctly replace the hostname part
-            redis_uri = redis_uri.replace('redis://redis:', 'redis://localhost:')
-        
-        logger.info(f"Using Redis URI: {redis_uri}")
-        
-        # Create async redis connection pool
-        redis_connection = redis.from_url(redis_uri, encoding="utf-8", decode_responses=True)
-        
-        # Ping Redis to check connection early
-        await redis_connection.ping()
-        logger.info("Successfully connected to Redis")
-        
-        # Initialize rate limiter
-        await FastAPILimiter.init(redis_connection)
-        logger.info(f"Rate limiter initialized with Redis backend: {redis_uri}")
+        component_factory.initialize()
+        chatbot_instance = component_factory.create_chatbot()
+        logger.info("Chatbot components initialized successfully.")
     except Exception as e:
-        logger.error(f"Failed to initialize rate limiter: {e}", exc_info=True)
-        # Application can continue without rate limiting, but log error
-        
+        logger.critical(f"CRITICAL: Failed to initialize chatbot components during startup: {e}", exc_info=True)
+        # We'll continue startup but endpoints will return 503 if chatbot is None
+
+    # Initialize Rate Limiter
+    logger.info("Application startup: Initializing Rate Limiter...")
+    is_testing = os.getenv("TESTING") == "true"
+    is_docker = os.path.exists("/.dockerenv")
+    
+    # Determine Redis URI based on environment
+    redis_uri = "redis://redis:6379/1" if is_docker else "redis://localhost:6379/1"
+    
+    if is_testing:
+        logger.warning("TESTING environment detected. Skipping Rate Limiter initialization.")
+    else:
+        try:
+            redis_connection = await redis.from_url(
+                redis_uri,
+                encoding="utf-8",
+                decode_responses=True
+            )
+            await FastAPILimiter.init(redis_connection)
+            logger.info("Rate Limiter initialized successfully.")
+        except ImportError as e:
+            logger.error(f"Redis library not installed: {e}")
+            logger.warning("Rate limiting disabled. Run: pip install redis")
+        except Exception as e:
+            logger.error(f"Failed to initialize rate limiter: {e}", exc_info=True)
+            logger.warning("Rate limiting disabled due to initialization error.")
+
     yield # Application runs here
     
-    # Shutdown: Clean up resources if needed
+    # Shutdown: Clean up resources
     logger.info("Application shutdown: Cleaning up resources...")
-    if redis_connection:
-        await redis_connection.aclose()  # Use aclose() instead of close() to fix the deprecation warning
-        logger.info("Redis connection closed")
+    
+    # Close Redis connection if it exists
+    if 'redis_connection' in locals():
+        await redis_connection.close()
+        logger.info("Redis connection closed.")
+    
+    # Close DB connections
+    if chatbot_instance and hasattr(chatbot_instance, 'db_manager'):
+        try:
+            chatbot_instance.db_manager.close()
+            logger.info("Database connections closed.")
+        except Exception as e:
+            logger.error(f"Error closing database connections: {e}", exc_info=True)
+    
+    logger.info("Application shutdown complete.")
 
 # Create FastAPI app instance with lifespan
 app = FastAPI(
@@ -179,12 +213,6 @@ logger.info("CORS middleware added.")
 # --- Add Minimal API routes --- 
 
 # Import necessary components and models # (UNCOMMENTED)
-from src.models.api_models import (
-    ChatMessageRequest, ChatbotResponse, SuggestionsResponse, 
-    ResetResponse, LanguagesResponse, FeedbackRequest, FeedbackResponse,
-    ResetRequest # Import the moved model
-)
-from src.chatbot import Chatbot # Ensure Chatbot import exists or add it
 # from src.knowledge.database import DatabaseManager # Import DatabaseManager # Keep commented if chatbot handles it
 # Potentially import Request for accessing query params/headers if needed later
 # from fastapi import HTTPException, Request, Query # Add Query if needed for optional param definition
@@ -195,7 +223,6 @@ from src.chatbot import Chatbot # Ensure Chatbot import exists or add it
 # from fastapi.responses import FileResponse 
 
 # Import Routers (COMMENT OUT)
-from src.api.analytics_api import analytics_router
 # Import other routers as they are created (e.g., auth router)
 
 # Include Routers (COMMENT OUT)
@@ -225,32 +252,71 @@ async def test_rate_limit():
         "timestamp": datetime.now().isoformat()
     }
 
+# --- Test Database Connectivity ---
+@app.get("/api/test-db", tags=["Test"])
+async def test_db():
+    """
+    Test endpoint for database connectivity.
+    Attempts to get Abu Simbel attraction directly from the database.
+    """
+    logger.info("DB test endpoint called.")
+    try:
+        # Use the component factory to get the database manager
+        db_manager = component_factory.db_manager
+        if not db_manager:
+            return {"status": "error", "message": "DB Manager not initialized"}
+        
+        # Try to get Abu Simbel directly
+        attraction = db_manager.get_attraction("abu_simbel")
+        
+        # Try to get a restaurant
+        restaurant = db_manager.get_restaurant("abou_el_sid_cairo")
+        
+        # Try to get an accommodation
+        accommodation = db_manager.get_accommodation("mena_house_hotel")
+        
+        return {
+            "status": "ok", 
+            "db_type": db_manager.db_type,
+            "attraction_found": attraction is not None,
+            "attraction_name": attraction.get("name", {}).get("en") if attraction else None,
+            "restaurant_found": restaurant is not None,
+            "restaurant_name": restaurant.get("name", {}).get("en") if restaurant else None,
+            "accommodation_found": accommodation is not None,
+            "accommodation_name": accommodation.get("name", {}).get("en") if accommodation else None,
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error in test-db endpoint: {e}", exc_info=True)
+        return {"status": "error", "message": str(e)}
+
 # --- Chat and Other Endpoints ---
 @app.post("/api/chat", response_model=ChatbotResponse, tags=["Chatbot"])
 async def chat_endpoint(chat_request: ChatMessageRequest):
     """Handles incoming chat messages and returns the chatbot's response."""
-    if chatbot is None:
+    logger.info(f"--- Received request for /api/chat: lang={chat_request.language}, session={chat_request.session_id} ---")
+    if chatbot_instance is None:
+        logger.error("Chatbot not initialized, returning 503")
         raise HTTPException(status_code=503, detail="Chatbot service is unavailable due to initialization error.")
     try:
-        # Call the chatbot instance to process the message - remove await since it's not an async method
-        response = chatbot.process_message(
-            user_message=chat_request.message,
+        # Properly await the async process_message method
+        response = await chatbot_instance.process_message(
+            message=chat_request.message,
             session_id=chat_request.session_id,
             language=chat_request.language
         )
         return response
     except Exception as e:
         logger.error(f"Error in /api/chat endpoint: {e}", exc_info=True)
-        # Return a generic error response
         raise HTTPException(status_code=500, detail="An error occurred while processing your message.")
 
 @app.get("/api/suggestions", response_model=SuggestionsResponse, tags=["Chatbot"])
 async def get_suggestions(session_id: Optional[str] = None, language: str = "en"):
     """Get suggested messages based on the current conversation state."""
-    if chatbot is None:
+    if chatbot_instance is None:
         raise HTTPException(status_code=503, detail="Chatbot service is unavailable due to initialization error.")
     try:
-        suggestions = chatbot.get_suggestions(session_id=session_id, language=language)
+        suggestions = chatbot_instance.get_suggestions(session_id=session_id, language=language)
         return {"suggestions": suggestions}
     except Exception as e:
         logger.error(f"Error in /api/suggestions endpoint: {e}", exc_info=True)
@@ -259,10 +325,10 @@ async def get_suggestions(session_id: Optional[str] = None, language: str = "en"
 @app.post("/api/reset", response_model=ResetResponse, tags=["Chatbot"])
 async def reset_session(reset_request: ResetRequest):
     """Reset a conversation session."""
-    if chatbot is None:
+    if chatbot_instance is None:
         raise HTTPException(status_code=503, detail="Chatbot service is unavailable due to initialization error.")
     try:
-        result = chatbot.reset_session(session_id=reset_request.session_id)
+        result = chatbot_instance.reset_session(session_id=reset_request.session_id)
         return result
     except Exception as e:
         logger.error(f"Error in /api/reset endpoint: {e}", exc_info=True)
@@ -271,20 +337,32 @@ async def reset_session(reset_request: ResetRequest):
 @app.get("/api/languages", response_model=LanguagesResponse, tags=["Chatbot"])
 async def get_languages():
     """Get the list of supported languages."""
-    # This might eventually come from a config or language detector
-    supported_languages = [
-        {"code": "en", "name": "English"},
-        {"code": "ar", "name": "العربية"}
-    ]
-    return {"languages": supported_languages}
+    if chatbot_instance is None:
+        raise HTTPException(status_code=503, detail="Chatbot service is unavailable due to initialization error.")
+    try:
+        # Get supported languages from the initialized NLU engine
+        supported_languages = chatbot_instance.nlu_engine.supported_languages
+        # Format them if necessary (e.g., list of dicts with code/name)
+        # Assuming nlu_engine.supported_languages is already in the desired format [{code: 'en', name: 'English'}, ...]
+        # If not, format it here.
+        # Example formatting if it's just a list of codes ['en', 'ar']:
+        # langs_map = {'en': 'English', 'ar': 'العربية'} # Define mapping
+        # formatted_languages = [{'code': lang, 'name': langs_map.get(lang, lang)} for lang in supported_languages]
+        # return {"languages": formatted_languages}
+        
+        # Assuming it's already formatted correctly based on Flask app code analysis
+        return {"languages": supported_languages} 
+    except Exception as e:
+        logger.error(f"Error getting supported languages: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to retrieve languages.")
 
 @app.post("/api/feedback", response_model=FeedbackResponse, tags=["Chatbot"])
 async def submit_feedback(feedback: FeedbackRequest):
     """Submit user feedback about a conversation."""
-    if chatbot is None:
+    if chatbot_instance is None:
         raise HTTPException(status_code=503, detail="Chatbot service is unavailable due to initialization error.")
     try:
-        db_manager = chatbot.db_manager
+        db_manager = chatbot_instance.db_manager
         success = db_manager.log_feedback(
             message_id=feedback.message_id,
             rating=feedback.rating,

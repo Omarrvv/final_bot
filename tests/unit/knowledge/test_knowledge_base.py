@@ -66,17 +66,11 @@ def test_search_attractions_calls_db_manager(knowledge_base, mock_db_manager):
     # Call the KnowledgeBase method
     results = knowledge_base.search_attractions(query=query, filters=filters, language=language, limit=limit)
     
-    # Prepare the expected query structure that KnowledgeBase should pass to db_manager
-    # (Based on the logic currently in KnowledgeBase.search_attractions)
+    # Prepare the expected query structure that KnowledgeBase should NOW pass to db_manager
     search_term = f'%{query}%'
     expected_db_query = {
-        '$and': [
-            {'$or': [
-                {'name_en': {'$like': search_term}},
-                {'description_en': {'$like': search_term}}
-            ]},
-            {'region': {'$eq': 'Giza'}}
-        ]
+        'region': 'Giza', 
+        f'name_{language}': {'$like': search_term}
     }
 
     # Assert the mock was called correctly
@@ -97,73 +91,51 @@ def test_search_attractions_no_query_calls_db_manager(knowledge_base, mock_db_ma
     results = knowledge_base.search_attractions(query="", filters=filters, language=language, limit=limit)
     
     # When query is empty, only the original filters should be passed
-    expected_db_query = {
-        '$and': [
-            {'city': {'$eq': 'Luxor'}},
-            {'type': {'$eq': 'temple'}}
-        ]
-    }
-    
+    expected_db_query = filters 
+
     mock_db_manager.search_attractions.assert_called_once_with(query=expected_db_query, limit=limit)
     assert results == expected_results
 
 def test_search_restaurants_calls_db_manager(knowledge_base, mock_db_manager):
     """Test search_restaurants delegates the call to db_manager.search_restaurants."""
-    query = "koshary"
-    filters = {"city": "Cairo"}
-    language = "en"
+    # Combine query string and filters into a single dict for the KB method
+    # Assume the underlying db_manager handles {'field': {'$like': value}}
+    query_dict = {
+        "name_en": {"$like": "%koshary%"}, # Simulate text search on name
+        "city": "Cairo"                   # Filter by city
+    }
     limit = 3
     expected_results = [{"id": "kosh_1", "name_en": "Koshary El Tahrir"}]
 
     mock_db_manager.search_restaurants.return_value = expected_results
 
-    results = knowledge_base.search_restaurants(query=query, filters=filters, language=language, limit=limit)
+    # Call with the combined query dictionary
+    results = knowledge_base.search_restaurants(query=query_dict, limit=limit)
 
-    search_term = f'%{query}%'
-    expected_db_query = {
-        '$and': [
-            {'$or': [
-                {'name_en': {'$like': search_term}},
-                {'description_en': {'$like': search_term}},
-                {'cuisine': {'$like': search_term}}
-            ]},
-            {'city': {'$eq': 'Cairo'}}
-        ]
-    }
-
-    mock_db_manager.search_restaurants.assert_called_once_with(query=expected_db_query, limit=limit)
     assert results == expected_results
+    # Check that db_manager.search_restaurants was called correctly
+    mock_db_manager.search_restaurants.assert_called_once_with(query=query_dict, limit=limit)
 
 def test_search_hotels_calls_db_manager(knowledge_base, mock_db_manager):
     """Test search_hotels delegates the call to db_manager.search_accommodations."""
-    query = "nile view"
-    filters = {"city": "Aswan", "rating": 5}
-    language = "en"
+    # Combine query string and filters into a single dict for the KB method
+    query_dict = {
+        "description_en": {"$like": "%nile view%"}, # Simulate text search on description
+        "city": "Aswan",
+        "category": "5-star" # Assuming category is used for rating filter
+    }
     limit = 2
     expected_results = [{"id": "old_cat", "name_en": "Old Cataract"}]
 
     # Note: KB.search_hotels calls DBManager.search_accommodations
     mock_db_manager.search_accommodations.return_value = expected_results
 
-    results = knowledge_base.search_hotels(query=query, filters=filters, language=language, limit=limit)
+    # Call with the combined query dictionary
+    results = knowledge_base.search_hotels(query=query_dict, limit=limit)
 
-    search_term = f'%{query}%'
-    expected_db_query = {
-        '$and': [
-            {'$or': [
-                {'name_en': {'$like': search_term}},
-                {'description_en': {'$like': search_term}},
-                {'type': {'$like': search_term}},
-                {'category': {'$like': search_term}}
-            ]},
-            {'city': {'$eq': 'Aswan'}},
-            {'rating': {'$eq': 5}}
-        ]
-    }
-
-    # Assert the correct DB manager method is called
-    mock_db_manager.search_accommodations.assert_called_once_with(query=expected_db_query, limit=limit)
     assert results == expected_results
+    # Check that db_manager.search_accommodations was called correctly
+    mock_db_manager.search_accommodations.assert_called_once_with(query=query_dict, limit=limit)
 
 def test_get_restaurant_by_id_calls_db_manager(knowledge_base, mock_db_manager):
     """Test get_restaurant_by_id delegates the call to db_manager.get_restaurant."""

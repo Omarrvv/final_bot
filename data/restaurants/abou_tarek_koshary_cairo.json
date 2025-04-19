@@ -1,0 +1,62 @@
+{
+  "id": "abou_tarek_koshary_cairo",
+  "name": {
+    "en": "Abou Tarek Koshary",
+    "ar": "أبو طارق للكشري"
+  },
+  "type": "koshary_specialty",
+  "cuisine": [
+    "Egyptian",
+    "Street Food"
+  ],
+  "location": {
+    "city": "Cairo",
+    "city_ar": "القاهرة",
+    "address": "16 Champollion St, Downtown",
+    "address_ar": "١٦ شارع شامبليون، وسط البلد",
+    "coordinates": {
+      "latitude": 30.0497,
+      "longitude": 31.2403
+    }
+  },
+  "description": {
+    "en": "Arguably Cairo's most famous Koshary restaurant, an institution known for its bustling atmosphere and delicious, classic take on Egypt's national dish.",
+    "ar": "يمكن القول إنه أشهر مطعم كشري في القاهرة، وهو مؤسسة معروفة بأجوائها الصاخبة وطعمها الكلاسيكي اللذيذ للطبق الوطني المصري."
+  },
+  "price_range": "$ (Inexpensive)",
+  "opening_hours": "9:00 AM - 11:00 PM daily",
+  "popular_dishes": [
+    {
+      "name": {
+        "en": "Koshary (various sizes)",
+        "ar": "كشري (أحجام مختلفة)"
+      },
+      "price": "LE 15-30"
+    },
+    {
+      "name": {
+        "en": "Rice Pudding",
+        "ar": "أرز باللبن"
+      },
+      "price": "LE 10"
+    }
+  ],
+  "contact": {
+    "phone": "+20 2 25775935",
+    "email": null,
+    "website": null
+  },
+  "images": [
+    "abou_tarek_exterior.jpg",
+    "abou_tarek_koshary.jpg"
+  ],
+  "tags": [
+    "koshary",
+    "budget",
+    "local",
+    "iconic",
+    "downtown",
+    "cairo"
+  ],
+  "last_updated": "2025-04-19T16:25:27.286613"
+}

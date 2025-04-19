@@ -1,0 +1,140 @@
+{
+  "id": "karnak_temple",
+  "name": {
+    "en": "Karnak Temple Complex",
+    "ar": "مجمع معبد الكرنك"
+  },
+  "type": "temple_complex",
+  "location": {
+    "city": "Luxor",
+    "city_ar": "الأقصر",
+    "region": "Upper Egypt",
+    "region_ar": "صعيد مصر",
+    "coordinates": {
+      "latitude": 25.7188,
+      "longitude": 32.6571
+    }
+  },
+  "description": {
+    "en": "The Karnak Temple Complex is a vast collection of ruined temples, chapels, pylons, and other structures, located near Luxor. Building at the complex began in the reign of Senusret I in the Middle Kingdom and continued through the Ptolemaic period. The area around Karnak was the ancient Egyptians' main place of worship of the eighteenth dynasty Theban Triad, centered on the god Amun-Ra.",
+    "ar": "مجمع معبد الكرنك هو مجموعة واسعة من المعابد المتهدمة والمصليات والأبراج والهياكل الأخرى، الواقعة بالقرب من الأقصر. بدأ البناء في المجمع في عهد سنوسرت الأول في المملكة الوسطى واستمر خلال الفترة البطلمية. كانت المنطقة المحيطة بالكرنك المكان الرئيسي للعبادة لدى المصريين القدماء للثالوث الطيبي من الأسرة الثامنة عشرة، الذي يتمحور حول الإله آمون رع."
+  },
+  "history": {
+    "en": "The Karnak Temple Complex consists of a vast mix of temples, chapels, pylons, and other buildings dating from around 2055 BC to around 100 AD. It was the main religious center of the ancient Egyptian god Amun-Ra in Thebes during the New Kingdom. The complex developed over more than 1,000 years, principally by Amenhotep III and Ramesses II. It covers more than 100 hectares, and is the second-largest ancient religious site in the world, after Angkor Wat in Cambodia.",
+    "ar": "يتكون مجمع معبد الكرنك من مزيج واسع من المعابد والمصليات والأبراج والمباني الأخرى التي يعود تاريخها من حوالي 2055 قبل الميلاد إلى حوالي 100 ميلادي. كان المركز الديني الرئيسي للإله المصري القديم آمون رع في طيبة خلال المملكة الحديثة. تطور المجمع على مدى أكثر من 1000 عام، بشكل رئيسي من قبل أمنحتب الثالث ورمسيس الثاني. يغطي أكثر من 100 هكتار، وهو ثاني أكبر موقع ديني قديم في العالم، بعد أنغكور وات في كمبوديا."
+  },
+  "practical_info": {
+    "opening_hours": "6:00 AM - 5:30 PM (Summer), 6:00 AM - 5:00 PM (Winter)",
+    "ticket_prices": {
+      "foreigners": {
+        "adults": "200 EGP",
+        "students": "100 EGP"
+      },
+      "egyptians": {
+        "adults": "30 EGP",
+        "students": "15 EGP"
+      }
+    },
+    "best_time_to_visit": "Early morning to avoid crowds and heat. October to April for more comfortable temperatures.",
+    "duration": "3-4 hours for a complete visit",
+    "facilities": [
+      "Restrooms",
+      "Kiosks for refreshments",
+      "Souvenir shops",
+      "Visitor center"
+    ],
+    "accessibility": {
+      "en": "The site is partially accessible. Main pathways are paved, but some areas have uneven terrain and steps. The size of the complex can be challenging for those with mobility issues.",
+      "ar": "الموقع متاح جزئياً. الممرات الرئيسية معبدة، ولكن بعض المناطق بها تضاريس غير مستوية ودرجات. يمكن أن يكون حجم المجمع صعبًا لأولئك الذين يعانون من مشاكل في الحركة."
+    },
+    "visitor_tips": {
+      "en": "Visit early or late in the day to avoid the midday heat. The site is enormous, so plan your route or hire a guide. Don't miss the Sound and Light Show in the evening. Bring water, sun protection, and comfortable walking shoes. Photography is allowed but tripods may require a permit.",
+      "ar": "قم بالزيارة في وقت مبكر أو متأخر من اليوم لتجنب حرارة منتصف النهار. الموقع ضخم، لذا خطط لمسارك أو استأجر مرشدًا. لا تفوت عرض الصوت والضوء في المساء. أحضر الماء، والحماية من الشمس، وأحذية مريحة للمشي. التصوير مسموح به ولكن قد تتطلب الحوامل الثلاثية تصريحًا."
+    }
+  },
+  "must_see": [
+    {
+      "id": "hypostyle_hall",
+      "name": {
+        "en": "Great Hypostyle Hall",
+        "ar": "قاعة الأعمدة الكبرى"
+      },
+      "description": {
+        "en": "One of the most impressive features of Karnak, this massive hall covers 5,000 square meters and contains 134 massive columns arranged in 16 rows. The central 12 columns are 21 meters tall. The hall was built by Seti I and completed by Ramesses II, with incredible relief carvings throughout.",
+        "ar": "واحدة من أكثر ميزات الكرنك إثارة للإعجاب، تغطي هذه القاعة الضخمة 5000 متر مربع وتحتوي على 134 عمودًا ضخمًا مرتبة في 16 صفًا. الأعمدة المركزية الـ 12 يبلغ ارتفاعها 21 مترًا. تم بناء القاعة بواسطة سيتي الأول وأكملها رمسيس الثاني، مع نقوش بارزة مذهلة في جميع أنحائها."
+      }
+    },
+    {
+      "id": "sacred_lake",
+      "name": {
+        "en": "Sacred Lake",
+        "ar": "البحيرة المقدسة"
+      },
+      "description": {
+        "en": "A large man-made lake that was used by priests for ritual purification and sacred ceremonies. The lake is rectangle-shaped and lined with stone. Near the lake is a giant scarab statue dedicated to Khepri, the god of the rising sun.",
+        "ar": "بحيرة كبيرة من صنع الإنسان كانت تستخدم من قبل الكهنة للتطهير الطقسي والاحتفالات المقدسة. البحيرة مستطيلة الشكل ومبطنة بالحجر. بالقرب من البحيرة يوجد تمثال جعران عملاق مخصص لخبري، إله الشمس المشرقة."
+      }
+    },
+    {
+      "id": "obelisks",
+      "name": {
+        "en": "Obelisks",
+        "ar": "المسلات"
+      },
+      "description": {
+        "en": "Karnak contains several obelisks, including the Obelisk of Hatshepsut, one of the tallest in Egypt at 29 meters. These monolithic monuments were carved from single pieces of granite and topped with gold or electrum to catch the sun's rays.",
+        "ar": "يحتوي الكرنك على العديد من المسلات، بما في ذلك مسلة حتشبسوت، واحدة من أطول المسلات في مصر بارتفاع 29 مترًا. تم نحت هذه النصب التذكارية المونوليثية من قطع واحدة من الجرانيت وتم تغطيتها بالذهب أو الإلكتروم لالتقاط أشعة الشمس."
+      }
+    }
+  ],
+  "components": [
+    {
+      "id": "precinct_of_amun_ra",
+      "name": {
+        "en": "Precinct of Amun-Ra",
+        "ar": "منطقة آمون رع"
+      },
+      "description": {
+        "en": "The largest of the precincts of the temple complex, dedicated to Amun-Ra, the chief deity of the Theban Triad. This area contains most of the famous structures including the Great Hypostyle Hall.",
+        "ar": "أكبر مناطق مجمع المعبد، المخصصة لآمون رع، الإله الرئيسي للثالوث الطيبي. تحتوي هذه المنطقة على معظم الهياكل المشهورة بما في ذلك قاعة الأعمدة الكبرى."
+      }
+    },
+    {
+      "id": "precinct_of_mut",
+      "name": {
+        "en": "Precinct of Mut",
+        "ar": "منطقة موت"
+      },
+      "description": {
+        "en": "Located to the south of the Amun-Ra precinct, this area is dedicated to the goddess Mut, wife of Amun-Ra. It contains a sacred lake in a crescent shape.",
+        "ar": "تقع جنوب منطقة آمون رع، وهذه المنطقة مخصصة للإلهة موت، زوجة آمون رع. تحتوي على بحيرة مقدسة على شكل هلال."
+      }
+    },
+    {
+      "id": "precinct_of_montu",
+      "name": {
+        "en": "Precinct of Montu",
+        "ar": "منطقة مونتو"
+      },
+      "description": {
+        "en": "The northernmost precinct, dedicated to the falcon-headed war god Montu. This is the oldest part of the complex but less well-preserved than other areas.",
+        "ar": "المنطقة الشمالية، المخصصة لإله الحرب ذو رأس الصقر مونتو. هذا هو أقدم جزء من المجمع ولكنه أقل حفظًا من المناطق الأخرى."
+      }
+    }
+  ],
+  "images": [
+    "karnak_aerial.jpg",
+    "hypostyle_hall.jpg",
+    "sacred_lake.jpg",
+    "obelisks.jpg"
+  ],
+  "tags": [
+    "temple",
+    "ancient",
+    "Amun-Ra",
+    "Thebes",
+    "UNESCO",
+    "New Kingdom"
+  ],
+  "last_updated": "2025-04-19T16:25:27.267454"
+}

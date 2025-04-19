@@ -1,0 +1,134 @@
+{
+  "id": "valley_of_kings",
+  "name": {
+    "en": "Valley of the Kings",
+    "ar": "وادي الملوك"
+  },
+  "type": "necropolis",
+  "location": {
+    "city": "Luxor",
+    "city_ar": "الأقصر",
+    "region": "Upper Egypt",
+    "region_ar": "صعيد مصر",
+    "coordinates": {
+      "latitude": 25.7402,
+      "longitude": 32.6014
+    }
+  },
+  "description": {
+    "en": "The Valley of the Kings is a valley in Egypt where, for a period of nearly 500 years from the 16th to 11th century BC, rock-cut tombs were excavated for the pharaohs and powerful nobles of the New Kingdom. The valley stands on the west bank of the Nile, opposite Thebes (modern Luxor), within the heart of the Theban Necropolis. The valley contains at least 63 tombs, beginning with Thutmose I and ending with Ramesses XI.",
+    "ar": "وادي الملوك هو وادٍ في مصر حيث، لفترة تقارب 500 عام من القرن السادس عشر إلى القرن الحادي عشر قبل الميلاد، تم حفر مقابر منحوتة في الصخر للفراعنة ونبلاء المملكة الحديثة الأقوياء. يقع الوادي على الضفة الغربية للنيل، مقابل طيبة (الأقصر الحديثة)، في قلب جبانة طيبة. يحتوي الوادي على ما لا يقل عن 63 مقبرة، بدءًا من تحتمس الأول وانتهاءً برمسيس الحادي عشر."
+  },
+  "history": {
+    "en": "The Valley of the Kings was used for primary burials from approximately 1539 BC to 1075 BC, and contains at least 63 tombs, beginning with Thutmose I and ending with Ramesses XI. It was the principal burial place of the major royal figures of the Egyptian New Kingdom, as well as a number of privileged nobles. The royal tombs are decorated with scenes from Egyptian mythology and give clues as to the beliefs and funerary practices of the period. Almost all of the tombs were opened and robbed in antiquity, but they still give an idea of the opulence and power of the pharaohs.",
+    "ar": "تم استخدام وادي الملوك للدفن الأساسي من حوالي 1539 قبل الميلاد إلى 1075 قبل الميلاد، ويحتوي على ما لا يقل عن 63 مقبرة، بدءًا من تحتمس الأول وانتهاءً برمسيس الحادي عشر. كان مكان الدفن الرئيسي للشخصيات الملكية الرئيسية في المملكة المصرية الحديثة، وكذلك عدد من النبلاء المميزين. تم تزيين المقابر الملكية بمشاهد من الأساطير المصرية وتعطي أدلة حول معتقدات وممارسات الدفن في تلك الفترة. تم فتح وسرقة جميع المقابر تقريبًا في العصور القديمة، لكنها لا تزال تعطي فكرة عن ترف وقوة الفراعنة."
+  },
+  "practical_info": {
+    "opening_hours": "6:00 AM - 5:00 PM daily",
+    "ticket_prices": {
+      "foreigners": {
+        "general_admission": "240 EGP (includes 3 tombs)",
+        "special_tombs": {
+          "tutankhamun": "300 EGP",
+          "ramesses_VI": "100 EGP",
+          "seti_I": "1000 EGP"
+        }
+      },
+      "egyptians": {
+        "general_admission": "30 EGP",
+        "special_tombs": "Various prices"
+      }
+    },
+    "best_time_to_visit": "Early morning to avoid crowds and heat. October to April for more comfortable temperatures.",
+    "duration": "2-4 hours depending on how many tombs you visit",
+    "facilities": [
+      "Restrooms",
+      "Cafe",
+      "Souvenir shops",
+      "Tourist train",
+      "Visitor center"
+    ],
+    "accessibility": {
+      "en": "The site is challenging for those with mobility issues. The terrain is uneven, and most tombs require descending steep staircases or ramps. Many tombs have narrow passages and limited space.",
+      "ar": "الموقع صعب لأولئك الذين يعانون من مشاكل في الحركة. التضاريس غير مستوية، وتتطلب معظم المقابر النزول عبر سلالم أو منحدرات شديدة. العديد من المقابر لها ممرات ضيقة ومساحة محدودة."
+    },
+    "visitor_tips": {
+      "en": "Visit early in the morning to avoid crowds and heat. General tickets include entry to three tombs of your choice (excluding special tombs). Photography is prohibited inside all tombs. Bring water, sun protection, and comfortable shoes. Consider hiring a guide for historical context. The most impressive tombs are often those with additional fees.",
+      "ar": "قم بالزيارة في الصباح الباكر لتجنب الزحام والحرارة. تشمل التذاكر العامة الدخول إلى ثلاثة مقابر من اختيارك (باستثناء المقابر الخاصة). التصوير محظور داخل جميع المقابر. أحضر الماء، والحماية من الشمس، وأحذية مريحة. فكر في استئجار مرشد للسياق التاريخي. المقابر الأكثر إثارة للإعجاب هي غالبًا تلك التي تتطلب رسومًا إضافية."
+    }
+  },
+  "must_see": [
+    {
+      "id": "tomb_of_tutankhamun",
+      "name": {
+        "en": "Tomb of Tutankhamun (KV62)",
+        "ar": "مقبرة توت عنخ آمون"
+      },
+      "description": {
+        "en": "The most famous tomb in the valley, discovered largely intact by Howard Carter in 1922. Though smaller than many royal tombs, it's the only tomb that was found with most of its treasures undisturbed. The tomb still contains Tutankhamun's mummy in a glass display case.",
+        "ar": "أشهر مقبرة في الوادي، اكتشفها هوارد كارتر في عام 1922 وهي سليمة إلى حد كبير. على الرغم من أنها أصغر من العديد من المقابر الملكية، إلا أنها المقبرة الوحيدة التي تم العثور عليها مع معظم كنوزها لم تمس. لا تزال المقبرة تحتوي على مومياء توت عنخ آمون في صندوق عرض زجاجي."
+      }
+    },
+    {
+      "id": "tomb_of_ramesses_VI",
+      "name": {
+        "en": "Tomb of Ramesses VI (KV9)",
+        "ar": "مقبرة رمسيس السادس"
+      },
+      "description": {
+        "en": "One of the most impressive tombs in the valley, with extensive and well-preserved decorations. The tomb features astronomical scenes on its ceilings including the Books of the Heavens, the Book of Gates, the Book of Caverns, and the Book of the Dead.",
+        "ar": "واحدة من أكثر المقابر إثارة للإعجاب في الوادي، مع زخارف واسعة ومحفوظة جيدًا. تضم المقبرة مشاهد فلكية على سقوفها بما في ذلك كتب السماوات، وكتاب البوابات، وكتاب الكهوف، وكتاب الموتى."
+      }
+    },
+    {
+      "id": "tomb_of_seti_I",
+      "name": {
+        "en": "Tomb of Seti I (KV17)",
+        "ar": "مقبرة سيتي الأول"
+      },
+      "description": {
+        "en": "Considered the most magnificent tomb in the valley, with exquisite relief carvings and extensive decoration throughout its many chambers. At 137 meters, it's one of the longest and deepest tombs. The burial chamber features a beautiful painted astronomical ceiling.",
+        "ar": "تعتبر أروع مقبرة في الوادي، مع نقوش بارزة رائعة وزخارف واسعة في جميع غرفها العديدة. بطول 137 مترًا، إنها واحدة من أطول وأعمق المقابر. تضم غرفة الدفن سقفاً فلكياً مرسوماً جميلاً."
+      }
+    }
+  ],
+  "components": [
+    {
+      "id": "royal_tombs",
+      "name": {
+        "en": "Royal Tombs",
+        "ar": "المقابر الملكية"
+      },
+      "description": {
+        "en": "The valley contains at least 63 tombs of pharaohs, queens, high priests, and other elites from the New Kingdom period. Each tomb is assigned a number preceded by 'KV' (Kings' Valley).",
+        "ar": "يحتوي الوادي على ما لا يقل عن 63 مقبرة للفراعنة والملكات وكبار الكهنة والنخب الأخرى من فترة المملكة الحديثة. يتم تعيين رقم لكل مقبرة مسبوقًا بـ 'KV' (وادي الملوك)."
+      }
+    },
+    {
+      "id": "visitor_center",
+      "name": {
+        "en": "Visitor Center",
+        "ar": "مركز الزوار"
+      },
+      "description": {
+        "en": "A modern facility with educational displays about the valley, tomb construction, and the ancient Egyptian afterlife. Includes a detailed model of the valley showing the locations and layouts of the tombs.",
+        "ar": "منشأة حديثة بها معروضات تعليمية حول الوادي، وبناء المقابر، والحياة الآخرة المصرية القديمة. يتضمن نموذجًا مفصلاً للوادي يوضح مواقع المقابر وتصميماتها."
+      }
+    }
+  ],
+  "images": [
+    "valley_of_kings_aerial.jpg",
+    "tutankhamun_tomb.jpg",
+    "ramesses_VI_tomb.jpg",
+    "valley_entrance.jpg"
+  ],
+  "tags": [
+    "tombs",
+    "pharaohs",
+    "ancient",
+    "archaeology",
+    "New Kingdom",
+    "necropolis"
+  ],
+  "last_updated": "2025-04-19T16:25:27.267450"
+}

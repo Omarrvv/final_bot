@@ -7,6 +7,7 @@ import json
 from typing import Dict, List, Any, Optional
 import os
 import importlib
+import time
 
 from src.utils.container import container
 from src.utils.exceptions import ChatbotError, ResourceNotFoundError, ServiceError, ConfigurationError
@@ -49,116 +50,64 @@ class Chatbot:
         self._initialized = True # Consider if this flag is still needed
         logger.info("Egypt Tourism Chatbot initialized successfully")
     
-    def process_message(self, user_message: str, session_id: Optional[str] = None, 
-                     language: Optional[str] = None, user_id: Optional[str] = None) -> Dict[str, Any]:
-        """
-        Process a user message and generate a response.
+    async def process_message(self, message: str, session_id: Optional[str] = None, language: str = "en") -> Dict:
+        """Process an incoming chat message and return a response."""
+        logging.info(f"--- Chatbot processing message: '{message}' (lang={language}, session={session_id}) ---")
+        logging.info(f"Processing message: {message}...")
         
-        Args:
-            user_message (str): User's message text
-            session_id (str, optional): Session ID for context
-            language (str, optional): Language code (e.g., 'en', 'ar')
-            user_id (str, optional): User ID from request model
-            
-        Returns:
-            Dict: Response containing text, session ID, and other data
-        """
-        context = {} # Initialize context
         try:
-            # Ensure initialization (this check might be redundant now)
-            # if not self._initialized:
-            #    raise RuntimeError("Chatbot components not initialized.")
-                
-            logger.info(f"Processing message: {user_message[:50]}...")
-            
-            # Create a new session if none provided
+            # Create or get session
             if not session_id:
-                session_id = self.session_manager.create_session()
-                logger.info(f"Created new session: {session_id}")
+                session_id = self.session_manager.create_session()  # Remove await since it's sync
+                logging.info(f"Created new session: {session_id}")
             
-            # Get context from session
-            context = self.session_manager.get_context(session_id)
-            logger.debug(f"Retrieved context for session {session_id}: {context}")
+            # Get or initialize session data
+            session_data = self.session_manager.get_session(session_id) or {}
             
-            # Set language in context if provided
-            if language:
-                context["language"] = language
-            elif "language" not in context:
-                context["language"] = "en"  # Default to English
+            # Update session with current language
+            session_data["language"] = language
+            self.session_manager.save_session(session_id, session_data)
             
-            logger.debug(f"Using language: {context['language']}")
+            # Process message through NLU pipeline
+            nlu_result = self.nlu_engine.process(message, language=language, context=session_data)
+            logging.debug(f"NLU Result: {nlu_result}")
             
-            # Process the message with NLU
-            logger.debug("Sending to NLU engine")
-            nlu_result = self.nlu_engine.process(
-                text=user_message,
-                session_id=session_id,
-                language=context.get("language"),
-                context=context
-            )
-            logger.debug(f"NLU result: {nlu_result}")
+            # Update dialog state and get next action
+            dialog_action = self.dialog_manager.process(nlu_result, session_data)
+            logging.debug(f"Dialog Action: {dialog_action}")
             
-            # Update context with NLU results
-            context = self.session_manager.update_context(session_id, nlu_result)
+            # Generate response based on dialog action
+            response = self.response_generator.generate_response(dialog_action, nlu_result, session_data)
+            logging.debug(f"Generated Response: {response}")
             
-            # Determine next dialog action
-            logger.debug("Getting next dialog action")
-            dialog_action = self.dialog_manager.next_action(nlu_result, context)
-            logger.debug(f"Dialog action: {dialog_action}")
-            
-            # Execute any required service calls
-            service_results = self._handle_service_calls(
-                dialog_action.get("service_calls", []),
-                context
-            )
-            
-            # Add service results to context
-            if service_results:
-                context["service_results"] = service_results
-                self.session_manager.set_context(session_id, context)
-            
-            # Generate response
-            response = self.response_generator.generate_response(
-                dialog_action=dialog_action,
-                nlu_result=nlu_result,
-                context=context
-            )
-            
-            # Add session ID and language to response
+            # Add session ID to response
             response["session_id"] = session_id
-            response["language"] = context.get("language", "en")
             
-            # Get suggestions if available
-            suggestions = self.dialog_manager.get_suggestions(
-                state=dialog_action.get("next_state", "greeting"),
-                language=context.get("language", "en")
-            )
+            # Log analytics if enabled
+            if self.db_manager:
+                self.db_manager.log_analytics_event(
+                    event_type="chat_message",
+                    event_data={
+                        "message": message,
+                        "language": language,
+                        "intent": nlu_result.get("intent"),
+                        "entities": nlu_result.get("entities"),
+                        "response": response
+                    },
+                    session_id=session_id
+                )
             
-            if suggestions:
-                response["suggestions"] = suggestions
-                
-            # Log the interaction
-            self._log_interaction(user_message, response, nlu_result, session_id)
-                
             return response
             
         except Exception as e:
-            logger.error(f"Error processing message: {str(e)}", exc_info=True)
-            
-            # Generate fallback response
-            fallback_response = {
-                "text": "I'm sorry, I'm having trouble understanding. Could you try again?",
-                "session_id": session_id,
-                "language": context.get("language", "en")
+            logging.error(f"Error processing message: {str(e)}", exc_info=True)
+            return {
+                "text": "I apologize, but I encountered an error processing your message. Please try again.",
+                "error": str(e),
+                "session_id": session_id
             }
-            
-            if isinstance(e, ChatbotError):
-                # Use the error message for better feedback
-                fallback_response["text"] = f"Sorry, {e.message.lower()}"
-                
-            return fallback_response
     
-    def _handle_service_calls(self, service_calls: List[Dict], context: Dict) -> Dict[str, Any]:
+    async def _handle_service_calls(self, service_calls: List[Dict], context: Dict) -> Dict[str, Any]:
         """
         Execute service integration calls based on dialog requirements.
         
@@ -184,7 +133,7 @@ class Chatbot:
             
             # Execute service call
             try:
-                result = self.service_hub.execute_service(
+                result = await self.service_hub.execute_service(
                     service=service,
                     method=method,
                     params=params
@@ -204,13 +153,9 @@ class Chatbot:
                     # Raise exception for required services
                     raise ServiceError(
                         service_name=service,
-                        method=method,
-                        error=str(e)
+                        message=f"Required service {service}.{method} failed: {str(e)}"
                     )
                     
-                # Store error for non-required services
-                results[f"{service}.{method}.error"] = str(e)
-        
         return results
     
     def _log_interaction(self, user_message: str, response: Dict, nlu_result: Dict, session_id: str):
