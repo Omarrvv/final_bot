@@ -32,18 +32,40 @@ class ComponentFactory:
     def _load_environment_variables(self):
         """Load environment variables."""
         self.env_vars = {
+            # Database and storage related
             "database_uri": os.getenv("DATABASE_URI", "sqlite:///./data/egypt_chatbot.db"),
             "vector_db_uri": os.getenv("VECTOR_DB_URI", "./data/vector_db"),
             "content_path": os.getenv("CONTENT_PATH", "./data"),
             "session_storage_uri": os.getenv("SESSION_STORAGE_URI", "redis://localhost:6379/0"),
+            
+            # Configuration paths
             "models_config": os.getenv("MODELS_CONFIG", "./configs/models.json"),
             "flows_config": os.getenv("FLOWS_CONFIG", "./configs/dialog_flows.json"),
             "services_config": os.getenv("SERVICES_CONFIG", "./configs/services.json"),
             "templates_path": os.getenv("TEMPLATES_PATH", "./configs/response_templates"),
+            
+            # API keys
             "anthropic_api_key": os.getenv("ANTHROPIC_API_KEY", ""),  
 
+            # Feature flags for gradual activation of components
+            "use_new_kb": os.getenv("USE_NEW_KB", "false").lower() in ("true", "1", "yes"),
+            "use_new_api": os.getenv("USE_NEW_API", "false").lower() in ("true", "1", "yes"),
+            "use_postgres": os.getenv("USE_POSTGRES", "false").lower() in ("true", "1", "yes"),
+            "use_new_nlu": os.getenv("USE_NEW_NLU", "false").lower() in ("true", "1", "yes"),
+            "use_new_dialog": os.getenv("USE_NEW_DIALOG", "false").lower() in ("true", "1", "yes"),
+            "use_rag": os.getenv("USE_RAG", "false").lower() in ("true", "1", "yes"),
+            "use_redis": os.getenv("USE_REDIS", "false").lower() in ("true", "1", "yes"),
+            "use_service_hub": os.getenv("USE_SERVICE_HUB", "false").lower() in ("true", "1", "yes"),
+
+            # Other environment settings
             "debug": os.getenv("FLASK_ENV", "production") == "development"
         }
+        
+        # Log the feature flag states
+        logger.info("Feature flags configuration:")
+        for key, value in self.env_vars.items():
+            if key.startswith("use_"):
+                logger.info(f"  {key.upper()}: {value}")
         
     def _load_configurations(self):
         """Load configuration files."""

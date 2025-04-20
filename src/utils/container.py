@@ -96,6 +96,33 @@ class Container:
             bool: True if the component is registered
         """
         return name in self._services or name in self._factories or name in self._singletons
+    
+    def get_feature_flag(self, flag_name: str) -> bool:
+        """
+        Check if a feature flag is enabled.
+        
+        Args:
+            flag_name (str): Name of the feature flag (e.g., "new_kb", "new_api")
+            
+        Returns:
+            bool: True if the feature flag is enabled
+            
+        Raises:
+            KeyError: If env_vars are not registered or the flag doesn't exist
+        """
+        try:
+            env_vars = self.get("env_vars")
+            flag_key = f"use_{flag_name.lower()}"
+            
+            if flag_key in env_vars:
+                return env_vars[flag_key]
+            else:
+                logger.warning(f"Feature flag not found: {flag_name}")
+                return False
+                
+        except KeyError:
+            logger.error("Environment variables not registered in container")
+            return False
 
 # Create a global container instance
 container = Container() 
