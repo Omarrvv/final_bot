@@ -2,7 +2,7 @@
 
 This document tracks known security vulnerabilities in our dependencies and the plan to address them.
 
-## Current Vulnerabilities
+## Package Vulnerabilities
 
 As of the latest `pip-audit` scan on the refactoring process:
 
@@ -20,25 +20,60 @@ As of the latest `pip-audit` scan on the refactoring process:
 | scikit-learn     | 1.3.0   | PYSEC-2024-110                       | 1.5.0        | Low      | Will upgrade in conda environment           |
 | starlette        | 0.37.2  | GHSA-f96h-pmfr-66vw                  | 0.40.0       | Low      | Will upgrade in requirements.txt            |
 
+## Code Security Issues
+
+### CORS Misconfiguration
+
+#### src/app.py (Flask)
+
+- **Issue**: The Flask application uses wildcard ("_") origins for `/socket.io/_`and`/static/_` routes, and falls back to "_" if `FRONTEND_URL` environment variable is not set for `/api/*` routes.
+- **Impact**: Allows any website to make cross-origin requests to these endpoints, potentially leading to Cross-Site Request Forgery (CSRF) attacks or data leakage.
+- **Priority**: High
+- **Planned Fix**: Will be addressed in Phase 2 when FastAPI fully replaces Flask.
+
+#### src/main.py (FastAPI)
+
+- **Issue**: The FastAPI application configures CORS with `allow_origins=["*"]` (wildcard) and `allow_methods=["*"]`, `allow_headers=["*"]`.
+- **Impact**: Same as above, plus the `allow_credentials=True` setting with wildcard origins violates the CORS spec and can lead to serious security issues.
+- **Priority**: High
+- **Planned Fix**: Implement specific allowed origins in Phase 2 by:
+  1. Reading from environment variables (`FRONTEND_URL`, etc.)
+  2. Explicitly listing domains instead of using wildcards
+  3. Setting appropriate restrictions on methods and headers
+
+### Missing CSRF Protection
+
+- **Issue**: CSRF protection is disabled in Flask app (`app.config['WTF_CSRF_ENABLED'] = False`) and not implemented in FastAPI.
+- **Impact**: Without CSRF protection, attackers can potentially trick users into making unwanted state-changing requests.
+- **Priority**: Medium
+- **Planned Fix**: Implement `starlette-csrf` middleware in Phase 2.
+
+### Input Validation
+
+- **Issue**: Some endpoints do not properly validate input parameters (ad-hoc validation instead of schema-based validation).
+- **Impact**: Potential for injection attacks or unexpected behavior.
+- **Priority**: Medium
+- **Planned Fix**: Implement Pydantic models for request validation in Phase 2.
+
+### JWT Authentication Issues
+
+- **Issue**: JWT authentication appears to be configured but not fully implemented or properly secured.
+- **Impact**: Potential for authentication bypass or token vulnerabilities.
+- **Priority**: Medium
+- **Planned Fix**: Implement proper JWT authentication with secure secret key management in Phase 2.
+
 ## Remediation Plan
 
-1. **High Priority (Phase 1-2)**:
+1. **High Priority (Phase 2)**:
 
-   - ✅ Flask and related packages will be removed as part of the architecture consolidation
-   - ✅ FastAPI and its dependencies will replace them
+   - Fix CORS configuration by listing specific allowed origins from environment variables
+   - Enable CSRF protection using appropriate middleware
+   - Implement proper Pydantic request validation
 
-2. **Medium Priority (Phase 0-1)**:
+2. **Medium Priority (Phase 2)**:
+   - Implement proper JWT authentication with secure key management
+   - Ensure secure session handling
 
-   - Update remaining vulnerable packages in requirements.txt (jinja2, python-multipart, requests, gunicorn)
-
-3. **Low Priority (Future Phases)**:
-   - Update ML-related packages (transformers, torch) during Phase 4 implementation
-   - Investigate mitigations for packages without fix versions
-
-## Notes
-
-- Vulnerabilities in Flask ecosystem will be automatically resolved by switching to FastAPI
-- We're primarily using scikit-learn from conda, so it will be upgraded in the environment.yml
-- Some dependencies with vulnerabilities are deeply nested and may require careful testing after upgrading
+See the full implementation plan in Phase 2 (Architecture Unification) of the refactoring plan.
 
 Last Updated: Upon initialization of refactoring project
