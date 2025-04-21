@@ -432,6 +432,20 @@ class SessionManager:
             logger.error(f"Failed to store session {session_id}: {str(e)}", exc_info=True)
             return False
     
+    # Add alias for backward compatibility with tests
+    def save_session(self, session_id: str, session_data: Dict) -> bool:
+        """
+        Save session data (alias for _store_session for compatibility).
+        
+        Args:
+            session_id (str): Session ID
+            session_data (dict): Session data
+            
+        Returns:
+            bool: Success status
+        """
+        return self._store_session(session_id, session_data)
+    
     def _cleanup_expired_sessions(self):
         """Periodically clean up expired sessions."""
         while True:

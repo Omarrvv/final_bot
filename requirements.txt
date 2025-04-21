@@ -1,63 +1,37 @@
-# Core FastAPI Framework
-# fastapi==0.111.0  # Specify a recent stable version
-fastapi>=0.111.0,<0.112.0
-# Add psycopg2 for PostgreSQL support
-psycopg2-binary>=2.9.9,<3.0.0 
-uvicorn[standard]>=0.29.0,<0.30.0 # Specify a recent stable version
-pydantic-settings>=2.2.1,<2.3.0
-python-multipart>=0.0.18,<0.1.0  # Updated from 0.0.9 for security fix
-jinja2>=3.1.6,<3.2.0  # Updated from 3.1.4 for security fix
-fastapi-limiter>=0.1.6,<0.2.0 # Add dependency for rate limiting
-
-# Web Server (Optional but common)
-gunicorn>=23.0.0,<24.0.0  # Updated from 22.0.0 for security fix
-
-# Security & Auth
-PyJWT>=2.8.0,<2.9.0  # Updated from 2.6.0
-passlib[bcrypt]>=1.7.4,<1.8.0 # For password hashing (replaces standalone bcrypt)
-# Add slowapi if rate limiting is needed later: # slowapi==0.1.9
-python-jose[cryptography]>=3.3.0,<3.4.0  # For JWTs with RSA
-starlette-csrf>=1.4.4,<1.5.0  # For CSRF protection
-starlette>=0.40.0,<0.41.0  # Updated for security fix
-
-# NLP & ML Components
-spacy>=3.7.4,<3.8.0 # Keep as is for now, check compatibility if issues arise
-transformers>=4.41.0,<4.42.0 # Updated from 4.28.1
-tokenizers>=0.19.1,<0.20.0 # Updated from 0.13.3 (often needed with transformers update)
-torch>=2.6.0,<2.7.0 # Updated from 2.2.2 to resolve torchvision/torchaudio conflict
-# scikit-learn==1.3.0 # Updated from 1.2.2 <-- Commented out, will install via Conda
-sentence-transformers>=2.7.0,<2.8.0 # Updated from 2.2.2
-
-# HTTP Client
-requests>=2.32.0,<2.33.0  # Updated from 2.31.0 for security fix
-
-# LLM SDKs
-anthropic>=0.27.0,<0.28.0 # Pinned from >=0.5.0 to recent version
-
-# Utilities
-python-dateutil>=2.9.0,<2.10.0 # Updated from 2.8.2
-Markdown>=3.6,<3.7.0 # Updated from 3.4.3
-email-validator>=2.1.1,<2.2.0 # Added for Pydantic email validation
-wheel>=0.38.0 # Added for building wheels (e.g., fasttext)
-fasttext-wheel>=0.9.2,<0.10.0 # Added for NLU language detection
-
-# Database (Assuming SQLite for now)
-SQLAlchemy>=2.0.30,<2.1.0 # Add if using SQLAlchemy ORM later
-# alembic==1.13.1 # For migrations if using SQLAlchemy
-redis>=5.0.0,<6.0.0  # For Redis sessions/caching
-
-# Development/Testing
-pytest>=8.2.2,<8.3.0
-pytest-asyncio>=0.23.7,<0.24.0
-httpx>=0.27.0,<0.28.0 # For testing async FastAPI clients
-pytest-cov>=2.10.1,<2.11.0 # Added for coverage reporting
-typer>=0.9.0,<0.10.0 # Pinned to avoid spacy 3.7.4 import error from typer.main
-
-# --- Removed Packages ---
-# Flask==2.2.3
-# flask-cors==3.0.10
-# flask-swagger-ui==4.11.1
-# Werkzeug==2.2.3
-# python-dotenv==1.0.0 (replaced by pydantic-settings)
-# flask-limiter==3.3.1
-# bcrypt==4.3.0 (included via passlib[bcrypt])
+anthropic==0.49.0
+colorama==0.4.6
+dogstatsd_python==0.5.6
+fastapi==0.115.12
+fastapi_limiter==0.1.6
+fasttext==0.9.3
+Flask==3.1.0
+flask_admin==1.6.1
+flask_cors==5.0.1
+flask_limiter==3.12
+flask_login==0.6.3
+flask_swagger_ui==4.11.1
+flask_wtf==1.2.2
+httpx==0.28.1
+numpy==2.2.5
+prometheus_client==0.21.1
+prometheus_flask_exporter==0.23.2
+protobuf==6.30.2
+psutil==7.0.0
+psycopg2==2.9.10
+pydantic==2.11.3
+pydantic_settings==2.9.1
+PyJWT==2.10.1
+pytest==8.3.5
+python-dotenv==1.1.0
+python_bcrypt==0.3.2
+python_dateutil==2.9.0.post0
+PyYAML==6.0.2
+PyYAML==6.0.2
+redis==5.2.1
+Requests==2.32.3
+scikit_learn==1.6.1
+sentry_sdk==2.26.1
+spacy==3.8.5
+starlette==0.46.2
+torch==2.6.0
+transformers==4.51.3

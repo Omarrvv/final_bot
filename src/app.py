@@ -28,11 +28,19 @@ from src.utils.error_handler import error_handler
 from src.utils.exceptions import ChatbotError, AuthenticationError, ResourceNotFoundError
 from src.chatbot import Chatbot
 from src.api.metrics_api import metrics_api
-from src.api.analytics_api import analytics_api
+# Commented out import as it doesn't exist in the expected format for Flask
+# from src.api.analytics_api import analytics_api
 from flask_wtf.csrf import generate_csrf
+from prometheus_flask_exporter import PrometheusMetrics # Import the exporter
 
-# Load environment variables early
-load_dotenv()
+# Load environment variables early with explicit path
+dotenv_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env')
+print(f"app.py: Loading .env file from: {dotenv_path}")
+load_dotenv(dotenv_path=dotenv_path)
+
+# Print key environment variables for debugging
+print(f"app.py: USE_NEW_KB value: {os.getenv('USE_NEW_KB')}")
+print(f"app.py: USE_NEW_API value: {os.getenv('USE_NEW_API')}")
 
 # Configure logging
 logging.basicConfig(
@@ -105,9 +113,9 @@ def create_app(config=None):
         from src.utils.factory import component_factory 
         component_factory.initialize()
         # Import Chatbot here if moved from global
-        from src.chatbot import Chatbot 
-        chatbot_instance = Chatbot(initialize_components=False) 
-        chatbot_instance.initialize() 
+        # from src.chatbot import Chatbot # No longer need direct import here
+        # chatbot_instance = Chatbot() # Incorrect - direct instantiation
+        chatbot_instance = component_factory.create_chatbot() # Use factory
         chatbot = chatbot_instance # Assign to variable accessible by routes
         logger.info("Chatbot instance created and initialized via factory inside create_app.")
     except Exception as e:
@@ -115,6 +123,7 @@ def create_app(config=None):
         # Keep chatbot as None
 
     app = Flask(__name__)
+    metrics = PrometheusMetrics(app) # Initialize metrics exporter
 
     # Add Secret Key for CSRF protection
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'a-secure-default-secret-key-for-dev')

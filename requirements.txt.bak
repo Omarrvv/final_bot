@@ -1,0 +1,134 @@
+annotated-types @ file:///home/conda/feedstock_root/build_artifacts/annotated-types_1733247046149/work
+anthropic==0.27.0
+anyio==4.9.0
+bcrypt==4.3.0
+blis==0.7.11
+boolean.py==5.0
+CacheControl==0.14.2
+catalogue @ file:///Users/runner/miniforge3/conda-bld/catalogue_1736092458096/work
+certifi @ file:///home/conda/feedstock_root/build_artifacts/certifi_1739515848642/work/certifi
+charset-normalizer @ file:///home/conda/feedstock_root/build_artifacts/charset-normalizer_1735929714516/work
+click==8.1.8
+cloudpathlib==0.16.0
+cloudpickle @ file:///home/conda/feedstock_root/build_artifacts/cloudpickle_1736947526808/work
+colorama @ file:///home/conda/feedstock_root/build_artifacts/colorama_1733218098505/work
+confection @ file:///home/conda/feedstock_root/build_artifacts/confection_1740630664356/work
+coverage==7.8.0
+cyclonedx-python-lib==9.1.0
+cymem @ file:///Users/runner/miniforge3/conda-bld/cymem_1737125939254/work
+defusedxml==0.7.1
+Deprecated==1.2.18
+distro==1.9.0
+dnspython==2.7.0
+email_validator==2.1.1
+en-core-web-md @ https://github.com/explosion/spacy-models/releases/download/en_core_web_md-3.7.1/en_core_web_md-3.7.1-py3-none-any.whl#sha256=6a0f857a2b4d219c6fa17d455f82430b365bf53171a2d919b9376e5dc9be032e
+fastapi==0.110.3
+fastapi-limiter==0.1.6
+fasttext-wheel==0.9.2
+filelock==3.18.0
+Flask==2.2.3
+Flask-Cors==3.0.10
+Flask-Limiter==3.3.1
+flask-swagger-ui==4.11.1
+Flask-WTF==1.2.2
+fsspec==2025.3.2
+gunicorn==22.0.0
+h11==0.14.0
+httpcore==1.0.8
+httptools==0.6.4
+httpx==0.27.0
+huggingface-hub==0.30.2
+idna @ file:///home/conda/feedstock_root/build_artifacts/idna_1733211830134/work
+iniconfig==2.1.0
+itsdangerous==2.2.0
+Jinja2==3.1.4
+jiter==0.9.0
+joblib @ file:///home/conda/feedstock_root/build_artifacts/joblib_1733736026804/work
+langcodes @ file:///home/conda/feedstock_root/build_artifacts/langcodes_1636741340529/work
+license-expression==30.4.1
+limits==5.0.0
+Markdown==3.6
+markdown-it-py==3.0.0
+MarkupSafe @ file:///Users/runner/miniforge3/conda-bld/markupsafe_1733219728782/work
+mdurl==0.1.2
+mpmath==1.3.0
+msgpack==1.1.0
+murmurhash @ file:///Users/runner/miniforge3/conda-bld/murmurhash_1728932972983/work
+networkx==3.4.2
+nltk==3.9.1
+numpy==1.26.4
+ordered-set==4.1.0
+packageurl-python==0.16.0
+packaging @ file:///home/conda/feedstock_root/build_artifacts/packaging_1733203243479/work
+pandas @ file:///Users/runner/miniforge3/conda-bld/pandas_1744430505682/work
+passlib==1.7.4
+pillow==11.2.1
+pip-api==0.0.34
+pip-requirements-parser==32.0.1
+pip_audit==2.9.0
+platformdirs==4.3.7
+pluggy==1.5.0
+preshed @ file:///Users/runner/miniforge3/conda-bld/preshed_1728945671721/work
+psycopg2-binary==2.9.10
+py-serializable==2.0.0
+pybind11==2.13.6
+pydantic @ file:///home/conda/feedstock_root/build_artifacts/pydantic_1744192202330/work
+pydantic-settings==2.2.1
+pydantic_core @ file:///Users/runner/miniforge3/conda-bld/bld/rattler-build_pydantic-core_1743607651/work
+Pygments==2.19.1
+PyJWT==2.8.0
+pyparsing==3.2.3
+pytest==8.2.2
+pytest-asyncio==0.23.7
+pytest-cov==6.1.1
+python-dateutil==2.9.0.post0
+python-dotenv==1.0.0
+python-multipart==0.0.9
+pytz @ file:///home/conda/feedstock_root/build_artifacts/pytz_1742920838005/work
+PyYAML==6.0.2
+redis==5.2.1
+regex==2024.11.6
+requests==2.31.0
+rich==13.9.4
+safetensors==0.5.3
+scikit-learn==1.3.0
+scipy @ file:///Users/runner/miniforge3/conda-bld/scipy-split_1739790747129/work/dist/scipy-1.15.2-cp312-cp312-macosx_11_0_arm64.whl#sha256=6377b40ec578974afe4a77d938cf02b8494de15d4ba3ab3b9cb5f71d23b06a92
+sentence-transformers==2.7.0
+sentencepiece==0.2.0
+setuptools==78.1.0
+six @ file:///home/conda/feedstock_root/build_artifacts/six_1733380938961/work
+smart-open==6.4.0
+sniffio==1.3.1
+sortedcontainers==2.4.0
+spacy==3.7.4
+spacy-legacy @ file:///home/conda/feedstock_root/build_artifacts/spacy-legacy_1674550301837/work
+spacy-loggers @ file:///home/conda/feedstock_root/build_artifacts/spacy-loggers_1694527114282/work
+srsly @ file:///Users/runner/miniforge3/conda-bld/srsly_1740609700690/work
+starlette==0.37.2
+sympy==1.13.1
+thinc==8.2.5
+threadpoolctl @ file:///home/conda/feedstock_root/build_artifacts/threadpoolctl_1741878222898/work
+tokenizers==0.19.1
+toml==0.10.2
+torch==2.6.0
+torchaudio==2.6.0
+torchvision==0.21.0
+tqdm @ file:///home/conda/feedstock_root/build_artifacts/tqdm_1735661334605/work
+transformers==4.41.0
+typer==0.9.0
+typing-inspection @ file:///home/conda/feedstock_root/build_artifacts/typing-inspection_1741438046699/work
+typing_extensions==4.13.2
+tzdata @ file:///home/conda/feedstock_root/build_artifacts/python-tzdata_1742745135198/work
+ujson @ file:///Users/runner/miniforge3/conda-bld/ujson_1724954437531/work
+urllib3==1.26.20
+uvicorn==0.29.0
+uvloop==0.21.0
+wasabi @ file:///home/conda/feedstock_root/build_artifacts/wasabi_1740630716360/work
+watchfiles==1.0.5
+weasel==0.3.4
+websockets==15.0.1
+Werkzeug==2.2.3
+wheel==0.45.1
+wrapt==1.17.2
+WTForms==3.2.1
+xx-ent-wiki-sm @ https://github.com/explosion/spacy-models/releases/download/xx_ent_wiki_sm-3.7.0/xx_ent_wiki_sm-3.7.0-py3-none-any.whl#sha256=66c227a793f8a79814d6ca1da7c0ae633172e2fb0a94737bc8bd2e517479e73c

@@ -1,0 +1,63 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Architecture Overview
+
+## Current State vs. Target Architecture
+
+The Egypt Tourism Chatbot currently exists in a dual-state architecture:
+
+### Active (Legacy) Architecture
+
+- **Implementation**: Root-level `app.py` using Flask
+- **Knowledge Base**: Hardcoded Python dictionary `EGYPT_TOURISM_KB` within `app.py`
+- **LLM Integration**: Direct Anthropic API calls
+- **Session Management**: Simple file-based sessions
+- **NLU**: Basic keyword spotting and regex
+- **Dialog Management**: No stateful dialogue management
+- **Security**: Misconfigured CORS (allows all origins with "*")
+- **Serving**: Serves React build artifacts (imperfectly)
+- **Status**: Currently Executed Path
+
+### Target (Modular) Architecture
+
+- **Implementation**: `src/` directory structure using FastAPI (`src/main.py`)
+- **Core Design**: Component Factory for Dependency Injection
+- **NLU**: Sophisticated multi-lingual processing in `src/nlu/engine.py`
+- **Dialog**: Stateful dialog management based on `configs/dialog_flows.json`
+- **Knowledge**: RAG pipeline and structured DB
+- **Integration**: Service Hub pattern for external services
+- **Status**: Currently Inactive Path
+- **Critical Issue**: KnowledgeBase component is disconnected from SQLite
+
+## Technology Stack
+
+### Backend
+- **Active Path**: Flask, Python 3.12
+- **Target Path**: FastAPI, Python 3.12
+- **Libraries**: spaCy, Transformers, PyTorch, Anthropic SDK, PyJWT, bcrypt, SQLAlchemy, Redis client
+
+### Frontend
+- **Framework**: React 
+- **Communication**: Axios for API calls
+- **Styling**: Tailwind CSS
+
+### Database
+- **Primary (defined)**: SQLite
+- **Session/Cache**: Redis (defined but unused)
+- **Vector DB**: Planned local file storage
+
+### DevOps
+- **Containerization**: Docker, Docker Compose
+- **Orchestration**: Kubernetes (k8s manifests)
+- **CI/CD**: GitHub Actions
+
+## Critical Architectural Issues
+
+1. **Architecture Dichotomy**: Two separate architectures with only the simpler one active
+2. **Knowledge Base Disconnection**: KnowledgeBase component disconnected from the SQLite database
+3. **Security Vulnerabilities**: Critical security flaws, particularly CORS misconfiguration
+4. **Monolithic Active Path**: Currently executing path is monolithic and synchronous
+5. **Incomplete Feature Implementation**: Many advanced features designed but not implemented

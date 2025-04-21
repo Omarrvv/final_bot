@@ -151,58 +151,125 @@ class EnhancedEntityExtractor:
         
         # Load attractions
         attractions = self.knowledge_base.search_attractions(limit=500, language=self.language)
-        for attraction in attractions:
-            name = attraction.get("name", {}).get(self.language)
-            if name:
-                entity_lists["attraction"].append(name)
+        if attractions:  # Check if attractions is not None
+            for attraction in attractions:
+                if not attraction:  # Skip None or empty items
+                    continue
+                    
+                # Safely get name with fallbacks
+                name = None
+                if isinstance(attraction.get("name"), dict):
+                    name = attraction.get("name", {}).get(self.language) or attraction.get("name", {}).get("en")
+                elif isinstance(attraction.get("name"), str):
+                    name = attraction.get("name")
+                    
+                if name:
+                    entity_lists["attraction"].append(name)
                 
-            location = attraction.get("location", {}).get(self.language)
-            if location and location not in entity_lists["location"]:
-                entity_lists["location"].append(location)
+                # Safely get location with fallbacks
+                location = None
+                if isinstance(attraction.get("location"), dict):
+                    location = attraction.get("location", {}).get(self.language) or attraction.get("location", {}).get("en")
+                elif isinstance(attraction.get("location"), str):
+                    location = attraction.get("location")
+                    
+                if location and location not in entity_lists["location"]:
+                    entity_lists["location"].append(location)
                 
-            category = attraction.get("category", {}).get(self.language)
-            if category and category not in entity_lists["category"]:
-                entity_lists["category"].append(category)
+                # Safely get category with fallbacks
+                category = None
+                if isinstance(attraction.get("category"), dict):
+                    category = attraction.get("category", {}).get(self.language) or attraction.get("category", {}).get("en")
+                elif isinstance(attraction.get("category"), str):
+                    category = attraction.get("category")
+                    
+                if category and category not in entity_lists["category"]:
+                    entity_lists["category"].append(category)
                 
         # Load hotels
         hotels = self.knowledge_base.search_hotels(query={}, limit=300)
-        for hotel in hotels:
-            name = hotel.get("name", {}).get(self.language)
-            if name:
-                entity_lists["hotel"].append(name)
+        if hotels:  # Check if hotels is not None
+            for hotel in hotels:
+                if not hotel:  # Skip None or empty items
+                    continue
+                    
+                # Safely get name with fallbacks
+                name = None
+                if isinstance(hotel.get("name"), dict):
+                    name = hotel.get("name", {}).get(self.language) or hotel.get("name", {}).get("en")
+                elif isinstance(hotel.get("name"), str):
+                    name = hotel.get("name")
+                    
+                if name:
+                    entity_lists["hotel"].append(name)
                 
-            location = hotel.get("location", {}).get(self.language)
-            if location and location not in entity_lists["location"]:
-                entity_lists["location"].append(location)
+                # Safely get location with fallbacks
+                location = None
+                if isinstance(hotel.get("location"), dict):
+                    location = hotel.get("location", {}).get(self.language) or hotel.get("location", {}).get("en")
+                elif isinstance(hotel.get("location"), str):
+                    location = hotel.get("location")
+                    
+                if location and location not in entity_lists["location"]:
+                    entity_lists["location"].append(location)
                 
-            facilities = hotel.get("facilities", [])
-            for facility in facilities:
-                if isinstance(facility, dict):
-                    facility_name = facility.get(self.language, facility.get('en', str(facility)))
-                else:
-                    facility_name = str(facility)
-                if facility_name and facility_name not in entity_lists["facility"]:
-                    entity_lists["facility"].append(facility_name)
+                # Safely get facilities with fallbacks
+                facilities = []
+                if isinstance(hotel.get("facilities"), list):
+                    facilities = hotel.get("facilities", [])
+                    
+                for facility in facilities:
+                    facility_name = None
+                    if isinstance(facility, dict):
+                        facility_name = facility.get(self.language) or facility.get('en')
+                    elif facility:
+                        facility_name = str(facility)
+                        
+                    if facility_name and facility_name not in entity_lists["facility"]:
+                        entity_lists["facility"].append(facility_name)
                     
         # Load restaurants
         restaurants = self.knowledge_base.search_restaurants(query={}, limit=300)
-        for restaurant in restaurants:
-            name = restaurant.get("name", {}).get(self.language)
-            if name:
-                entity_lists["restaurant"].append(name)
+        if restaurants:  # Check if restaurants is not None
+            for restaurant in restaurants:
+                if not restaurant:  # Skip None or empty items
+                    continue
+                    
+                # Safely get name with fallbacks
+                name = None
+                if isinstance(restaurant.get("name"), dict):
+                    name = restaurant.get("name", {}).get(self.language) or restaurant.get("name", {}).get("en")
+                elif isinstance(restaurant.get("name"), str):
+                    name = restaurant.get("name")
+                    
+                if name:
+                    entity_lists["restaurant"].append(name)
                 
-            location = restaurant.get("location", {}).get(self.language)
-            if location and location not in entity_lists["location"]:
-                entity_lists["location"].append(location)
+                # Safely get location with fallbacks
+                location = None
+                if isinstance(restaurant.get("location"), dict):
+                    location = restaurant.get("location", {}).get(self.language) or restaurant.get("location", {}).get("en")
+                elif isinstance(restaurant.get("location"), str):
+                    location = restaurant.get("location")
+                    
+                if location and location not in entity_lists["location"]:
+                    entity_lists["location"].append(location)
                 
-            cuisines = restaurant.get("cuisine", [])
-            for cuisine in cuisines:
-                if isinstance(cuisine, dict):
-                    cuisine_name = cuisine.get(self.language, cuisine.get('en', str(cuisine)))
-                else:
-                    cuisine_name = str(cuisine)
-                if cuisine_name:
-                    if cuisine_name not in entity_lists["cuisine"]:
+                # Safely get cuisines with fallbacks
+                cuisines = []
+                if isinstance(restaurant.get("cuisine"), list):
+                    cuisines = restaurant.get("cuisine", [])
+                elif restaurant.get("cuisine"):
+                    cuisines = [restaurant.get("cuisine")]
+                    
+                for cuisine in cuisines:
+                    cuisine_name = None
+                    if isinstance(cuisine, dict):
+                        cuisine_name = cuisine.get(self.language) or cuisine.get('en')
+                    elif cuisine:
+                        cuisine_name = str(cuisine)
+                        
+                    if cuisine_name and cuisine_name not in entity_lists["cuisine"]:
                         entity_lists["cuisine"].append(cuisine_name)
                     
         return entity_lists

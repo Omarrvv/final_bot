@@ -50,15 +50,32 @@ class Chatbot:
         self._initialized = True # Consider if this flag is still needed
         logger.info("Egypt Tourism Chatbot initialized successfully")
     
-    async def process_message(self, message: str, session_id: Optional[str] = None, language: str = "en") -> Dict:
-        """Process an incoming chat message and return a response."""
-        logging.info(f"--- Chatbot processing message: '{message}' (lang={language}, session={session_id}) ---")
-        logging.info(f"Processing message: {message}...")
+    async def process_message(self, message: str = None, session_id: Optional[str] = None, language: str = "en", user_message: str = None) -> Dict:
+        """
+        Process an incoming chat message and return a response.
+        
+        Args:
+            message (str, optional): User message text (for backward compatibility)
+            session_id (str, optional): Session ID, created if not provided
+            language (str, optional): Message language code. Defaults to "en"
+            user_message (str, optional): User message text (preferred parameter name)
+            
+        Returns:
+            Dict: Response data including text, session_id, etc.
+        """
+        # Handle parameter naming compatibility
+        text = user_message if user_message is not None else message
+        
+        if text is None:
+            logging.warning("No message provided - using empty message")
+            text = ""
+        
+        logging.info(f"--- Chatbot processing message: '{text}' (lang={language}, session={session_id}) ---")
         
         try:
             # Create or get session
             if not session_id:
-                session_id = self.session_manager.create_session()  # Remove await since it's sync
+                session_id = self.session_manager.create_session()
                 logging.info(f"Created new session: {session_id}")
             
             # Get or initialize session data
@@ -69,26 +86,37 @@ class Chatbot:
             self.session_manager.save_session(session_id, session_data)
             
             # Process message through NLU pipeline
-            nlu_result = self.nlu_engine.process(message, language=language, context=session_data)
+            nlu_result = self.nlu_engine.process(text, session_id=session_id, language=language, context=session_data)
             logging.debug(f"NLU Result: {nlu_result}")
             
             # Update dialog state and get next action
-            dialog_action = self.dialog_manager.process(nlu_result, session_data)
+            dialog_action = self.dialog_manager.next_action(nlu_result, session_data)
             logging.debug(f"Dialog Action: {dialog_action}")
             
             # Generate response based on dialog action
-            response = self.response_generator.generate_response(dialog_action, nlu_result, session_data)
-            logging.debug(f"Generated Response: {response}")
+            response_text = self.response_generator.generate_response(dialog_action, nlu_result, session_data)
+            logging.debug(f"Generated Response: {response_text}")
             
-            # Add session ID to response
-            response["session_id"] = session_id
+            # Add session ID and required fields to response
+            response = {
+                "text": response_text,
+                "session_id": session_id,
+                "language": language,
+                "response_type": nlu_result.get("response_type", "fallback"), # Use type from NLU
+                "suggestions": self.dialog_manager.get_suggestions(dialog_action.get("state"), language),
+                "debug_info": { # Corrected debug info
+                    "intent": nlu_result.get("intent"),
+                    "entities": nlu_result.get("entities")
+                    # No recursive 'response' key here
+                }
+            }
             
             # Log analytics if enabled
             if self.db_manager:
                 self.db_manager.log_analytics_event(
                     event_type="chat_message",
                     event_data={
-                        "message": message,
+                        "message": text,
                         "language": language,
                         "intent": nlu_result.get("intent"),
                         "entities": nlu_result.get("entities"),
@@ -97,6 +125,16 @@ class Chatbot:
                     session_id=session_id
                 )
             
+            # Handle any service calls in the dialog action
+            if dialog_action.get("service_calls"):
+                try:
+                    # Use synchronous version if we're in a sync context
+                    service_results = self._handle_service_calls_sync(dialog_action["service_calls"], session_data)
+                    response["service_results"] = service_results
+                except Exception as service_err:
+                    logging.error(f"Service call error: {str(service_err)}")
+                    response["service_error"] = str(service_err)
+            
             return response
             
         except Exception as e:
@@ -104,7 +142,9 @@ class Chatbot:
             return {
                 "text": "I apologize, but I encountered an error processing your message. Please try again.",
                 "error": str(e),
-                "session_id": session_id
+                "session_id": session_id,
+                "language": language,
+                "response_type": "error"
             }
     
     async def _handle_service_calls(self, service_calls: List[Dict], context: Dict) -> Dict[str, Any]:
@@ -134,6 +174,58 @@ class Chatbot:
             # Execute service call
             try:
                 result = await self.service_hub.execute_service(
+                    service=service,
+                    method=method,
+                    params=params
+                )
+                
+                # Store result
+                results[f"{service}.{method}"] = result
+                
+                # Store in specific result location if specified
+                if call.get("store_as"):
+                    results[call["store_as"]] = result
+                    
+            except Exception as e:
+                logger.error(f"Service call failed: {service}.{method} - {str(e)}")
+                
+                if call.get("required", False):
+                    # Raise exception for required services
+                    raise ServiceError(
+                        service_name=service,
+                        message=f"Required service {service}.{method} failed: {str(e)}"
+                    )
+                    
+        return results
+    
+    def _handle_service_calls_sync(self, service_calls: List[Dict], context: Dict) -> Dict[str, Any]:
+        """
+        Synchronous version of _handle_service_calls for use in non-async contexts.
+        
+        Args:
+            service_calls (List[Dict]): Service calls to execute
+            context (Dict): Current conversation context
+            
+        Returns:
+            Dict: Results from service calls
+        """
+        results = {}
+        
+        for call in service_calls:
+            service = call.get("service")
+            method = call.get("method")
+            params = call.get("params", {})
+            
+            # Add context data to params if specified
+            if call.get("include_context"):
+                for key in call["include_context"]:
+                    if key in context:
+                        params[key] = context[key]
+            
+            # Execute service call
+            try:
+                # Use synchronous version of service execution
+                result = self.service_hub.execute_service_sync(
                     service=service,
                     method=method,
                     params=params

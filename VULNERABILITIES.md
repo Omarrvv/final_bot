@@ -77,3 +77,51 @@ As of the latest `pip-audit` scan on the refactoring process:
 See the full implementation plan in Phase 2 (Architecture Unification) of the refactoring plan.
 
 Last Updated: Upon initialization of refactoring project
+
+# Project Vulnerabilities
+
+This document tracks known vulnerabilities identified in the project's dependencies.
+
+## pip-audit Findings (YYYY-MM-DD)
+
+Date: 2024-07-27 (Replace with actual date if different)
+
+Command: `pip-audit`
+
+Found 24 known vulnerabilities in 11 packages:
+
+| Name             | Version | ID                  | Fix Versions | Notes |
+| ---------------- | ------- | ------------------- | ------------ | ----- |
+| flask            | 2.2.3   | PYSEC-2023-62       | 2.2.5, 2.3.2 |       |
+| flask-cors       | 3.0.10  | PYSEC-2024-71       | 4.0.2        |       |
+| flask-cors       | 3.0.10  | GHSA-84pr-m4jr-85g5 | 4.0.1        |       |
+| flask-cors       | 3.0.10  | GHSA-8vgw-p6qm-5gr7 |              |       |
+| flask-cors       | 3.0.10  | GHSA-43qf-4rqw-9q2g |              |       |
+| flask-cors       | 3.0.10  | GHSA-7rxf-gvfg-47g4 |              |       |
+| gunicorn         | 22.0.0  | GHSA-hc5x-x2vx-497g | 23.0.0       |       |
+| jinja2           | 3.1.4   | GHSA-q2x7-8rv6-6q7h | 3.1.5        |       |
+| jinja2           | 3.1.4   | GHSA-gmj6-6f8f-6699 | 3.1.5        |       |
+| jinja2           | 3.1.4   | GHSA-cpwx-vrp4-4pq7 | 3.1.6        |       |
+| python-multipart | 0.0.9   | GHSA-59g5-xgcq-4qw3 | 0.0.18       |       |
+| requests         | 2.31.0  | GHSA-9wx4-h78v-vm56 | 2.32.0       |       |
+| scikit-learn     | 1.3.0   | PYSEC-2024-110      | 1.5.0        |       |
+| starlette        | 0.37.2  | GHSA-f96h-pmfr-66vw | 0.40.0       |       |
+| torch            | 2.6.0   | GHSA-3749-ghw9-m3mg |              |       |
+| torch            | 2.6.0   | GHSA-887c-mr87-cxwp |              |       |
+| transformers     | 4.41.0  | PYSEC-2024-227      | 4.48.0       |       |
+| transformers     | 4.41.0  | PYSEC-2024-228      | 4.48.0       |       |
+| transformers     | 4.41.0  | PYSEC-2024-229      | 4.48.0       |       |
+| transformers     | 4.41.0  | GHSA-6rvg-6v2m-4j46 | 4.48.0       |       |
+| werkzeug         | 2.2.3   | PYSEC-2023-221      | 2.3.8, 3.0.1 |       |
+| werkzeug         | 2.2.3   | GHSA-2g68-c3qc-8985 | 3.0.3        |       |
+| werkzeug         | 2.2.3   | GHSA-f9vj-2wh5-fj8j | 3.0.6        |       |
+| werkzeug         | 2.2.3   | GHSA-q34m-jh98-gwm2 | 3.0.6        |       |
+
+**Skipped Dependencies:**
+
+| Name           | Skip Reason                                                                   |
+| -------------- | ----------------------------------------------------------------------------- |
+| en-core-web-md | Dependency not found on PyPI and could not be audited: en-core-web-md (3.7.1) |
+| xx-ent-wiki-sm | Dependency not found on PyPI and could not be audited: xx-ent-wiki-sm (3.7.0) |
+
+**Note:** Remediation of these vulnerabilities is planned for later phases as per `the-plan.mdc`, unless they block critical setup steps.

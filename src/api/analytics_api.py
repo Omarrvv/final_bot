@@ -49,7 +49,7 @@ async def get_overview_stats():
         end_date = datetime.now()
         start_date = end_date - timedelta(days=30)
         
-        events = db_manager.get_analytics_events(
+        events = db_manager.log_analytics_event(
             filters={
                 "timestamp_gte": start_date.isoformat(),
                 "timestamp_lt": end_date.isoformat()
@@ -122,7 +122,7 @@ def get_daily_stats(days: int = Query(7, ge=1, le=90)): # Use Query for validati
         start_date = end_date - timedelta(days=days -1)
         start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
         
-        events = db_manager.get_analytics_events(
+        events = db_manager.log_analytics_event(
             filters={
                 "timestamp_gte": start_date.isoformat(),
                 "timestamp_lt": (end_date + timedelta(microseconds=1)).isoformat()
@@ -174,7 +174,7 @@ async def get_session_stats(session_id: str):
     """
     try:
         db_manager = _get_db_manager()
-        events = db_manager.get_analytics_events(filters={"session_id": session_id}, limit=1000)
+        events = db_manager.log_analytics_event(filters={"session_id": session_id}, limit=1000)
         
         if not events:
              raise HTTPException(status_code=404, detail="Session not found or no events logged")
@@ -213,7 +213,7 @@ def get_intent_distribution():
         db_manager = _get_db_manager()
         
         # Get interaction events (assuming intent is in event_data)
-        events = db_manager.get_analytics_events(filters={"event_type": "user_interaction"}, limit=100000)
+        events = db_manager.log_analytics_event(filters={"event_type": "user_interaction"}, limit=100000)
         
         intent_counts = Counter()
         for event in events:
@@ -249,7 +249,7 @@ def get_entity_distribution():
         db_manager = _get_db_manager()
         
         # Get interaction events (assuming entities are in event_data)
-        events = db_manager.get_analytics_events(filters={"event_type": "user_interaction"}, limit=100000)
+        events = db_manager.log_analytics_event(filters={"event_type": "user_interaction"}, limit=100000)
         
         entity_counts = Counter()
         entity_values = defaultdict(Counter)
@@ -302,7 +302,7 @@ def get_feedback_stats():
         db_manager = _get_db_manager()
         
         # Get feedback events
-        events = db_manager.get_analytics_events(filters={"event_type": "user_feedback"}, limit=100000)
+        events = db_manager.log_analytics_event(filters={"event_type": "user_feedback"}, limit=100000)
         
         feedback_list = []
         positive_count = 0
@@ -356,7 +356,7 @@ def get_message_stats(limit: int = Query(100, ge=1, le=1000),
         db_manager = _get_db_manager()
         
         # Get user interaction events, sorted descending by time
-        events = db_manager.get_analytics_events(
+        events = db_manager.log_analytics_event(
             filters={"event_type": "user_interaction"}, 
             limit=limit, 
             skip=offset,

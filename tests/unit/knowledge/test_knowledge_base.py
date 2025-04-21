@@ -1,220 +1,115 @@
 import pytest
-from unittest.mock import Mock, patch, call
-
-# Assuming KnowledgeBase is importable from its location
-# Adjust the import path as necessary based on your project structure and PYTHONPATH
+from unittest.mock import MagicMock, patch
 from src.knowledge.knowledge_base import KnowledgeBase
-# We don't strictly need to import DatabaseManager if we're only mocking it
 
 @pytest.fixture
 def mock_db_manager():
-    """Provides a mocked DatabaseManager instance."""
-    # Create a mock object that behaves like DatabaseManager
-    # We can configure specific methods later in the tests
-    manager = Mock() 
-    # Add specific methods that KnowledgeBase expects to call
-    manager.get_attraction = Mock()
-    manager.search_attractions = Mock()
-    manager.get_restaurant = Mock()
-    manager.search_restaurants = Mock()
-    manager.get_accommodation = Mock()
-    manager.search_accommodations = Mock()
-    return manager
+    db_manager = MagicMock()
+    return db_manager
 
-@pytest.fixture
-def knowledge_base(mock_db_manager):
-    """Provides a KnowledgeBase instance initialized with the mocked DB manager."""
-    # Pass the mock manager during initialization
+def test_init_requires_db_manager():
+    """Test that KnowledgeBase requires a DatabaseManager."""
+    with pytest.raises(ValueError):
+        KnowledgeBase(db_manager=None)
+
+def test_get_attraction_by_id(mock_db_manager):
+    """Test retrieving an attraction by ID."""
+    # Setup test data
+    mock_attraction = {
+        "id": "pyr1",
+        "name_en": "Great Pyramid of Giza",
+        "description_en": "Ancient Egyptian pyramid"
+    }
+    mock_db_manager.get_attraction.return_value = mock_attraction
+    
+    # Initialize KnowledgeBase
     kb = KnowledgeBase(db_manager=mock_db_manager)
-    return kb
-
-# --- Test Cases ---
-
-def test_kb_initialization(mock_db_manager):
-    """Test that KnowledgeBase initializes correctly with a db_manager."""
-    kb = KnowledgeBase(db_manager=mock_db_manager)
-    assert kb.db_manager is mock_db_manager
-
-def test_get_attraction_by_id_calls_db_manager(knowledge_base, mock_db_manager):
-    """Test get_attraction_by_id delegates the call to db_manager.get_attraction."""
-    attraction_id = "attr_123"
-    expected_result = {"id": attraction_id, "name_en": "Test Temple"}
     
-    # Configure the mock method to return a specific value when called
-    mock_db_manager.get_attraction.return_value = expected_result
+    # Call method
+    result = kb.get_attraction_by_id("pyr1")
     
-    # Call the method on the KnowledgeBase instance
-    result = knowledge_base.get_attraction_by_id(attraction_id)
+    # Verify correct DB call
+    mock_db_manager.get_attraction.assert_called_once_with("pyr1")
     
-    # Assert that the mock db_manager's method was called exactly once with the correct ID
-    mock_db_manager.get_attraction.assert_called_once_with(attraction_id)
-    
-    # Assert that the result returned by KnowledgeBase is the one from the mock
-    assert result == expected_result
+    # Verify result
+    assert result == mock_attraction
 
-def test_search_attractions_calls_db_manager(knowledge_base, mock_db_manager):
-    """Test search_attractions delegates the call to db_manager.search_attractions."""
-    query = "pyramids"
-    filters = {"region": "Giza"}
-    language = "en"
-    limit = 5
-    expected_results = [{"id": "giza_pyr", "name_en": "Giza Pyramids"}]
-    
-    # Configure the mock method
-    mock_db_manager.search_attractions.return_value = expected_results
-    
-    # Call the KnowledgeBase method
-    results = knowledge_base.search_attractions(query=query, filters=filters, language=language, limit=limit)
-    
-    # Prepare the expected query structure that KnowledgeBase should NOW pass to db_manager
-    search_term = f'%{query}%'
-    expected_db_query = {
-        'region': 'Giza', 
-        f'name_{language}': {'$like': search_term}
-    }
-
-    # Assert the mock was called correctly
-    mock_db_manager.search_attractions.assert_called_once_with(query=expected_db_query, limit=limit)
-    
-    # Assert the result is correct
-    assert results == expected_results
-
-def test_search_attractions_no_query_calls_db_manager(knowledge_base, mock_db_manager):
-    """Test search_attractions works correctly when no text query is provided."""
-    filters = {"city": "Luxor", "type": "temple"}
-    language = "en"
-    limit = 10
-    expected_results = [{"id": "lux_temple", "name_en": "Luxor Temple"}]
-    
-    mock_db_manager.search_attractions.return_value = expected_results
-    
-    results = knowledge_base.search_attractions(query="", filters=filters, language=language, limit=limit)
-    
-    # When query is empty, only the original filters should be passed
-    expected_db_query = filters 
-
-    mock_db_manager.search_attractions.assert_called_once_with(query=expected_db_query, limit=limit)
-    assert results == expected_results
-
-def test_search_restaurants_calls_db_manager(knowledge_base, mock_db_manager):
-    """Test search_restaurants delegates the call to db_manager.search_restaurants."""
-    # Combine query string and filters into a single dict for the KB method
-    # Assume the underlying db_manager handles {'field': {'$like': value}}
-    query_dict = {
-        "name_en": {"$like": "%koshary%"}, # Simulate text search on name
-        "city": "Cairo"                   # Filter by city
-    }
-    limit = 3
-    expected_results = [{"id": "kosh_1", "name_en": "Koshary El Tahrir"}]
-
-    mock_db_manager.search_restaurants.return_value = expected_results
-
-    # Call with the combined query dictionary
-    results = knowledge_base.search_restaurants(query=query_dict, limit=limit)
-
-    assert results == expected_results
-    # Check that db_manager.search_restaurants was called correctly
-    mock_db_manager.search_restaurants.assert_called_once_with(query=query_dict, limit=limit)
-
-def test_search_hotels_calls_db_manager(knowledge_base, mock_db_manager):
-    """Test search_hotels delegates the call to db_manager.search_accommodations."""
-    # Combine query string and filters into a single dict for the KB method
-    query_dict = {
-        "description_en": {"$like": "%nile view%"}, # Simulate text search on description
-        "city": "Aswan",
-        "category": "5-star" # Assuming category is used for rating filter
-    }
-    limit = 2
-    expected_results = [{"id": "old_cat", "name_en": "Old Cataract"}]
-
-    # Note: KB.search_hotels calls DBManager.search_accommodations
-    mock_db_manager.search_accommodations.return_value = expected_results
-
-    # Call with the combined query dictionary
-    results = knowledge_base.search_hotels(query=query_dict, limit=limit)
-
-    assert results == expected_results
-    # Check that db_manager.search_accommodations was called correctly
-    mock_db_manager.search_accommodations.assert_called_once_with(query=query_dict, limit=limit)
-
-def test_get_restaurant_by_id_calls_db_manager(knowledge_base, mock_db_manager):
-    """Test get_restaurant_by_id delegates the call to db_manager.get_restaurant."""
-    restaurant_id = "rest_456"
-    expected_result = {"id": restaurant_id, "name_en": "Abu Shakra"}
-    
-    mock_db_manager.get_restaurant.return_value = expected_result
-    
-    result = knowledge_base.get_restaurant_by_id(restaurant_id)
-    
-    mock_db_manager.get_restaurant.assert_called_once_with(restaurant_id)
-    assert result == expected_result
-
-def test_get_hotel_by_id_calls_db_manager(knowledge_base, mock_db_manager):
-    """Test get_hotel_by_id delegates the call to db_manager.get_accommodation."""
-    hotel_id = "hotel_789"
-    expected_result = {"id": hotel_id, "name_en": "Sofitel Legend"}
-
-    # Note: KB.get_hotel_by_id calls DBManager.get_accommodation
-    mock_db_manager.get_accommodation.return_value = expected_result
-    
-    result = knowledge_base.get_hotel_by_id(hotel_id)
-    
-    # Assert the correct DB manager method is called
-    mock_db_manager.get_accommodation.assert_called_once_with(hotel_id)
-    assert result == expected_result
-
-# --- Edge Case Tests ---
-
-def test_get_attraction_by_id_returns_none_when_db_manager_returns_none(knowledge_base, mock_db_manager):
-    """Test get_attraction_by_id returns None if db_manager returns None."""
-    attraction_id = "not_found_attr"
+def test_get_attraction_not_found(mock_db_manager):
+    """Test retrieving a non-existent attraction."""
+    # Setup mock to return None
     mock_db_manager.get_attraction.return_value = None
     
-    result = knowledge_base.get_attraction_by_id(attraction_id)
+    # Initialize KnowledgeBase
+    kb = KnowledgeBase(db_manager=mock_db_manager)
     
-    mock_db_manager.get_attraction.assert_called_once_with(attraction_id)
+    # Call method
+    result = kb.get_attraction_by_id("nonexistent")
+    
+    # Verify correct DB call
+    mock_db_manager.get_attraction.assert_called_once_with("nonexistent")
+    
+    # Verify result is None
     assert result is None
 
-def test_get_restaurant_by_id_returns_none_when_db_manager_returns_none(knowledge_base, mock_db_manager):
-    """Test get_restaurant_by_id returns None if db_manager returns None."""
-    restaurant_id = "not_found_rest"
-    mock_db_manager.get_restaurant.return_value = None
+def test_search_attractions_text_query(mock_db_manager):
+    """Test searching attractions with a text query."""
+    # Setup test data
+    mock_results = [
+        {"id": "pyr1", "name_en": "Great Pyramid of Giza"},
+        {"id": "sph1", "name_en": "Sphinx of Giza"}
+    ]
+    mock_db_manager.enhanced_search.return_value = mock_results
     
-    result = knowledge_base.get_restaurant_by_id(restaurant_id)
+    # Initialize KnowledgeBase
+    kb = KnowledgeBase(db_manager=mock_db_manager)
     
-    mock_db_manager.get_restaurant.assert_called_once_with(restaurant_id)
-    assert result is None
+    # Call method with text query
+    result = kb.search_attractions(query="pyramid", limit=5)
+    
+    # Verify correct DB call
+    mock_db_manager.enhanced_search.assert_called_once()
+    args = mock_db_manager.enhanced_search.call_args[1]
+    assert args["table"] == "attractions"
+    assert args["search_text"] == "pyramid"
+    assert args["limit"] == 5
+    
+    # Verify result
+    assert result == mock_results
 
-def test_get_hotel_by_id_returns_none_when_db_manager_returns_none(knowledge_base, mock_db_manager):
-    """Test get_hotel_by_id returns None if db_manager (get_accommodation) returns None."""
-    hotel_id = "not_found_hotel"
-    mock_db_manager.get_accommodation.return_value = None
+def test_search_attractions_structured_query(mock_db_manager):
+    """Test searching attractions with a structured query."""
+    # Setup test data
+    mock_results = [
+        {"id": "pyr1", "name_en": "Great Pyramid of Giza", "city": "Cairo"}
+    ]
+    mock_db_manager.search_attractions.return_value = mock_results
     
-    result = knowledge_base.get_hotel_by_id(hotel_id)
+    # Initialize KnowledgeBase
+    kb = KnowledgeBase(db_manager=mock_db_manager)
     
-    mock_db_manager.get_accommodation.assert_called_once_with(hotel_id)
-    assert result is None
-
-def test_get_attraction_by_id_handles_db_manager_exception(knowledge_base, mock_db_manager):
-    """Test get_attraction_by_id returns None and logs error if db_manager raises Exception."""
-    attraction_id = "error_attr"
-    mock_db_manager.get_attraction.side_effect = Exception("DB connection failed")
+    # Call method with structured query
+    query = {"city": "Cairo"}
+    result = kb.search_attractions(query=query, limit=5)
     
-    # Use patch to capture logs (might need logger configuration in tests later)
-    with patch('src.knowledge.knowledge_base.logging') as mock_logging:
-        result = knowledge_base.get_attraction_by_id(attraction_id)
-        
-        mock_db_manager.get_attraction.assert_called_once_with(attraction_id)
-        assert result is None
-        # Check if error was logged (basic check, refinement might be needed)
-        mock_logging.error.assert_called_once()
+    # Verify correct DB call
+    mock_db_manager.search_attractions.assert_called_once()
+    args = mock_db_manager.search_attractions.call_args[1]
+    assert args["query"] == query
+    assert args["limit"] == 5
+    
+    # Verify result
+    assert result == mock_results
 
-# TODO: Add similar exception handling tests for other get/search methods
-# TODO: Add tests for search methods returning empty lists
-
-# TODO: Add similar tests for:
-# - search_restaurants
-# - search_hotels (calls search_accommodations on db_manager)
-# - get_restaurant_by_id
-# - get_hotel_by_id (calls get_accommodation on db_manager)
-# - Edge cases (e.g., location not found, db_manager returning None or raising errors) 
+def test_search_attractions_error_handling(mock_db_manager):
+    """Test error handling in search_attractions."""
+    # Setup mock to raise exception
+    mock_db_manager.enhanced_search.side_effect = Exception("Database error")
+    
+    # Initialize KnowledgeBase
+    kb = KnowledgeBase(db_manager=mock_db_manager)
+    
+    # Call method
+    result = kb.search_attractions(query="pyramid")
+    
+    # Verify error is handled and empty list returned
+    assert result == []

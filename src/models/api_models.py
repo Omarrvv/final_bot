@@ -14,13 +14,13 @@ class ChatMessageRequest(BaseModel):
 
 class Suggestion(BaseModel):
     """Model for a suggested action."""
-    text: str
+    text: Union[str, Dict[str, Any]] = Field(..., description="Suggestion text")  # Can be string or structured response
     action: str # Or define specific Literal action types if known
 
 class ChatbotResponse(BaseModel):
     """Model for the response body of the /api/chat endpoint."""
     session_id: str = Field(..., description="The session ID for the conversation.")
-    text: str = Field(..., description="The chatbot's response text.")
+    text: Union[str, Dict[str, Any]] = Field(..., description="The chatbot's response text.")  # Can be string or structured response
     response_type: str = Field(..., description="Type of response (e.g., 'greeting', 'attraction_info', 'fallback').")
     language: str = Field(..., description="Language code of the response.")
     suggestions: Optional[List[Suggestion]] = Field(None, description="Optional list of suggested follow-up actions.")
