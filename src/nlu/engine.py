@@ -41,6 +41,11 @@ class NLUEngine:
         self.knowledge_base = knowledge_base
         self.models_config = self._load_config(models_config)
         
+        # Define supported languages
+        self._supported_languages = self.models_config.get("entity_extraction", {}).get(
+            "supported_languages", ["en", "ar"]
+        )
+        
         # Initialize language detector
         self.language_detector = LanguageDetector(
             model_path=self.models_config.get("language_detection", {}).get("model_path"),
@@ -91,6 +96,16 @@ class NLUEngine:
         
         logger.info("NLU Engine initialized successfully")
     
+    @property
+    def supported_languages(self) -> List[str]:
+        """
+        Get list of supported languages by the NLU engine.
+        
+        Returns:
+            List of language codes (e.g., ["en", "ar"])
+        """
+        return self._supported_languages
+    
     def _load_config(self, config_path: str) -> Dict:
         """Load model configuration from file."""
         try:
@@ -111,6 +126,9 @@ class NLUEngine:
                     "multilingual": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
                     "en": "sentence-transformers/all-mpnet-base-v2",
                     "ar": "asafaya/bert-base-arabic"
+                },
+                "entity_extraction": {
+                    "supported_languages": ["en", "ar"]
                 }
             }
     

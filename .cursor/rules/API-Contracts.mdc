@@ -1,0 +1,201 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# API Contracts
+
+## Core API Endpoints
+
+### 1. Chat API
+
+**Endpoint**: `/api/chat`
+
+**Method**: POST
+
+**Purpose**: Process user messages and generate chatbot responses
+
+**Request Format**:
+```
+{
+  "message": "Tell me about the Pyramids of Giza",
+  "session_id": "uuid-string",
+  "language": "en"
+}
+```
+
+**Response Format**:
+```
+{
+  "response": "The Pyramids of Giza are...",
+  "session_id": "uuid-string",
+  "entities": [
+    {
+      "type": "attraction",
+      "value": "pyramids_giza",
+      "confidence": 0.95
+    }
+  ],
+  "intent": "find_attraction"
+}
+```
+
+**Status Codes**:
+- 200: Success
+- 400: Invalid request
+- 500: Server error
+
+### 2. Authentication API
+
+**Endpoint**: `/api/auth/login`
+
+**Method**: POST
+
+**Purpose**: Authenticate users and generate access tokens
+
+**Request Format**:
+```
+{
+  "username": "user@example.com",
+  "password": "password"
+}
+```
+
+**Response Format**:
+```
+{
+  "access_token": "jwt-token",
+  "token_type": "bearer",
+  "expires_in": 3600,
+  "user_id": "user-uuid"
+}
+```
+
+**Status Codes**:
+- 200: Success
+- 401: Authentication failed
+- 500: Server error
+
+### 3. Tourism Data API
+
+**Endpoint**: `/api/tourism/{entity_type}/{entity_id}`
+
+**Method**: GET
+
+**Purpose**: Retrieve specific tourism entity details
+
+**URL Parameters**:
+- entity_type: Type of entity (attraction, city, hotel, etc.)
+- entity_id: Unique identifier for the entity
+
+**Query Parameters**:
+- language: Language code (en, ar)
+
+**Response Format**:
+```
+{
+  "id": "pyramids_giza",
+  "type": "attraction",
+  "name": "The Pyramids of Giza",
+  "description": "...",
+  "location": {
+    "latitude": 29.9792,
+    "longitude": 31.1342,
+    "address": "Al Haram, Giza"
+  },
+  "metadata": {
+    "opening_hours": "8:00 AM - 5:00 PM",
+    "ticket_price": {
+      "adult": 200,
+      "child": 100,
+      "currency": "EGP"
+    },
+    "best_time_to_visit": "October to April"
+  },
+  "images": ["pyramids1.jpg", "pyramids2.jpg"]
+}
+```
+
+**Status Codes**:
+- 200: Success
+- 404: Entity not found
+- 500: Server error
+
+### 4. Search API
+
+**Endpoint**: `/api/search`
+
+**Method**: GET
+
+**Purpose**: Search across tourism entities
+
+**Query Parameters**:
+- q: Search query
+- language: Language code (en, ar)
+- type: Entity type filter (optional)
+- limit: Maximum number of results (default: 10)
+
+**Response Format**:
+```
+{
+  "results": [
+    {
+      "id": "pyramids_giza",
+      "type": "attraction",
+      "name": "The Pyramids of Giza",
+      "description_snippet": "...",
+      "score": 0.95
+    },
+    // Additional results...
+  ],
+  "total": 15,
+  "limit": 10,
+  "offset": 0
+}
+```
+
+**Status Codes**:
+- 200: Success
+- 400: Invalid request
+- 500: Server error
+
+## API Version Strategy
+
+- API versioning via URL path: `/api/v1/...`
+- Backward compatibility maintained for at least one previous version
+- Deprecation notices provided before removing endpoints
+
+## Authentication Model
+
+- JWT-based authentication
+- Token refresh mechanism
+- Role-based access control (user, admin)
+
+## Error Response Format
+
+```
+{
+  "error": {
+    "code": "INVALID_INPUT",
+    "message": "The request contains invalid input parameters",
+    "details": {
+      "field": "message",
+      "issue": "cannot be empty"
+    }
+  }
+}
+```
+
+## Rate Limiting
+
+- Rate limits applied per IP and authenticated user
+- Headers indicating rate limit status:
+  - X-RateLimit-Limit
+  - X-RateLimit-Remaining
+  - X-RateLimit-Reset
+
+## API Documentation
+
+- OpenAPI/Swagger documentation available at `/api/docs`
+- Interactive API explorer
+- Example requests and responses

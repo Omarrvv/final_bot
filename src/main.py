@@ -18,12 +18,22 @@ from fastapi_limiter.depends import RateLimiter  # Uncomment this import
 from typing import Optional, AsyncGenerator
 from contextlib import asynccontextmanager # Add asynccontextmanager
 from pydantic import BaseModel # Import BaseModel if defining ResetRequest here temporarily
+import asyncio # Add asyncio import
 
 # Add this to handle imports properly
 if __name__ == "__main__":
     import os
     import sys
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Load environment variables early
+dotenv_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env')
+print(f"Loading .env file from: {dotenv_path}")
+load_dotenv(dotenv_path=dotenv_path)
+
+# Print key environment variables for debugging
+print(f"USE_NEW_KB value: {os.getenv('USE_NEW_KB')}")
+print(f"USE_NEW_API value: {os.getenv('USE_NEW_API')}")
 
 # Change relative imports to absolute imports
 from src.chatbot import Chatbot
@@ -34,9 +44,6 @@ from src.models.api_models import (
     ResetRequest # Import the moved model
 )
 from src.api.analytics_api import analytics_router
-
-# Load environment variables early
-load_dotenv()
 
 # --- Define Project Root Path ---
 # Get the absolute path of the directory containing this file (src/)
@@ -98,22 +105,6 @@ logger.info("Logging setup complete.") # Add confirmation log
 
 # --- End Logging Setup ---
 
-# --- Initialize Chatbot Components --- # (UNCOMMENTED)
-# from src.utils.container import container # Import the container # Keep container commented if not directly used here
-
-try:
-    component_factory.initialize()
-    chatbot = component_factory.create_chatbot() # Use factory to create chatbot
-    # Ensure chatbot is initialized if factory doesn't handle it
-    # chatbot.initialize() # Assuming create_chatbot returns an initialized instance or handles it
-    logger.info("Chatbot components initialized successfully.")
-except Exception as e:
-    logger.error(f"CRITICAL: Failed to initialize chatbot components: {e}", exc_info=True)
-    chatbot = None # Ensure chatbot is None if init fails
-    # Depending on the desired behavior, you might want to exit or raise the exception
-    # raise # Re-raise the exception to potentially stop the server from starting
-# --- End Component Initialization ---
-
 # --- Global variables ---
 chatbot_instance: Optional["Chatbot"] = None  # Use string literal for forward reference
 
@@ -124,13 +115,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("Application startup: Initializing components...")
     
     # Initialize components using the factory
-    try:
-        component_factory.initialize()
-        chatbot_instance = component_factory.create_chatbot()
-        logger.info("Chatbot components initialized successfully.")
-    except Exception as e:
-        logger.critical(f"CRITICAL: Failed to initialize chatbot components during startup: {e}", exc_info=True)
-        # We'll continue startup but endpoints will return 503 if chatbot is None
+    logger.info("LIFESPAN: Attempting component_factory.initialize()...")
+    component_factory.initialize()
+    logger.info("LIFESPAN: component_factory.initialize() finished.")
+
+    logger.info("LIFESPAN: Attempting component_factory.create_chatbot()...")
+    chatbot_instance = component_factory.create_chatbot()
+    logger.info("LIFESPAN: component_factory.create_chatbot() finished.")
+    
+    app.state.chatbot = chatbot_instance # Assign to app.state
+    logger.info("Chatbot components initialized successfully and attached to app state.")
 
     # Initialize Rate Limiter
     logger.info("Application startup: Initializing Rate Limiter...")
@@ -215,8 +209,8 @@ logger.info("CORS middleware added.")
 # Import necessary components and models # (UNCOMMENTED)
 # from src.knowledge.database import DatabaseManager # Import DatabaseManager # Keep commented if chatbot handles it
 # Potentially import Request for accessing query params/headers if needed later
-# from fastapi import HTTPException, Request, Query # Add Query if needed for optional param definition
-# from typing import Optional # Add Optional if not present
+from fastapi import HTTPException, Request, Query # Add Query if needed for optional param definition
+from typing import Optional # Add Optional if not present
 
 # Import necessary components for serving static files
 # from fastapi.staticfiles import StaticFiles
@@ -232,14 +226,14 @@ app.include_router(analytics_router) # Includes all routes from analytics_api wi
 logger.info("Analytics router included.")
 
 # --- Base App Routes ---
-@app.get("/api/health", tags=["Health"])
+@app.get("/api/health", response_model=None, tags=["Health"])
 async def health_check():
     """Health check endpoint."""
     logger.info("Health check endpoint called.")
-    return {"status": "ok", "service": "Egypt Tourism Chatbot FastAPI backend", "timestamp": datetime.now().isoformat()}
+    return {"status": "ok", "message": "API is running"}
 
 # --- Test Rate Limiting with Redis ---
-@app.get("/api/test-rate-limit", tags=["Test"], dependencies=[Depends(RateLimiter(times=5, seconds=60))])
+@app.get("/api/test-rate-limit", response_model=None, tags=["Test"], dependencies=[Depends(RateLimiter(times=5, seconds=60))])
 async def test_rate_limit():
     """
     Test endpoint for rate limiting.
@@ -253,7 +247,7 @@ async def test_rate_limit():
     }
 
 # --- Test Database Connectivity ---
-@app.get("/api/test-db", tags=["Test"])
+@app.get("/api/test-db", response_model=None, tags=["Test"])
 async def test_db():
     """
     Test endpoint for database connectivity.
@@ -292,91 +286,109 @@ async def test_db():
 
 # --- Chat and Other Endpoints ---
 @app.post("/api/chat", response_model=ChatbotResponse, tags=["Chatbot"])
-async def chat_endpoint(chat_request: ChatMessageRequest):
+async def chat_endpoint(chat_request: ChatMessageRequest, request: Request): 
     """Handles incoming chat messages and returns the chatbot's response."""
     logger.info(f"--- Received request for /api/chat: lang={chat_request.language}, session={chat_request.session_id} ---")
-    if chatbot_instance is None:
-        logger.error("Chatbot not initialized, returning 503")
+    if not hasattr(request.app.state, 'chatbot') or request.app.state.chatbot is None:
+        logger.error("Chatbot not initialized or not found in app state, returning 503")
         raise HTTPException(status_code=503, detail="Chatbot service is unavailable due to initialization error.")
     try:
-        # Properly await the async process_message method
-        response = await chatbot_instance.process_message(
+        response = await request.app.state.chatbot.process_message(
             message=chat_request.message,
             session_id=chat_request.session_id,
             language=chat_request.language
         )
+        logger.info(f"--- Returning response for /api/chat: {response} ---")
         return response
     except Exception as e:
         logger.error(f"Error in /api/chat endpoint: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="An error occurred while processing your message.")
+        raise HTTPException(status_code=500, detail="Internal server error processing chat message.")
 
 @app.get("/api/suggestions", response_model=SuggestionsResponse, tags=["Chatbot"])
-async def get_suggestions(session_id: Optional[str] = None, language: str = "en"):
+async def get_suggestions(request: Request, session_id: Optional[str] = None, language: str = "en"): 
     """Get suggested messages based on the current conversation state."""
-    if chatbot_instance is None:
+    if not hasattr(request.app.state, 'chatbot') or request.app.state.chatbot is None:
+        logger.error("Chatbot not initialized or not found in app state (suggestions), returning 503")
         raise HTTPException(status_code=503, detail="Chatbot service is unavailable due to initialization error.")
     try:
-        suggestions = chatbot_instance.get_suggestions(session_id=session_id, language=language)
+        suggestions = request.app.state.chatbot.get_suggestions(session_id=session_id, language=language)
         return {"suggestions": suggestions}
     except Exception as e:
         logger.error(f"Error in /api/suggestions endpoint: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Failed to get suggestions.")
+        raise HTTPException(status_code=500, detail="Internal server error getting suggestions.")
 
 @app.post("/api/reset", response_model=ResetResponse, tags=["Chatbot"])
-async def reset_session(reset_request: ResetRequest):
+async def reset_session(reset_request: ResetRequest, request: Request): 
     """Reset a conversation session."""
-    if chatbot_instance is None:
+    if not hasattr(request.app.state, 'chatbot') or request.app.state.chatbot is None:
+        logger.error("Chatbot not initialized or not found in app state (reset), returning 503")
         raise HTTPException(status_code=503, detail="Chatbot service is unavailable due to initialization error.")
     try:
-        result = chatbot_instance.reset_session(session_id=reset_request.session_id)
+        result = request.app.state.chatbot.reset_session(session_id=reset_request.session_id)
         return result
     except Exception as e:
         logger.error(f"Error in /api/reset endpoint: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Failed to reset session.")
+        raise HTTPException(status_code=500, detail="Internal server error resetting session.")
 
 @app.get("/api/languages", response_model=LanguagesResponse, tags=["Chatbot"])
-async def get_languages():
-    """Get the list of supported languages."""
-    if chatbot_instance is None:
+async def get_languages(request: Request): 
+    """Get available languages for the chatbot."""
+    if not hasattr(request.app.state, 'chatbot') or request.app.state.chatbot is None:
+        logger.error("Chatbot not initialized or not found in app state (languages), returning 503")
         raise HTTPException(status_code=503, detail="Chatbot service is unavailable due to initialization error.")
     try:
-        # Get supported languages from the initialized NLU engine
-        supported_languages = chatbot_instance.nlu_engine.supported_languages
-        # Format them if necessary (e.g., list of dicts with code/name)
-        # Assuming nlu_engine.supported_languages is already in the desired format [{code: 'en', name: 'English'}, ...]
-        # If not, format it here.
-        # Example formatting if it's just a list of codes ['en', 'ar']:
-        # langs_map = {'en': 'English', 'ar': 'العربية'} # Define mapping
-        # formatted_languages = [{'code': lang, 'name': langs_map.get(lang, lang)} for lang in supported_languages]
-        # return {"languages": formatted_languages}
+        supported_languages = request.app.state.chatbot.nlu_engine.supported_languages
+        langs_map = {'en': 'English', 'ar': 'العربية'}
         
-        # Assuming it's already formatted correctly based on Flask app code analysis
-        return {"languages": supported_languages} 
+        available_languages = [
+            {"code": code, "name": langs_map[code]}
+            for code in supported_languages 
+            if code in langs_map
+        ]
+        
+        return {"languages": available_languages}
+    except AttributeError as e:
+         logger.error(f"Error accessing NLU engine or languages: {e}", exc_info=True)
+         raise HTTPException(status_code=500, detail="Internal server error retrieving languages: NLU component issue.")
     except Exception as e:
-        logger.error(f"Error getting supported languages: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Failed to retrieve languages.")
+        logger.error(f"Error in /api/languages endpoint: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error retrieving languages.")
 
 @app.post("/api/feedback", response_model=FeedbackResponse, tags=["Chatbot"])
-async def submit_feedback(feedback: FeedbackRequest):
+async def submit_feedback(feedback: FeedbackRequest, request: Request): 
     """Submit user feedback about a conversation."""
-    if chatbot_instance is None:
+    if not hasattr(request.app.state, 'chatbot') or request.app.state.chatbot is None:
+        logger.error("Chatbot not initialized or not found in app state (feedback), returning 503")
         raise HTTPException(status_code=503, detail="Chatbot service is unavailable due to initialization error.")
     try:
-        db_manager = chatbot_instance.db_manager
-        success = db_manager.log_feedback(
-            message_id=feedback.message_id,
-            rating=feedback.rating,
-            comment=feedback.comment,
-            session_id=feedback.session_id,
-            user_id=feedback.user_id
+        db_manager = request.app.state.chatbot.db_manager 
+        event_data = feedback.model_dump()
+
+        # Properly get the current event loop
+        loop = asyncio.get_running_loop()
+
+        # Run the synchronous DB call in the default executor
+        success = await loop.run_in_executor(
+            None,  # Use default executor
+            db_manager.log_analytics_event,
+            "user_feedback",  # event_type
+            event_data,       # event_data
+            feedback.session_id, # session_id
+            feedback.user_id     # user_id
         )
+
         if success:
-            return {"success": True, "message": "Feedback recorded successfully"}
+            logger.info(f"Successfully logged feedback for session {feedback.session_id}")
+            return FeedbackResponse(success=True, message="Feedback submitted successfully.")
         else:
-            raise HTTPException(status_code=500, detail="Failed to record feedback")
+            logger.error(f"Failed to log feedback for session {feedback.session_id}")
+            raise HTTPException(status_code=500, detail="Failed to submit feedback")
+    except AttributeError as e:
+        logger.error(f"Error accessing DB manager for feedback: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error submitting feedback: DB component issue.")
     except Exception as e:
         logger.error(f"Error in /api/feedback endpoint: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="An error occurred while processing feedback.")
+        raise HTTPException(status_code=500, detail="Internal server error submitting feedback.")
 
 # @app.get("/{full_path:path}", ...)
 # async def serve_react_app(...): ...

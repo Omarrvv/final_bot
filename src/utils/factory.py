@@ -5,10 +5,11 @@ Creates and configures components with dependency injection.
 import os
 import logging
 from src.services.anthropic_service import AnthropicService
-from typing import Dict, Any, Optional
+from typing import Dict, List, Any, Optional
 
 from src.utils.container import container
 from src.utils.exceptions import ConfigurationError
+from src.utils.settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -25,47 +26,26 @@ class ComponentFactory:
         
     def initialize(self):
         """Initialize the factory with environment variables and configurations."""
+        logger.info("Initializing component factory...")
+        
+        # Log key feature flags
+        logger.info(f"Feature flags (before initialization): " + 
+                   f"USE_NEW_KB={settings.feature_flags.use_new_kb}, " +
+                   f"USE_NEW_API={settings.feature_flags.use_new_api}, " +
+                   f"USE_POSTGRES={settings.feature_flags.use_postgres}")
+                   
         self._load_environment_variables()
         self._load_configurations()
         self._register_services()
+        logger.info("Component factory initialization complete")
         
     def _load_environment_variables(self):
-        """Load environment variables."""
-        self.env_vars = {
-            # Database and storage related
-            "database_uri": os.getenv("DATABASE_URI", "sqlite:///./data/egypt_chatbot.db"),
-            "vector_db_uri": os.getenv("VECTOR_DB_URI", "./data/vector_db"),
-            "content_path": os.getenv("CONTENT_PATH", "./data"),
-            "session_storage_uri": os.getenv("SESSION_STORAGE_URI", "redis://localhost:6379/0"),
-            
-            # Configuration paths
-            "models_config": os.getenv("MODELS_CONFIG", "./configs/models.json"),
-            "flows_config": os.getenv("FLOWS_CONFIG", "./configs/dialog_flows.json"),
-            "services_config": os.getenv("SERVICES_CONFIG", "./configs/services.json"),
-            "templates_path": os.getenv("TEMPLATES_PATH", "./configs/response_templates"),
-            
-            # API keys
-            "anthropic_api_key": os.getenv("ANTHROPIC_API_KEY", ""),  
-
-            # Feature flags for gradual activation of components
-            "use_new_kb": os.getenv("USE_NEW_KB", "false").lower() in ("true", "1", "yes"),
-            "use_new_api": os.getenv("USE_NEW_API", "false").lower() in ("true", "1", "yes"),
-            "use_postgres": os.getenv("USE_POSTGRES", "false").lower() in ("true", "1", "yes"),
-            "use_new_nlu": os.getenv("USE_NEW_NLU", "false").lower() in ("true", "1", "yes"),
-            "use_new_dialog": os.getenv("USE_NEW_DIALOG", "false").lower() in ("true", "1", "yes"),
-            "use_rag": os.getenv("USE_RAG", "false").lower() in ("true", "1", "yes"),
-            "use_redis": os.getenv("USE_REDIS", "false").lower() in ("true", "1", "yes"),
-            "use_service_hub": os.getenv("USE_SERVICE_HUB", "false").lower() in ("true", "1", "yes"),
-
-            # Other environment settings
-            "debug": os.getenv("FLASK_ENV", "production") == "development"
-        }
+        """Load environment variables using settings module."""
+        # Use the settings module to get configuration values
+        self.env_vars = settings.as_dict()
         
-        # Log the feature flag states
-        logger.info("Feature flags configuration:")
-        for key, value in self.env_vars.items():
-            if key.startswith("use_"):
-                logger.info(f"  {key.upper()}: {value}")
+        # Log settings (excluding sensitive information)
+        settings.log_settings(include_secrets=False)
         
     def _load_configurations(self):
         """Load configuration files."""
@@ -74,9 +54,9 @@ class ComponentFactory:
             from pathlib import Path
             
             for config_name, config_path in [
-                ("models", self.env_vars["models_config"]),
-                ("flows", self.env_vars["flows_config"]),
-                ("services", self.env_vars["services_config"])
+                ("models", settings.models_config),
+                ("flows", settings.flows_config),
+                ("services", settings.services_config)
             ]:
                 if not Path(config_path).exists():
                     logger.warning(f"Configuration file not found: {config_path}")
@@ -92,9 +72,18 @@ class ComponentFactory:
     
     def _register_services(self):
         """Register common services in the dependency injection container."""
+        logger.info("Registering services...")
+        
+        # Log feature flags for component selection
+        logger.info(f"Feature flags during registration: " + 
+                   f"USE_NEW_KB={settings.feature_flags.use_new_kb}, " +
+                   f"USE_NEW_API={settings.feature_flags.use_new_api}, " +
+                   f"USE_POSTGRES={settings.feature_flags.use_postgres}")
+        
         # Register configurations
         container.register("env_vars", self.env_vars)
         container.register("configs", self.configs)
+        container.register("settings", settings)
         
         # Register factory methods for main components
         container.register_factory("knowledge_base", self.create_knowledge_base)
@@ -104,9 +93,17 @@ class ComponentFactory:
         container.register_factory("service_hub", self.create_service_hub)
         container.register_factory("session_manager", self.create_session_manager)
         container.register_factory("database_manager", self.create_database_manager)
-        self.register_component("anthropic_service", AnthropicService(self.env_vars))
+        
+        # Create AnthropicService with API key from settings
+        anthropic_api_key = settings.anthropic_api_key.get_secret_value() if settings.anthropic_api_key else ""
+        self.register_component("anthropic_service", AnthropicService({
+            "anthropic_api_key": anthropic_api_key
+        }))
+        
         # Register Chatbot factory
         container.register_factory("chatbot", self.create_chatbot)
+        
+        logger.info("Service registration complete")
 
     def register_component(self, name, component):
         container.register(name, component)    
@@ -133,14 +130,13 @@ class ComponentFactory:
             service_hub=service_hub,
             session_manager=session_manager,
             db_manager=db_manager
-            # Remove initialize_components=False if Chatbot constructor doesn't take it
         )
 
     def create_database_manager(self) -> Any:
         """Create the database manager component."""
         from src.knowledge.database import DatabaseManager
         # Initialize DatabaseManager using the configured URI
-        db_manager = DatabaseManager(database_uri=self.env_vars["database_uri"])
+        db_manager = DatabaseManager(database_uri=settings.database_uri)
         # Optional: Check connection or perform initial setup if needed
         # db_manager.check_connection() 
         return db_manager
@@ -148,16 +144,31 @@ class ComponentFactory:
     def create_knowledge_base(self) -> Any:
         """Create the knowledge base component."""
         from src.knowledge.knowledge_base import KnowledgeBase
-        # Get DatabaseManager instance from the container
-        db_manager = container.get("database_manager") 
         
-        return KnowledgeBase(
-            db_manager=db_manager, # Inject the db_manager instance
-            # Pass other URIs/paths if still needed by KB (vector_db_uri, content_path)
-            vector_db_uri=self.env_vars["vector_db_uri"],
-            content_path=self.env_vars["content_path"]
-            # No longer need to pass database_uri here, as db_manager handles it
-        )
+        # Check if USE_NEW_KB flag is enabled
+        if settings.feature_flags.use_new_kb:
+            logger.info("Creating new Knowledge Base implementation with database connection (USE_NEW_KB=true)")
+            # Get DatabaseManager instance from the container
+            db_manager = container.get("database_manager") 
+            
+            # Create and return the KnowledgeBase with the db_manager
+            return KnowledgeBase(
+                db_manager=db_manager, # Inject the db_manager instance
+                vector_db_uri=settings.vector_db_uri,
+                content_path=settings.content_path
+            )
+        else:
+            # Legacy implementation (placeholder - in a real scenario, we'd implement a mock KB)
+            logger.warning("Using legacy Knowledge Base implementation (USE_NEW_KB=false)")
+            # This is a simplified placeholder - in the real app, we would provide a backwards
+            # compatible implementation that uses the hardcoded dictionary
+            legacy_kb = KnowledgeBase(
+                db_manager=container.get("database_manager"),
+                vector_db_uri=settings.vector_db_uri,
+                content_path=settings.content_path
+            )
+            logger.warning("Note: Legacy KB implementation is using the same class as new KB for simplicity")
+            return legacy_kb
     
     def create_nlu_engine(self) -> Any:
         """Create the NLU engine component."""
@@ -165,7 +176,7 @@ class ComponentFactory:
         
         knowledge_base = container.get("knowledge_base")
         return NLUEngine(
-            models_config=self.env_vars["models_config"],
+            models_config=settings.models_config,
             knowledge_base=knowledge_base
         )
     
@@ -175,7 +186,7 @@ class ComponentFactory:
         
         knowledge_base = container.get("knowledge_base")
         return DialogManager(
-            flows_config=self.env_vars["flows_config"],
+            flows_config=settings.flows_config,
             knowledge_base=knowledge_base
         )
     
@@ -185,7 +196,7 @@ class ComponentFactory:
         
         knowledge_base = container.get("knowledge_base")
         return ResponseGenerator(
-            templates_path=self.env_vars["templates_path"],
+            templates_path=settings.templates_path,
             knowledge_base=knowledge_base,
             config=self.configs.get("response", {})
         )
@@ -195,38 +206,39 @@ class ComponentFactory:
         from src.integration.service_hub import ServiceHub
         
         return ServiceHub(
-            config_path=self.env_vars["services_config"]
+            config_path=settings.services_config
         )
     
     def create_session_manager(self) -> Any:
         """Create the session manager component."""
         from src.utils.session import SessionManager
         
-        # Determine storage URI based on testing environment
+        # Determine storage URI based on environment
+        storage_uri = settings.session_storage_uri
+        
+        # Handle testing environment
         is_testing = os.getenv("TESTING") == "true"
         if is_testing:
             # Force file storage during testing
-            temp_dir = self.env_vars.get("CONTENT_PATH")
+            temp_dir = settings.content_path
             if temp_dir:
                 storage_uri = f"file:///{os.path.join(temp_dir, '..', 'sessions')}"
                 logger.info(f"Forcing file session storage for testing: {storage_uri}")
-            else:
-                logger.warning("CONTENT_PATH not found in env_vars during testing, defaulting session storage URI.")
-                storage_uri = self.env_vars["session_storage_uri"]
         else:
             # Use Redis in Docker, local Redis for development
             is_docker = os.path.exists("/.dockerenv")
             if is_docker:
                 storage_uri = "redis://redis:6379/1"  # Use Docker service name
-            else:
-                storage_uri = "redis://localhost:6379/1"  # Use localhost for local development
+            elif settings.feature_flags.use_redis:
+                storage_uri = settings.redis_url
             
+            # Update USE_REDIS environment variable if using Redis
             if storage_uri.startswith("redis://"):
                 os.environ["USE_REDIS"] = "true"
                 logger.info("Detected Redis URI in session_storage_uri, setting USE_REDIS=true")
             
         return SessionManager(
-            session_ttl=3600,  # 1 hour by default
+            session_ttl=settings.jwt_expiration,  # Use same TTL as JWT
             storage_uri=storage_uri
         )
 

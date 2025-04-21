@@ -219,34 +219,93 @@ class ServiceHub:
             except Exception as e:
                 logger.error(f"Failed to load plugin service {service_name}: {str(e)}")
     
-    def execute_service(self, service: str, method: str, params: Dict = None) -> Dict:
+    async def execute_service(self, service: str, method: str, params: Dict = None) -> Dict:
         """
         Execute a service method with parameters.
         
         Args:
             service (str): Service name
             method (str): Method name
-            params (dict, optional): Method parameters
+            params (Dict, optional): Method parameters
             
         Returns:
-            dict: Service execution result
+            Dict: Result from service method
+            
+        Raises:
+            ServiceError: If service or method not found, or execution fails
         """
-        # Default empty params if None
-        if params is None:
-            params = {}
+        # Default params to empty dict
+        params = params or {}
         
-        # Check if service exists
-        if service not in self.services:
-            logger.error(f"Service not found: {service}")
-            return {"error": f"Service not found: {service}"}
-        
-        # Execute service method
         try:
-            service_instance = self.services[service]
-            return service_instance.execute(method, params)
+            # Get service instance
+            service_instance = self.get_service(service)
+            
+            if not service_instance:
+                raise ServiceError(
+                    service_name=service,
+                    message=f"Service not found: {service}"
+                )
+            
+            # Execute service method
+            result = await service_instance.execute(method, params)
+            
+            return result
+            
         except Exception as e:
-            logger.error(f"Error executing service {service}.{method}: {str(e)}")
-            return {"error": str(e)}
+            logger.error(f"Service execution failed: {service}.{method} - {str(e)}")
+            raise ServiceError(
+                service_name=service,
+                message=f"Service execution failed: {service}.{method} - {str(e)}"
+            )
+    
+    def execute_service_sync(self, service: str, method: str, params: Dict = None) -> Dict:
+        """
+        Synchronous version of execute_service for non-async contexts.
+        
+        Args:
+            service (str): Service name
+            method (str): Method name
+            params (Dict, optional): Method parameters
+            
+        Returns:
+            Dict: Result from service method
+            
+        Raises:
+            ServiceError: If service or method not found, or execution fails
+        """
+        # Default params to empty dict
+        params = params or {}
+        
+        try:
+            # Get service instance
+            service_instance = self.get_service(service)
+            
+            if not service_instance:
+                raise ServiceError(
+                    service_name=service,
+                    message=f"Service not found: {service}"
+                )
+            
+            # For synchronous execution, we'll assume the service has synchronous methods
+            # This is a simplification for testing purposes
+            if isinstance(service_instance, APIService):
+                # For API services, use a synchronous request
+                return service_instance.execute_sync(method, params)
+            elif hasattr(service_instance, method):
+                # For built-in services with direct method access
+                method_func = getattr(service_instance, method)
+                return method_func(**params)
+            else:
+                # Default fallback - execute may be synchronous in mock environment
+                return service_instance.execute(method, params)
+            
+        except Exception as e:
+            logger.error(f"Service execution failed: {service}.{method} - {str(e)}")
+            raise ServiceError(
+                service_name=service,
+                message=f"Service execution failed: {service}.{method} - {str(e)}"
+            )
     
     def get_service(self, service: str) -> Optional['Service']:
         """
@@ -363,100 +422,179 @@ class Service:
 
 
 class APIService(Service):
-    """Service implementation for REST APIs."""
+    """REST API based service implementation."""
     
     def __init__(self, name: str, config: Dict):
         """
-        Initialize an API service.
+        Initialize API service.
         
         Args:
             name (str): Service name
-            config (dict): Service configuration
+            config (Dict): Service configuration
         """
         super().__init__(name, config)
+        
+        # Extract API-specific configurations
         self.base_url = config.get("base_url", "")
         self.api_key = config.get("api_key", "")
         self.endpoints = config.get("endpoints", {})
         
-        # Initialize session
+        # HTTP session for reusing connections
         self.session = requests.Session()
         
-        # Add common headers if specified
-        if "headers" in config:
-            self.session.headers.update(config["headers"])
+        # Verify base URL format
+        if self.base_url and not self.base_url.endswith("/"):
+            self.base_url += "/"
     
-    def execute(self, method: str, params: Dict) -> Dict:
+    async def execute(self, method: str, params: Dict) -> Dict:
         """
-        Execute an API endpoint.
+        Execute API method.
         
         Args:
-            method (str): Endpoint name
-            params (dict): Request parameters
+            method (str): API method name
+            params (Dict): Method parameters
             
         Returns:
-            dict: API response
+            Dict: API response
         """
-        # Check if endpoint exists
+        # Check if method is defined
         if method not in self.endpoints:
-            return {"error": f"Endpoint not found: {method}"}
+            raise ValueError(f"Unknown API method: {method}")
         
         # Get endpoint configuration
         endpoint = self.endpoints[method]
-        endpoint_method = endpoint.get("method", "GET")
-        endpoint_path = endpoint.get("path", "")
-        endpoint_params = endpoint.get("params", [])
-        required_params = endpoint.get("required", [])
+        http_method = endpoint.get("method", "GET")
+        path = endpoint.get("path", "")
         
         # Check required parameters
+        required_params = endpoint.get("required", [])
         for param in required_params:
             if param not in params:
-                return {"error": f"Missing required parameter: {param}"}
+                raise ValueError(f"Missing required parameter: {param}")
         
-        # Check cache
-        cache_key = self._get_cache_key(method, params)
-        if cache_key in self.cache:
-            cache_entry = self.cache[cache_key]
-            if datetime.now() < cache_entry["expires"]:
-                return cache_entry["result"]
+        # Build request URL
+        url = urljoin(self.base_url, path)
         
         # Prepare request
-        url = urljoin(self.base_url, endpoint_path)
+        headers = {
+            "User-Agent": "EgyptTourismChatbot/1.0",
+            "Accept": "application/json"
+        }
         
-        # Filter parameters to include only those defined in endpoint
-        request_params = {k: v for k, v in params.items() if k in endpoint_params}
-        
-        # Add API key if specified
+        # Add API key if provided
         if self.api_key:
-            request_params["api_key"] = self.api_key
-        
-        # Execute request
-        try:
-            if endpoint_method == "GET":
-                response = self.session.get(url, params=request_params)
-            elif endpoint_method == "POST":
-                response = self.session.post(url, json=request_params)
-            elif endpoint_method == "PUT":
-                response = self.session.put(url, json=request_params)
-            elif endpoint_method == "DELETE":
-                response = self.session.delete(url, params=request_params)
+            # Add as header, query param, or auth depending on service
+            if endpoint.get("auth_type") == "header":
+                headers[endpoint.get("auth_header", "X-API-Key")] = self.api_key
             else:
-                return {"error": f"Unsupported HTTP method: {endpoint_method}"}
+                # Default: add as query parameter
+                params["key"] = self.api_key
+        
+        try:
+            # Execute request using appropriate HTTP method
+            if http_method == "GET":
+                response = self.session.get(url, params=params, headers=headers)
+            elif http_method == "POST":
+                response = self.session.post(url, json=params, headers=headers)
+            elif http_method == "PUT":
+                response = self.session.put(url, json=params, headers=headers)
+            elif http_method == "DELETE":
+                response = self.session.delete(url, params=params, headers=headers)
+            else:
+                raise ValueError(f"Unsupported HTTP method: {http_method}")
             
-            # Parse response
+            # Check response status
             response.raise_for_status()
-            result = response.json()
             
-            # Cache result
-            self._cache_result(cache_key, result)
+            # Parse JSON response
+            try:
+                result = response.json()
+            except ValueError:
+                # Handle non-JSON responses
+                result = {"text": response.text}
             
             return result
+            
+        except requests.RequestException as e:
+            logger.error(f"API request failed: {e}")
+            return {"error": str(e)}
+    
+    def execute_sync(self, method: str, params: Dict) -> Dict:
+        """
+        Synchronous version of execute for non-async contexts.
         
-        except requests.exceptions.RequestException as e:
-            logger.error(f"API request error: {str(e)}")
-            return {"error": f"API request error: {str(e)}"}
+        Args:
+            method (str): API method name
+            params (Dict): Method parameters
+            
+        Returns:
+            Dict: API response
+        """
+        # This implementation is identical to execute since requests is already synchronous
+        # Check if method is defined
+        if method not in self.endpoints:
+            raise ValueError(f"Unknown API method: {method}")
+        
+        # Get endpoint configuration
+        endpoint = self.endpoints[method]
+        http_method = endpoint.get("method", "GET")
+        path = endpoint.get("path", "")
+        
+        # Check required parameters
+        required_params = endpoint.get("required", [])
+        for param in required_params:
+            if param not in params:
+                raise ValueError(f"Missing required parameter: {param}")
+        
+        # Build request URL
+        url = urljoin(self.base_url, path)
+        
+        # Prepare request
+        headers = {
+            "User-Agent": "EgyptTourismChatbot/1.0",
+            "Accept": "application/json"
+        }
+        
+        # Add API key if provided
+        if self.api_key:
+            # Add as header, query param, or auth depending on service
+            if endpoint.get("auth_type") == "header":
+                headers[endpoint.get("auth_header", "X-API-Key")] = self.api_key
+            else:
+                # Default: add as query parameter
+                params["key"] = self.api_key
+        
+        try:
+            # Execute request using appropriate HTTP method
+            if http_method == "GET":
+                response = self.session.get(url, params=params, headers=headers)
+            elif http_method == "POST":
+                response = self.session.post(url, json=params, headers=headers)
+            elif http_method == "PUT":
+                response = self.session.put(url, json=params, headers=headers)
+            elif http_method == "DELETE":
+                response = self.session.delete(url, params=params, headers=headers)
+            else:
+                raise ValueError(f"Unsupported HTTP method: {http_method}")
+            
+            # Check response status
+            response.raise_for_status()
+            
+            # Parse JSON response
+            try:
+                result = response.json()
+            except ValueError:
+                # Handle non-JSON responses
+                result = {"text": response.text}
+            
+            return result
+            
+        except requests.RequestException as e:
+            logger.error(f"API request failed: {e}")
+            return {"error": str(e)}
     
     def get_type(self) -> str:
-        """Get the service type."""
+        """Get service type."""
         return "api"
 
 

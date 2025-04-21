@@ -3,440 +3,406 @@ description:
 globs: 
 alwaysApply: true
 ---
-Okay, ATLAS standing by to provide a detailed Implementation Plan based on the comprehensive assessment report. This plan is designed for direct execution by an Agent-Operator (AO) or development team.
-
-Implementation Plan: Egypt Tourism Chatbot Refinement
-
-Mission Objective: To rectify critical architectural flaws, stabilize the codebase, implement best practices, and activate core features of the Egypt Tourism Chatbot, transitioning it from its current inadequate state (app.py) to its intended, robust src/ (FastAPI) architecture, paving the way for world-class status.
-
-Executive Summary (Critical Path): The absolute highest priority is Phase 1. The architectural dichotomy must be resolved by eliminating the root app.py, fully activating the src/main.py (FastAPI) application, implementing the src/knowledge/knowledge_base.py placeholder to connect to the DatabaseManager and SQLite database, populating this database using scripts/populate_kb.py, and ensuring the application runs through this corrected path. Until Phase 1 is complete, the system remains fundamentally flawed and most other improvements are blocked or ineffective.
-
-Prerequisites for AO:
-
-Full access to the egypt-chatbot-wind-cursor Git repository.
-
-Configured Python (3.12 recommended) development environment with Conda/Pip.
-
-Configured Node.js/Npm environment for the frontend.
-
-Access to necessary secrets/API keys (Anthropic, potentially others) to be placed in .env files.
-
-Docker & Docker Compose installed locally for testing.
-
-Access to deployment environment (Kubernetes if applicable) for later phases.
-
-Familiarity with Python, FastAPI, React, SQLite, Redis, Docker, Git.
-
-Phase 0: Preparation & Environment Setup (Est. Time: 0.5 - 1 day)
-
-Task: Verify Environment Setup
-
-Objective: Ensure local development environment matches project requirements (Python 3.12, Node, Conda env).
-
-Key Steps:
-
-Run conda env update --file environment.yml --prune (or equivalent based on final env setup).
-
-Run pip install -r requirements.txt (if pip is used alongside/instead of Conda).
-
-Verify react-frontend/ dependencies: cd react-frontend && npm install.
-
-Install missing build/test dependencies: pip install wheel && pip install fasttext-wheel (Address known fasttext issue from docs).
-
-Deliverable: Local environment capable of installing dependencies without critical errors.
-
-Priority: High
-
-Ref: ATLAS Report - Tech Debt (Dependencies), Testing
-
-Task: Establish Configuration Baseline
-
-Objective: Ensure required .env files exist and are populated with (at least placeholder or dev) values.
-
-Key Steps:
-
-Create root .env file if missing.
-
-Populate root .env with keys for DATABASE_URI (point to sqlite:///./data/egypt_chatbot.db), SESSION_STORAGE_URI (initially point to file://./data/sessions), JWT_SECRET (generate a dev secret), ANTHROPIC_API_KEY. Add placeholders for WEATHER_API_KEY, TRANSLATION_API_KEY.
-
-Verify/Create react-frontend/.env with necessary REACT_APP_API_URL (e.g., http://localhost:8000/api).
-
-Review configs/services.json - ensure API keys are marked as placeholders (REPLACE_...).
-
-Deliverable: Functional .env files allowing basic application startup (even if features are limited).
-
-Priority: High
-
-Ref: ATLAS Report - Arch. Assessment (Config), Tech Debt (Secrets)
-
-Task: Baseline Test Execution
-
-Objective: Confirm the current broken state of the test suites.
-
-Key Steps:
-
-Run pytest -v from the root directory. Document initial failures.
-
-Run cd react-frontend && npm test. Document initial failures.
-
-Deliverable: Log/report of initial test failures.
-
-Priority: High
-
-Ref: ATLAS Report - Tech Debt (Broken Tests), Testing
-
-Phase 1: Core Architecture Unification & Activation (Critical Path - Est. Time: 3 - 5 days)
-
-(Execute tasks sequentially as dependencies exist)
-
-Task: Implement Knowledge Base Population Script
-
-Objective: Create/Finalize and run the script to load structured data into the intended SQLite database.
-
-Key Steps:
-
-Review/Implement scripts/populate_kb.py. Ensure it correctly parses JSON from data/attractions, data/restaurants, data/accommodations and inserts/updates data into the SQLite DB (data/egypt_chatbot.db) using the schema defined in init_db.py. Handle en/ar fields correctly.
-
-Ensure error handling and logging within the script.
-
-Execute the script: python scripts/populate_kb.py.
-
-Verify database content using a SQLite browser or CLI to confirm data loading.
-
-Deliverable: Populated data/egypt_chatbot.db file; Successful script execution logs.
-
-Priority: Critical (Blocker)
-
-Ref: ATLAS Report - Arch. Assessment (KB), Tourism Domain (Gap), Tech Debt (KB Population)
-
-Task: Implement src/knowledge/knowledge_base.py
-
-Objective: Connect the Knowledge Base interface to the actual DatabaseManager to retrieve data from SQLite.
-
-Key Steps:
-
-Modify src/knowledge/knowledge_base.py.
-
-Ensure it correctly receives the db_manager instance via constructor injection (handled by ComponentFactory).
-
-Implement methods like get_attraction_by_id, search_attractions, search_restaurants, search_hotels, lookup_attraction, lookup_location etc., by calling the corresponding methods on the self.db_manager instance.
-
-Translate query structures if needed between the KB interface and the DatabaseManager (e.g., handling $or, $like if used, although DatabaseManager seems to use basic dict filters). Ensure search_* methods handle both text queries and filters correctly, forming the appropriate query dict for db_manager.
-
-Remove all mock data and placeholder return values.
-
-Add robust logging for method calls and results/errors.
-
-Deliverable: Functional KnowledgeBase class capable of retrieving real data from the SQLite DB via DatabaseManager.
-
-Priority: Critical (Blocker)
-
-Ref: ATLAS Report - Arch. Assessment (Incomplete KB), Tourism Domain (Gap)
-
-Task: Fix Critical Test Suite Failures (Minimum Viability)
-
-Objective: Address immediate import errors and setup issues preventing basic test execution.
-
-Key Steps:
-
-Examine failures reported in Phase 0, Task 3.
-
-Fix import errors (e.g., potentially related to fasttext, sys.path issues).
-
-Ensure basic test discovery and execution works (pytest runs and finds tests). Focus initially on unit tests for KB and DB layers.
-
-Do not aim for full coverage yet, just unblock basic execution.
-
-Deliverable: pytest -v runs without fatal setup/import errors, even if many tests still fail on logic.
-
-Priority: High (Required for validation in next steps)
-
-Ref: ATLAS Report - Tech Debt (Broken Tests)
-
-Task: Consolidate Application Entry Point to FastAPI (src/main.py)
-
-Objective: Make the src/ FastAPI application the primary execution target, deprecating app.py.
-
-Key Steps:
-
-Refactor any essential routes/logic currently only in app.py into the FastAPI structure in src/api/. Prioritize minimal essential functionality; don't migrate complex unnecessary routes yet. Ensure refactored routes utilize the Chatbot instance from the ComponentFactory.
-
-Modify Dockerfile: Change CMD to use uvicorn src.main:app --host 0.0.0.0 --port 8000 (or the configured port). Ensure ASGI server (Uvicorn) is installed via requirements.txt. Adjust base image/build steps if needed.
-
-Modify docker-compose.yml: Change the command for the chatbot service to align with the Uvicorn command. Update ports if necessary (e.g., map host 8000 to container 8000).
-
-Modify start_chatbot.sh: Ensure it launches the FastAPI app via Uvicorn, not Flask/Gunicorn/app.py.
-
-Test locally: Run docker-compose up --build. Access the API root (e.g., http://localhost:8000/) and /api/health. Check logs for FastAPI startup messages.
-
-Deliverable: Application successfully starts using src/main.py via Uvicorn in Docker; /api/health endpoint responds correctly.
-
-Priority: Critical (Core Architectural Fix)
-
-Ref: ATLAS Report - Arch. Assessment (Mismatch), Tech Debt (Split)
-
-Task: Basic End-to-End Flow Verification
-
-Objective: Ensure the core chat flow works through the newly activated src/ path using the populated DB.
-
-Key Steps:
-
-Use curl, Postman, or a simple script to send a chat request to the /api/chat endpoint running via src/main.py.
-
-Send a message that should query the KB (e.g., "Tell me about the Egyptian Museum").
-
-Verify the response contains accurate information retrieved from the SQLite database (not mock data or generic LLM fallback). Check application logs for confirmation of DB queries via DatabaseManager.
-
-Verify session ID persistence across requests (basic check).
-
-Deliverable: Confirmed successful chat interaction using the src/ path and SQLite KB.
-
-Priority: High (Validation)
-
-Ref: ATLAS Report - Arch. Assessment (Incomplete KB), Validation
-
-Task: Deprecate app.py
-
-Objective: Remove the legacy Flask application to eliminate confusion and duplication.
-
-Key Steps:
-
-Delete the root app.py file.
-
-Remove Flask and related direct dependencies (e.g., flask-cors, flask-swagger-ui) from requirements.txt if they are no longer needed by any FastAPI components (Werkzeug might still be needed by transitive dependencies).
-
-Search codebase for any remaining imports or references to the root app object and remove/refactor.
-
-Deliverable: app.py removed; requirements.txt cleaned.
-
-Priority: Medium (Post-activation cleanup)
-
-Ref: ATLAS Report - Code Quality (Duplicate logic)
-
-Phase 2: Stabilization & Foundation Building (Est. Time: 5 - 8 days)
-
-Task: Migrate Session Storage to Redis
-
-Objective: Implement scalable and persistent session management using Redis.
-
-Key Steps:
-
-Ensure Redis service is running (via docker-compose up).
-
-Update SESSION_STORAGE_URI in .env to the correct Redis URI (e.g., redis://redis:6379/0 for Docker, redis://localhost:6379/0 for local).
-
-Thoroughly test src/utils/session.py: Ensure SessionManager correctly connects to Redis, saves session data with TTL (setex), retrieves sessions, and handles potential connection errors.
-
-Verify session persistence across multiple API requests and after simulated application restarts (requires restarting the chatbot container while Redis persists).
-
-Remove the file-based session storage logic from SessionManager or make Redis the definitive default.
-
-Delete the data/sessions/ directory and its contents.
-
-Deliverable: Sessions reliably stored and retrieved from Redis; Session file storage code removed/disabled.
-
-Priority: High
-
-Ref: ATLAS Report - Perf/Scale (File Sessions), DB (Confusion)
-
-Task: Implement Real External Service Integrations
-
-Objective: Replace mock/placeholder service implementations with functional ones.
-
-Key Steps:
-
-Implement src/integration/plugins/translation_service.py: Use a real translation API (e.g., Google Translate). Fetch API key securely from .env via ComponentFactory. Test translation functionality.
-
-Review and verify src/integration/plugins/weather_service.py: Ensure it correctly calls the OpenWeatherMap API (or alternative) using the key from .env. Test weather queries.
-
-Ensure the ServiceHub correctly routes calls to these implemented services.
-
-Deliverable: Functional Weather and Translation services integrated via ServiceHub.
-
-Priority: Medium
-
-Ref: ATLAS Report - Tourism Domain (Mocks), API Integrations
-
-Task: Consolidate Database Strategy & Fix Analytics Logging
-
-Objective: Enforce a single, consistent strategy for database usage, particularly fixing analytics logging.
-
-Key Steps:
-
-Decision: Formally decide on the primary relational DB (Recommendation: SQLite unless significant scaling needs are proven early).
-
-Refactor Analytics: Modify DatabaseManager.log_analytics_event to use only standard SQL INSERT statements compatible with the chosen primary DB (SQLite). Remove all MongoDB-specific syntax ($set, $inc). Ensure event data is stored appropriately (JSON blob recommended for flexibility).
-
-Refactor DatabaseManager: Remove connection logic and query execution paths for the unused database (e.g., remove Postgres connection and execution blocks if SQLite is chosen). Ensure methods (get_attraction, search_attractions, etc.) consistently use the chosen DB driver/syntax.
-
-Update init_db.py: Ensure it only creates schema for the chosen primary database. Remove schema creation for other DBs.
-
-Update docker-compose.yml: Remove the service definition for the unused database (e.g., remove postgres service if unused).
-
-Deliverable: Consistent database usage pattern; DatabaseManager uses only chosen DB driver/syntax; Analytics logging functions correctly.
-
-Priority: High
-
-Ref: ATLAS Report - DB Implementation (Inconsistency, Analytics error), Best Practices (DB Consistency)
-
-Task: Achieve Basic Test Coverage
-
-Objective: Write essential unit and integration tests for core components, aiming for ~50-70% coverage initially.
-
-Key Steps:
-
-Write unit tests for: DatabaseManager (mocking DB connections), KnowledgeBase (mocking db_manager), SessionManager (mocking Redis/File), NLUEngine (intent/entity extraction), DialogManager (state transitions).
-
-Write basic integration tests for the /api/chat endpoint focusing on core intents (greeting, KB query). Use FastAPI's TestClient.
-
-Fix React frontend test setup (address Jest warnings/errors) and write basic component tests.
-
-Configure pytest.ini or pyproject.toml for coverage reporting (pytest-cov).
-
-Integrate test execution (pytest -v --cov=src) into CI pipeline (.github/workflows/ci.yml).
-
-Deliverable: Test suite passes consistently; Coverage reported; CI pipeline runs tests.
-
-Priority: High
-
-Ref: ATLAS Report - Testing (Broken/Low Coverage), Best Practices (Testing)
-
-Task: Refine Security Configurations (FastAPI)
-
-Objective: Implement proper security settings for the active FastAPI application.
-
-Key Steps:
-
-Configure CORSMiddleware in src/main.py: Set allow_origins to the specific frontend URL(s) for production (use * or dev URL for dev). Set allow_credentials=True, allow_methods=["*"], allow_headers=["*"].
-
-JWT Authentication: Review token expiry, implement refresh token logic if necessary, ensure secure handling of JWT_SECRET from .env.
-
-Input Validation: Ensure all API endpoints use Pydantic models for request body/parameter validation. Review models in src/models/api_models.py for completeness.
-
-Rate Limiting: Verify fastapi-limiter integration (if kept) is functional and uses Redis backend.
-
-Deliverable: Secure CORS, JWT, input validation, and rate limiting configurations for FastAPI.
-
-Priority: High
-
-Ref: ATLAS Report - Tech Debt (Insecure Config), Security (CORS, Auth, Validation), Best Practices (Security)
-
-Phase 3: Feature Enhancement & Optimization (Est. Time: Ongoing/Iterative)
-
-Task: Activate RAG Pipeline
-
-Objective: Enable and test the Retrieval-Augmented Generation pipeline for improved Q&A.
-
-Key Steps:
-
-Implement KB content embedding: Modify scripts/populate_kb.py or create a new script to read data from SQLite, generate embeddings using the configured sentence-transformers model, and store them in the Vector DB (src/knowledge/vector_db.py). Ensure VectorDB saves to its configured path/backend.
-
-Refine src/knowledge/rag_pipeline.py: Test retrieval logic, prompt generation for the LLM, and response synthesis.
-
-Integrate RAG calls into the Chatbot class for relevant intents (e.g., fallback, complex queries).
-
-Deliverable: Functional RAG pipeline providing contextually relevant answers for out-of-KB or deep queries.
-
-Priority: Medium
-
-Ref: ATLAS Report - Innovation (Activate RAG), Arch. Assessment (RAG/VectorDB)
-
-Task: Implement & Integrate Monitoring
-
-Objective: Activate and configure performance and error monitoring.
-
-Key Steps:
-
-Integrate src/utils/monitoring.py: Ensure Metrics, ErrorTracker (configure Sentry DSN in .env), and HealthCheck classes are correctly initialized and used within the FastAPI app lifecycle and key components (e.g., tracking request latency, errors, API call times).
-
-Expose Prometheus metrics endpoint if using that backend.
-
-Configure alerts based on key metrics/error rates (requires external setup - Datadog, Grafana, Sentry).
-
-Deliverable: Basic monitoring data (latency, errors, health) being collected and potentially reported externally.
-
-Priority: Medium
-
-Ref: ATLAS Report - Perf/Scale (Monitoring), Best Practices (Monitoring)
-
-Task: API Documentation (Swagger UI)
-
-Objective: Ensure API documentation generated by FastAPI is accurate and useful.
-
-Key Steps:
-
-Review auto-generated docs at /api/docs.
-
-Add descriptions, examples, and correct type hints to Pydantic models (src/models/api_models.py) and route function signatures in src/api/ to enhance documentation quality.
-
-Deliverable: Clear and accurate API documentation accessible via Swagger UI.
-
-Priority: Medium
-
-Ref: ATLAS Report - Best Practices (API Design)
-
-Task: Performance Optimization (Initial Pass)
-
-Objective: Address obvious performance bottlenecks.
-
-Key Steps:
-
-Refactor key I/O-bound operations (LLM calls, external API calls via ServiceHub, potentially complex DB queries) to use FastAPI's async def and await.
-
-Implement basic response caching using Redis (via DatabaseManager or a dedicated cache utility) for frequently requested, static data.
-
-Review NLU embedding strategy (src/nlu/engine.py) - consider pre-loading or more efficient caching if loading is slow.
-
-Deliverable: Key I/O operations are non-blocking; basic caching implemented.
-
-Priority: Medium
-
-Ref: ATLAS Report - Perf/Scale (Bottlenecks), Optimization Roadmap (Async, Caching)
-
-Phase 4: Strategic Advancement & Differentiation (Ongoing)
-
-Task: Implement Advanced Personalization
-
-Task: Develop Proactive Assistance Features
-
-Task: Integrate Multimodal Features (Images, Maps via API)
-
-Task: Implement Dynamic Itinerary Planning
-
-Task: Integrate Real Booking APIs
-
-Task: Build Cultural Etiquette Engine
-
-Task: Continuous NLU/Dialog Tuning & Evaluation
-
-Task: Explore Vector DB Scaling / Alternatives
-
-(Detailed steps for Phase 4 depend on specific feature choices and priorities based on business goals.)
-
-Continuous Activities (Throughout Project)
-
-Dependency Management: Regularly run pip-audit and npm audit. Update dependencies cautiously, testing thoroughly.
-
-Code Review: Enforce peer reviews for all significant code changes.
-
-Documentation: Update README.md, ARCHITECTURE.md, and code comments as changes are made.
-
-Testing: Continuously add unit and integration tests for new features and bug fixes. Maintain/improve test coverage.
-
-Linting: Run linters (e.g., Flake8, Black, ESLint) regularly and in CI.
-
-AO Agent Instructions:
-
-Prioritize Phases: Execute Phases 0 and 1 strictly sequentially. Phase 2 tasks can have some parallel execution but prioritize DB consolidation and session migration. Phase 3 onwards can be iterative.
-
-Testing is Paramount: After every significant change in Phases 1 & 2, run the relevant tests (pytest, npm test). Ensure tests pass before proceeding or merging. Incrementally add tests as components are fixed/implemented.
-
-Configuration via .env: Adhere strictly to using .env files (managed via ComponentFactory) for all secrets, API keys, and environment-specific variables. No hardcoding.
-
-Commit Frequently: Use Git diligently. Make small, logical commits with clear messages referencing the task being addressed. Use branches for feature work.
-
-Log Verification: Pay close attention to application logs during testing to verify component interactions (e.g., ensure KnowledgeBase calls DatabaseManager, which calls SQLite correctly).
-
-Consult ATLAS Report: Refer back to the detailed sections of the ATLAS report for context on specific issues and rationale for tasks.
-
-End of Implementation Plan.
+# Egypt Tourism Chatbot - Enhanced & Focused Refactoring Plan (v3)
+
+## Executive Summary
+
+This refactoring plan provides a detailed roadmap to rectify critical issues identified in the HYPERION analysis and achieve a **robust, functional `src/` FastAPI application using an SQLite database as the initial persistent Knowledge Base**. It prioritizes activating core components, establishing clear configurations, fixing security vulnerabilities, and enabling testing *before* migrating to PostgreSQL or implementing advanced RAG/NLU features. Success hinges on incremental activation, rigorous validation, and addressing HYPERION points directly within each phase. This plan aims to guide development towards a reliable foundation suitable for future enhancements.
+
+**Definition of "Functioning State" (Target by End of Phase 2):**
+
+*   FastAPI application (`src/main.py`) handles all core API requests (`/api/chat`, `/api/reset`, `/api/suggestions`, `/api/languages`, `/api/feedback`, `/api/health`).
+*   Legacy `app.py` is fully **decommissioned and removed**.
+*   `src/knowledge/knowledge_base.py` reliably retrieves data *exclusively* from the populated SQLite DB via a stabilized `DatabaseManager`.
+*   Critical security vulnerabilities (CORS with specific origins, CSRF protection, Input Validation via Pydantic) are addressed and tested.
+*   Sessions are managed reliably (Redis preferred, File fallback acceptable).
+*   Basic unit tests for core KB/DB functionality and integration tests for key API endpoints pass consistently in CI.
+*   The application can answer basic knowledge-based questions from the React frontend using the `src/` architecture and SQLite KB.
+
+## Strategic Principles (Reinforced)
+
+1.  **Target SQLite First**: Activate the `src/` architecture using a populated and validated SQLite KB **before** attempting Postgres migration [Addresses HYPERION #2 complexity].
+2.  **Incremental Activation & Validation**: Use feature flags (`USE_NEW_KB`, `USE_NEW_API`, `USE_POSTGRES`, etc.) for controlled transitions and **dedicated tests** for each activated component/phase. Test early, test often.
+3.  **Configuration Clarity**: Consolidate configuration into `.env` and load reliably via factory/settings model *early* in Phase 0.
+4.  **Address HYPERION Directly**: Explicitly link tasks to specific HYPERION findings to ensure all core issues are resolved methodically.
+5.  **Security Integrated**: Remediate critical security flaws [HYPERION #3] during architecture unification (Phase 2), not as an isolated later phase.
+6.  **Observability from Start**: Implement basic monitoring immediately and enhance incrementally.
+7.  **Testing as Foundation**: Repair test execution immediately, and **write tests alongside refactoring** [Addresses HYPERION #4].
+
+## Critical Priorities (Re-emphasized & Linked to HYPERION)
+
+1.  **Knowledge Base Activation (SQLite)**: [HYPERION #2] Fix the KB disconnection using the intended (SQLite) DB.
+2.  **Unified Architecture Activation (FastAPI)**: [HYPERION #1] Eliminate the Flask/FastAPI dichotomy, make `src/main.py` the sole entry point.
+3.  **Security Remediation**: [HYPERION #3] Address CORS, CSRF, Input Validation during FastAPI activation.
+4.  **Test Suite Repair & Foundational Coverage**: [HYPERION #4] Enable reliable testing via fixing execution and adding core tests early.
+5.  **Configuration & DB Manager Stability**: [HYPERION #5, #6] Fix underlying configuration inconsistencies and stabilize `DatabaseManager` for SQLite interaction *before* it's relied upon by the KB.
+
+## Implementation Approach (Enhanced Detail)
+
+### Phase 0: Project Setup, Assessment & Stabilization
+
+**Objective**: Create a stable foundation: Fix environment, establish baseline config, stabilize critical utilities (`DatabaseManager`), assess `src/` path readiness, fix basic test execution.
+
+**Tasks**:
+-   0.1: `git checkout -b refactor/consolidate-architecture`
+-   0.2: **Feature Flag System**: Implement a simple feature flag mechanism (e.g., using environment variables read by the factory: `USE_NEW_KB`, `USE_NEW_API`, `USE_POSTGRES`, `USE_NEW_NLU`, `USE_NEW_DIALOG`, `USE_RAG`). Defaults should reflect the *current non-functional state* initially (e.g., `USE_NEW_KB=False`, `USE_NEW_API=False`).
+-   0.3: **Dependency Resolution**:
+    -   Fix `typer` conflict (remove explicit pin).
+    -   Install *all* required runtime and dev dependencies: `fasttext-wheel`, `uvicorn[standard]`, `fastapi`, `pydantic-settings`, `pytest`, `pytest-asyncio`, `httpx`, `pytest-cov`, `passlib[bcrypt]`, `python-jose[cryptography]`, `redis`, `python-multipart`, `requests`, `psycopg2-binary`, `SQLAlchemy` (if used by `DatabaseManager`), etc.
+    -   Update `requirements.txt` (pinned versions after resolution) and `environment.yml`.
+    -   Verify installation in a clean environment: `conda env create -f environment.yml --force` followed by `conda run -n egypt-tourism1 pip install -r requirements.txt`.
+-   0.4: **Security Audit**: Run `pip-audit`. Document critical findings in `VULNERABILITIES.md`. Remediation will occur in later phases unless blocking setup.
+-   0.5: **Establish Baseline Configuration**:
+    -   Create `.env.example` listing all necessary keys: `DATABASE_URI` (SQLite initially), `SESSION_STORAGE_URI` (default to `file:///./data/sessions`), `JWT_SECRET` (generate strong default), `ANTHROPIC_API_KEY`, `REDIS_URL` (for Limiter/Cache if separate from session), `WEATHER_API_KEY`, `TRANSLATION_API_KEY`, `LOG_LEVEL`.
+    -   Update `src/utils/factory.py` to use `pydantic-settings` or similar to load config from `.env` reliably into a settings object accessible via DI (`container.get('settings')`).
+-   0.6: **Baseline Monitoring**: Set up basic Prometheus metric exporting (via middleware/decorator if possible even on legacy `app.py`) or robust logging for Request Count, Error Rate (5xx, 4xx), Avg Latency. Document initial values.
+-   0.7: **Schema & Validation Definition**:
+    -   Review `init_db.py` SQLite schema. Document table structures in `docs/DATABASE_SCHEMA.md`.
+    -   Define basic data validation rules based on schemas in `data/schemas/` (e.g., check required fields, coordinate ranges, enum values in JSON source files).
+-   0.8: **`DatabaseManager` SQLite Validation**:
+    -   Write small script or test: Ensure `src/knowledge/database.py` *reliably* connects to the SQLite DB specified in `.env`.
+    -   Ensure `DatabaseManager` can execute `init_db.py`'s logic to create tables.
+    -   Ensure `DatabaseManager` can perform basic SQLite CRUD (INSERT, SELECT `*` and by ID, UPDATE, DELETE) on the `attractions` table using correct syntax.
+    -   Fix any obvious MongoDB syntax remnants [HYPERION #6].
+-   0.9: **KB Population Validation**: Execute `scripts/populate_kb.py` *locally*. Verify data presence and basic validity in `data/egypt_chatbot.db` using `sqlite3` CLI against rules from 0.7.
+-   0.10: **`src/` FastAPI Readiness Assessment**:
+    -   Document which `app.py` API routes (`/api/chat`, `/reset`, etc.) need counterparts in `src/api/`.
+    -   Assess logic complexity within `app.py` routes to estimate migration effort.
+    -   Check `src/main.py` for basic FastAPI app setup, middleware placeholders (CORS, Rate Limiter, etc.).
+-   0.11: **Fix Basic Test Execution**: Run `pytest tests/`. Address `PYTHONPATH` issues (use `.` or `pytest.ini`), install *all* test dependencies. Resolve `ModuleNotFoundError`. Goal: tests are *discovered* and *run*, even if they fail assert statements.
+-   0.12: **Define Key Performance Indicators (KPIs)**: Set initial targets for P95 Response Time (< 2s), Error Rate (< 1%), DB Query Time (< 50ms).
+
+**Success Criteria**:
+-   Dependencies installed cleanly. `pip-audit` documented. `.env` configuration loaded correctly by factory. Basic monitoring active. SQLite schema documented, `DatabaseManager` connection/CRUD validated, population script runs successfully locally. `src/` FastAPI migration gaps documented. `pytest` executes tests without setup errors. KPIs defined. System functions on legacy path (if startable).
+
+### Phase 1: Knowledge Base Activation (SQLite Focus)
+
+**Objective**: Activate the `src/` Knowledge Base using a **populated SQLite database**. Decommission the hardcoded `EGYPT_TOURISM_KB`. [Addresses HYPERION #2].
+
+**Tasks**:
+-   1.1: **Refactor `src/KnowledgeBase` (SQLite Only)**:
+    -   Ensure `KnowledgeBase` receives `DatabaseManager` via constructor (`__init__`) injection from the factory.
+    -   Implement *all* required methods (`get_attraction_by_id`, `search_attractions`, `get_restaurant_by_id`, `search_restaurants`, `get_hotel_by_id`, `search_hotels`, `lookup_location`, `get_practical_info`) by calling the **corresponding `DatabaseManager` SQLite methods**.
+    -   Ensure methods correctly handle fetching data and potentially parsing the `data` JSON field if needed.
+    -   **Remove all mock data, placeholder logic, and JSON file fallback.**
+-   1.2: **Implement Basic Retrieval**: Implement keyword/ID/filter-based logic within `KnowledgeBase.search_*` methods. Translate filter dictionaries into parameters suitable for `DatabaseManager.search_*` methods (e.g., `{'$like': {'name_en': '%Cairo%'}}` might translate to specific SQL WHERE clauses handled by `DatabaseManager`). Defer vector/semantic search.
+-   1.3: **Basic Entity Linking (in KB)**: Implement simple lookup logic within KB methods (e.g., `search_attractions` might need to lookup `location_name` to get `city` for filtering).
+-   1.4: **Connect Core Logic**: Update `src/chatbot.py`'s dependency fetching (or `factory.create_chatbot`) to use the *newly implemented* `KnowledgeBase`. Control with `USE_NEW_KB` flag for comparative testing.
+-   1.5: **Add KB Logging**: Implement `logging` calls within `KnowledgeBase` methods to trace queries and results (e.g., `logger.debug(f"KB searching attractions with filters: {filters}")`).
+-   1.6: **Write Passing Unit Tests**: Develop `pytest` tests for `KnowledgeBase`, mocking the `DatabaseManager` interface. Verify:
+    -   Correct `DatabaseManager` methods are called with expected parameters.
+    -   `KnowledgeBase` handles `None` results from `DatabaseManager` gracefully.
+    -   Search methods construct filter/query parameters correctly.
+-   1.7 **Initial Functional Test**: Manually test (or add basic integration test) sending a query via the *active* API (e.g., legacy `app.py` with `USE_NEW_KB=True`) that requires the KB (e.g., "tell me about abu simbel") and verify a correct response derived from SQLite data is returned.
+
+**Success Criteria**:
+-   `KnowledgeBase` exclusively uses the **SQLite `DatabaseManager`**. No mock data or file fallbacks remain. Queries like "info abu simbel" return data *from SQLite*. Core `KnowledgeBase` methods are covered by passing unit tests. System returns correct KB-based answers when `USE_NEW_KB` flag is enabled.
+
+### Phase 2: Architecture Unification (FastAPI Activation & Security)
+
+**Objective**: Fully activate the `src/main.py` (FastAPI) architecture, decommission `app.py`, implement essential features (sessions, validation), fix critical security flaws [Addresses HYPERION #1, #3].
+
+**Tasks**:
+-   2.1: **Implement FastAPI Routes**: Create/complete required routes in `src/api/` (e.g., `chat.py`, `session_routes.py`, `misc_routes.py`) based on Phase 0 assessment. Use FastAPI `APIRouter`. Routes **must** use DI (`Depends()`) to get the `Chatbot` instance or other necessary services (like `SessionManager`).
+-   2.2: **Configure FastAPI App (`src/main.py`)**:
+    -   Include all API routers.
+    -   Set up CORS Middleware using `CORSMiddleware`, reading allowed origins from `.env` (`FRONTEND_URL`, `http://localhost:3000`, etc. - **No "*" in production**). Set `allow_credentials=True`.
+    -   Implement CSRF protection middleware suitable for FastAPI/React SPA (e.g., Double Submit Cookie using `python-starlette-csrf`). Include routes for token generation/refresh.
+    -   Implement JWT validation middleware using `OAuth2PasswordBearer` and dependencies from `src/utils/auth.py`.
+    -   Add Request ID middleware for logging/tracing.
+    -   Add basic performance logging middleware (log request time).
+-   2.3: **Activate FastAPI Entry Point**: Modify `Dockerfile` CMD to use `uvicorn src.main:app --host 0.0.0.0 --port 5050 --workers N` (adjust N). Update `docker-compose.yml` service command and ports. Modify `start_chatbot.sh`.
+-   2.4: **Implement Redis Session Management**: Ensure `src/session/factory.py` correctly creates `RedisSessionManager`. Configure Redis URI in `.env` (`SESSION_STORAGE_URI="redis://redis:6379/0"` for Docker, `redis://localhost:6379/0` locally). **Verify** sessions persist using `scripts/test_redis_session.py`. File storage is only a last resort fallback.
+-   2.5: **Implement Request Validation**: Define and *rigorously apply* Pydantic models from `src/models/api_models.py` to validate request bodies, query parameters, and path parameters in all API routes.
+-   2.6: **Implement Centralized Exception Handling**: Use FastAPI exception handlers to catch custom `ChatbotError` subclasses and generic exceptions, returning standardized JSON error responses via `src/utils/error_handler.py`.
+-   2.7: **Enhance Observability**: Configure structured logging for FastAPI requests/responses. Set up basic metric collection for FastAPI endpoints (request count, latency, status codes) if Prometheus exporter library available.
+-   2.8: **Write Passing Integration Tests**: Use `fastapi.testclient.TestClient` to test:
+    -   `/api/chat` with valid/invalid input, check response structure.
+    -   `/api/reset` functionality.
+    -   `/api/suggestions` endpoint.
+    -   `/api/languages` endpoint.
+    -   **Security**: Test CORS headers, test required auth endpoints without/with valid/invalid tokens, test CSRF protected routes (if possible in test client), test invalid input against Pydantic validation.
+-   2.9: **Decommission Legacy `app.py`**: **Delete** `app.py`. Remove Flask and direct Flask-related dependencies (`Flask-Limiter`, `Flask-CORS`, `Flask-WTF`) from `requirements.txt`. Update `README.md` run instructions.
+
+**Success Criteria**:
+-   `src/main.py` (FastAPI) is the sole backend entry point; `app.py` is deleted. FastAPI serves requests on the configured port (e.g., 5050). **Correct CORS headers** are returned. **CSRF protection** is active. Pydantic models **enforce input validation**. **Redis successfully manages sessions** across requests. **Passing integration tests** validate API functionality and basic security checks. Logs show FastAPI request handling.
+
+--- *(Core Functionality Target Reached - System is Functioning via src/FastAPI + SQLite KB)* ---
+
+### Phase 3: Database Enhancement (PostgreSQL Migration)
+
+**Objective**: Migrate the functional system from SQLite to PostgreSQL for enhanced capabilities (JSONB, Geo, Vector) and scalability [Addresses HYPERION #6].
+
+**Tasks**:
+-   3.1: **Define Final PostgreSQL Schema**: Create SQL scripts (`schema.sql`) or use SQLAlchemy models to define tables (matching Phase 0 + enhancements: `JSONB` for `data` fields, PostGIS types for coordinates, `vector` type via `pgvector`). Add appropriate indexes.
+-   3.2: **Enable Extensions**: Ensure `CREATE EXTENSION IF NOT EXISTS postgis;` and `CREATE EXTENSION IF NOT EXISTS vector;` are run on the Postgres DB.
+-   3.3: **Refine `DatabaseManager`**: Update methods (or abstraction layer) to handle PostgreSQL connection (`psycopg2` or SQLAlchemy) and query syntax (SQLAlchemy ORM is recommended here). Implement connection pooling.
+-   3.4: **Develop Migration Script (`migrate_sqlite_to_pg.py`)**:
+    -   Connect to both SQLite and PostgreSQL.
+    -   Read data from SQLite tables.
+    -   Transform data if necessary (e.g., serialize dicts to JSONB strings, convert coords to PostGIS POINT).
+    -   INSERT data into PostgreSQL tables. Use `ON CONFLICT DO UPDATE` (upsert).
+    -   **Include validation:** Compare row counts, checksums, or sample data between DBs after migration.
+-   3.5: **Implement Geospatial Queries**: Update `DatabaseManager` search methods to leverage PostGIS for location-based filtering (e.g., find attractions within radius).
+-   3.6: **Implement Vector Storage**: Update `DatabaseManager` or create dedicated methods to save/retrieve `numpy` vectors using `pgvector`'s vector type.
+-   3.7: **Execute & Validate Migration**: Run the migration script against a staging DB. Run validation checks. Repeat until successful. Perform on production (consider maintenance window).
+-   3.8: **Switch Configuration**: Update `DATABASE_URI` in `.env` to the PostgreSQL connection string. Activate `USE_POSTGRES=true` (or remove flag logic if migration is permanent).
+-   3.9: **Test**: Run full test suite against PostgreSQL backend. Add specific tests for JSONB queries, geospatial searches, and basic vector storage/retrieval.
+
+**Success Criteria**:
+-   Data successfully migrated to PostgreSQL with 100% validation pass rate. Application operates correctly using PostgreSQL. Performance is equal or better. `DatabaseManager` uses appropriate Postgres features. PostGIS and pgvector extensions are usable via `DatabaseManager`.
+
+### Phase 4: NLU & Dialog Enhancement
+
+**Objective**: Activate the advanced NLU (`NLUEngine`) and `DialogManager` components [Addresses HYPERION #7].
+
+**Tasks**:
+-   4.1: **Activate Full `NLUEngine`**: Ensure `NLUEngine.process` performs intent classification using configured examples/models and advanced entity extraction (`EnhancedEntityExtractor`), not just basic patterns. Control via `USE_NEW_NLU=true`.
+-   4.2: **Activate `DialogManager`**: Ensure `Chatbot.process_message` calls `DialogManager.next_action`. Implement logic in `Chatbot` to handle different `action_type`s (response, prompt, service_call). Activate via `USE_NEW_DIALOG=true`.
+-   4.3: **Activate Language Detection**: Ensure `LanguageDetector` is called when no language is specified in the request.
+-   4.4: **Activate Template Responses**: Ensure `ResponseGenerator` uses templates from `configs/response_templates/` based on `dialog_action['response_type']` and fills slots with data.
+-   4.5: **Integrate Embeddings**: Ensure embeddings are correctly generated (`_get_embedding_model`) and used by `IntentClassifier` and `EnhancedEntityExtractor`.
+-   4.6: **Implement Full Multilingual Support**: Test EN/AR flows thoroughly through NLU (intent examples, entity patterns) -> Dialog (state transitions, prompts) -> Response (templates).
+-   4.7: **Implement Robust Fallbacks**: Handle low confidence NLU results, missing entities in prompts, failed dialog transitions gracefully.
+-   4.8: **Write Tests**: Add unit tests for `DialogManager` state transitions. Add integration tests for NLU->Dialog->Response flow for key intents.
+
+**Success Criteria**:
+-   Advanced intent classification and entity extraction are active. Stateful conversations based on `dialog_flows.json` work. Full EN/AR interaction flows validated. Graceful fallback handling implemented. NLU/Dialog tests pass. Performance metrics remain within KPIs.
+
+### Phase 5: RAG Pipeline Implementation
+
+**Objective**: Implement Retrieval-Augmented Generation using pgvector and LLM for enhanced, context-aware responses [Addresses HYPERION #8 (partial - RAG)].
+
+**Tasks**:
+-   5.1: **Integrate Embedding Model**: Finalize choice and ensure `NLUEngine._get_embedding_model` works reliably.
+-   5.2: **KB Embedding Generation**: Create script (`scripts/generate_kb_embeddings.py`) to read content (e.g., attraction descriptions) from PostgreSQL, generate embeddings, and store them in the `vector` column using `DatabaseManager`.
+-   5.3: **Implement Vector Retrieval**: Update `KnowledgeBase` or create `RAGPipeline` component to perform vector similarity search (using `DatabaseManager`'s pgvector methods) combined with keyword search (e.g., BM25 via SQL `LIKE` or `tsvector`).
+-   5.4: **Implement Query Enhancement**: Add steps to rephrase or expand user queries for better retrieval.
+-   5.5: **Implement Ranking/Fusion**: Combine results from vector and keyword search, rank by relevance.
+-   5.6: **Context Preparation**: Format retrieved chunks (from KB/Postgres) into a context block suitable for LLM prompts. Handle context window limits.
+-   5.7: **LLM Integration**: Call the LLM service (Anthropic plugin via `ServiceHub`) with the context and query to generate the final response.
+-   5.8: **Implement Caching**: Cache RAG results (retrieved docs + LLM response) for common queries (e.g., using Redis).
+-   5.9: **Implement Feedback Loop**: Design mechanism to capture feedback specifically on RAG response quality (e.g., thumbs up/down on retrieved context or final answer) and log it.
+-   5.10: Activate via `USE_RAG=true` feature flag (e.g., within `DialogManager` or `ResponseGenerator`).
+
+**Success Criteria**:
+-   KB content successfully embedded and stored in pgvector. Hybrid retrieval functions correctly. LLM generates contextually relevant responses based on retrieved information. Retrieval/Generation metrics (precision/recall, response quality eval) meet targets. Response time acceptable (<3-4s P95).
+
+### Phase 6: Integration & Services Refinement
+
+**Objective**: Refine the `ServiceHub` implementation for robust, fault-tolerant external integrations [Addresses HYPERION #8].
+
+**Tasks**:
+-   6.1: Review and refine `ServiceHub` plugin architecture for clarity and testability.
+-   6.2: Ensure all external calls (Anthropic, Weather, Translation, potentially Geocoding) go through `ServiceHub`.
+-   6.3: Implement robust API key handling (load securely from `.env`).
+-   6.4: **Implement Caching**: Use Redis (or `src/utils/cache.py`) within `ServiceHub` or individual plugins to cache responses from external APIs (Weather, Translation, Geo) with appropriate TTLs.
+-   6.5: **Implement Fault Tolerance**: Add retry logic (e.g., exponential backoff) for transient network errors. Implement circuit breakers for services that fail repeatedly. Define clear fallback behavior within `DialogManager`/`ResponseGenerator` when a service call fails.
+-   6.6: **Add Service Analytics**: Log service call duration, success/failure status, and potentially costs (if applicable) to analytics DB.
+-   6.7: Implement Geospatial service plugin leveraging PostGIS functions via `DatabaseManager`.
+
+**Success Criteria**:
+-   `ServiceHub` handles all external API calls. Caching significantly improves response times for frequent external data requests. Fallback mechanisms prevent application crashes when external services are down. Service usage is monitored.
+
+### Phase 7: Testing & QA Enhancement
+
+**Objective**: Achieve target test coverage, implement comprehensive QA, and ensure CI pipeline reliability [Addresses HYPERION #4].
+
+**Tasks**:
+-   7.1: **Targeted Test Expansion**: Review code coverage reports. Write additional unit tests for core logic in NLU, Dialog, KB, Services to reach target (e.g., >80%).
+-   7.2: **Expand Integration Tests**: Add tests for complex dialog flows, RAG pipeline activation, service failures/fallbacks, multi-language interactions.
+-   7.3: **Performance Testing**: Implement load tests using tools like `locust` or `k6` to simulate concurrent users and measure response times/error rates under load against KPIs. Run periodically.
+-   7.4: **Automated Security Testing**: Integrate SAST (e.g., `bandit`), DAST (e.g., OWASP ZAP - more complex setup), and dependency vulnerability scanning (`pip-audit`, `npm audit` for frontend) into the CI pipeline. Configure to fail builds on critical findings.
+-   7.5: **End-to-End (E2E) Testing**: Develop automated E2E tests simulating user interaction through the API (or frontend if feasible) for critical scenarios.
+-   7.6: **CI Pipeline Optimization**: Ensure CI pipeline runs efficiently (parallel execution, caching). Validate that failed tests correctly block merges.
+
+**Success Criteria**:
+-   Unit test coverage meets target (>80%). Integration/E2E tests cover critical user flows. CI pipeline is reliable, fast, and enforces quality gates (tests, linting, security scans). Performance benchmarks established and tracked.
+
+### Phase 8: DevOps & Monitoring Expansion
+
+**Objective**: Optimize deployment, infrastructure, and observability [Addresses HYPERION #5].
+
+**Tasks**:
+-   8.1: **Multi-Stage Dockerfile**: Optimize `Dockerfile` for smaller production images and faster builds (separate build/runtime stages).
+-   8.2: Refine `docker-compose.yml` for easy local multi-service (App, Redis, Postgres) setup.
+-   8.3: Finalize and test Kubernetes manifests (`k8s/`) for reliable deployment.
+-   8.4: **Implement Distributed Tracing**: Integrate OpenTelemetry SDK to trace requests across services (FastAPI -> ServiceHub -> External APIs). Configure exporter (e.g., Jaeger, Tempo).
+-   8.5: **Implement Structured Logging & Aggregation**: Configure log outputs in JSON format. Set up a log aggregation stack (e.g., ELK, Loki/Promtail/Grafana) to centralize and search logs.
+-   8.6: Enhance Monitoring Dashboards (Grafana): Create dashboards correlating metrics (latency, errors), traces, and logs for easier debugging. Monitor DB connection pools, resource utilization.
+-   8.7: **Automated Deployment Pipeline**: Configure GitHub Actions (or similar) for automated builds, testing, and deployment to staging/production environments triggered by merges/tags.
+-   8.8: **DB Backup/Restore**: Implement and regularly test automated backup and restore procedures for PostgreSQL database.
+-   8.9: **Alerting**: Configure Alertmanager (or Sentry/equivalent) to fire alerts based on critical error rates, high latency, resource saturation, or failed health checks.
+
+**Success Criteria**:
+-   Optimized Docker images built via multi-stage Dockerfile. Reliable local dev setup via Docker Compose. Validated Kubernetes deployment manifests. Distributed tracing provides end-to-end request visibility. Logs are centralized and searchable. Monitoring dashboards provide comprehensive system overview. Automated deployment pipeline operational. DB backup/restore validated. Critical alerts configured and tested.
+
+### Phase 9: Frontend & UX Integration
+
+**Objective**: Ensure the React frontend works seamlessly with the finalized FastAPI backend and provides an enhanced User Experience [Addresses HYPERION #9, #10].
+
+**Tasks**:
+-   9.1: **Finalize API Integration**: Ensure `ChatbotService.js` correctly interacts with all necessary FastAPI endpoints, including auth headers and CSRF tokens.
+-   9.2: **Implement Language Switching Fully**: Connect language buttons to backend calls (if needed) and ensure UI rerenders correctly in EN/AR, including text direction (RTL for AR).
+-   9.3: **Improve Chat UI**: Implement typing indicators, message read receipts (if desired), improved Markdown rendering (code blocks, lists), and potential loading skeletons.
+-   9.4: **Refine Responsiveness**: Test thoroughly on various screen sizes and address any layout issues.
+-   9.5: **Enhance Accessibility**: Audit against WCAG 2.1 AA. Add ARIA attributes (`aria-live`, `role`, etc.), ensure keyboard navigability, sufficient color contrast.
+-   9.6: **Integrate User Feedback**: Connect UI feedback buttons (thumbs up/down) to the `/api/feedback` endpoint. Provide visual confirmation to the user.
+-   9.7: **Improve Error Handling**: Display user-friendly notifications for API errors, timeouts, or other issues originating from the backend.
+
+**Success Criteria**:
+-   React frontend reliably communicates with FastAPI. Language switching (EN/AR) and RTL support are fully functional. Chat interface feels modern and responsive. Accessibility standards (WCAG AA) met. User feedback is successfully submitted via the UI.
+
+### Phase 10: Advanced Features (Post-Stability)
+
+**Objective**: Implement advanced chatbot capabilities once the core system is stable, tested, and monitored.
+
+**Tasks**: (Prioritize based on product requirements)
+-   10.1: User preference modeling and personalized recommendations.
+-   10.2: Sentiment analysis for empathetic/adaptive responses.
+-   10.3: Proactive features (e.g., weather alerts based on itinerary).
+-   10.4: Sophisticated dialog repair (clarification questions, backtracking).
+-   10.5: Voice interaction (Requires frontend and backend changes, Speech-to-Text, Text-to-Speech via ServiceHub).
+-   10.6: Dynamic, multi-day itinerary planning based on constraints.
+-   10.7: Fine-tuning NLU models for Egyptian dialect and deeper cultural understanding.
+
+**Success Criteria**: Feature-specific metrics defined and achieved. No regressions.
+
+## Transition Strategy
+
+**(Maintain as per v2: Feature Flags, Gradual Traffic Shifting, Monitoring)**
+
+**Key Feature Flags:**
+-   `USE_NEW_KB`: Enables SQLite KnowledgeBase (Phase 1 testing).
+-   `USE_NEW_API`: Switches traffic to FastAPI backend (Phase 2 transition, optional).
+-   `USE_POSTGRES`: Switches `DatabaseManager` to use PostgreSQL (Phase 3 activation).
+-   `USE_NEW_NLU`: Activates advanced `NLUEngine` (Phase 4 activation).
+-   `USE_NEW_DIALOG`: Activates `DialogManager` state tracking (Phase 4 activation).
+-   `USE_RAG`: Activates RAG pipeline for responses (Phase 5 activation).
+
+**Monitoring Strategy (Enhanced):**
+-   **Performance**: FastAPI Request Latency (p90, p99), Endpoint Error Rates, `DatabaseManager` Query Times (distinguish SQLite/Postgres), `NLUEngine` Processing Time, `DialogManager` Action Time, `ResponseGenerator` Time, External API Latency (ServiceHub), Redis Latency, CPU/Memory Utilization, DB Connections Active/Idle.
+-   **Functional**: Intent Accuracy %, Entity F1-Score, KB Retrieval Precision/Recall, RAG Retrieval MRR/NDCG, Session Completion Rate, Fallback Trigger Rate, Data Validation Errors (during population/migration), Test Coverage %.
+-   **Business**: User Engagement (Messages/Session, Session Duration), Query Resolution Rate (via Feedback), Task Completion Rate (e.g., Itinerary created), Language Usage Distribution.
+
+## Risk Mitigation (Enhanced)
+
+### Critical Risks and Mitigation Strategies
+
+1. **Data Loss Risk**
+   - Full database backups before schema changes
+   - Dual-writing to old and new systems during transition
+   - Data validation after migration
+
+2. **Performance Degradation**
+   - Performance monitoring from day one
+   - Performance baselines before changes
+   - Rollback capability for performance issues
+
+3. **Security Vulnerabilities**
+   - Security scanning in CI pipeline
+   - CORS configuration validation
+   - Input validation testing
+
+4. **Integration Failures**
+   - Component isolation with clear interfaces
+   - Feature flags for granular control
+   - Integration tests for all component interactions
+
+5. **Cultural/Language Issues**
+   - Arabic language testing by native speakers
+   - Cultural validation of responses
+   - User feedback collection for language issues
+
+6. **Scope Creep/Delay Risk: Mitigation**
+   - Strict adherence to "Functionality First", defer non-critical features, regular progress reviews and re-prioritization.
+7. **Inconsistent Source Data Risk: Mitigation**
+   - Implement data validation checks during KB population (Phase 1), establish data quality monitoring.
+8. **Dependency Conflicts/Vulnerabilities: Mitigation**
+   - Regular pip-audit, careful dependency version management, automated checks in CI.
+9. **Configuration Errors: Mitigation**
+   - Establish clear config hierarchy early (Phase 0), use validation (Pydantic Settings), keep .env.example updated.
+
+
+### Technology Stack
+
+- **Backend**: FastAPI (async, Pydantic)
+- **Frontend**: React (continue current path)
+- **NLU/Dialog**: Transformers/spaCy with fine-tuning capabilities
+- **Database**: PostgreSQL with JSONB and PostGIS
+- **Vector DB**: pgvector extension
+- **Cache/Session**: Redis
+- **LLM**: Anthropic Claude via ServiceHub
+- **Infrastructure**: Kubernetes
+- **Monitoring**: Prometheus/Grafana/Sentry
+
+## System Architecture (Target State)
+
+### Component Architecture
+
+1. **API Layer** (FastAPI)
+   - Request validation
+   - Authentication/Authorization
+   - Rate limiting
+   - Session management
+
+2. **Application Layer**
+   - NLU Engine
+   - Dialog Manager
+   - Response Generator
+   - User Management
+
+3. **Knowledge Layer**
+   - KnowledgeBase (SQL)
+   - Vector Database
+   - RAG Pipeline
+   - Entity Resolution
+
+4. **Integration Layer**
+   - ServiceHub
+   - LLM Service
+   - Weather Service
+   - Translation Service
+   - Geospatial Service
+
+5. **Infrastructure Layer**
+   - Database
+   - Redis
+   - Monitoring
+   - Logging
+
+### Data Flow (Primary Path)
+
+1. User sends message via chat interface
+2. FastAPI receives request and validates
+3. NLU Engine processes message for intent/entities
+4. Dialog Manager determines next action
+5. If knowledge retrieval needed:
+   - RAG Pipeline retrieves relevant information
+   - Context prepared with retrieved information
+6. LLM Service generates appropriate response
+7. Response formatted and returned to user
+8. Analytics data captured for monitoring
+
+## Success Criteria (Overall)
+
+1. **Functional Metrics**
+   - 90%+ accuracy on tourism questions
+   - Successful handling of multilingual queries (EN/AR)
+   - Stateful conversations maintaining context
+   - Location-aware recommendations
+
+2. **Technical Metrics**
+   - <2s response time for 95% of queries
+   - 99.9% uptime
+   - All security vulnerabilities addressed
+   - Test coverage >80%
+
+3. **User Experience Metrics**
+   - >4/5 user satisfaction rating
+   - >80% query resolution rate (user got answer they needed)
+   - <10% conversation abandonment rate
+
+## Conclusion
+
+This v3 plan provides a highly detailed, step-by-step guide focusing on achieving core functionality via the intended `src/` (FastAPI/SQLite) architecture first. By integrating testing, security, and crucial stabilization tasks earlier, it significantly increases the probability of reaching a functional baseline state reliably. The clear definition of done after Phase 2 marks a critical milestone before tackling database migration and more advanced AI features, ensuring a robust and extensible foundation for the Egypt Tourism Chatbot.

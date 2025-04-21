@@ -1,0 +1,85 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Multilingual Requirements
+
+## Overview
+
+The Egypt Tourism Chatbot requires robust multilingual support with a specific focus on English (EN) and Arabic (AR).
+
+## Core Multilingual Components
+
+### 1. Data Structure Requirements
+
+The knowledge base data consistently includes parallel language structures for both English and Arabic:
+- Names, descriptions, and highlights in both languages
+- Language-specific formatting and presentation
+- Cultural adaptations beyond literal translation
+
+### 2. NLU (Natural Language Understanding)
+
+The NLU Engine must support both languages with:
+- Language detection capabilities
+- Language-specific models for intent recognition
+- Cross-lingual entity extraction
+- Arabic-specific text preprocessing
+- Named Entity Recognition (NER) for both languages
+
+**Arabic NLP Considerations**:
+- Word segmentation differences
+- Diacritics handling
+- Normalization of Arabic text
+- Stemming for Arabic words
+- Handling of Arabic dialects (Egyptian dialect specifics)
+
+### 3. Dialog Management
+
+Key requirements:
+- Language-aware dialog flows
+- Cultural adaptation of conversation patterns
+- Language parameter persistence throughout session
+- Ability to switch languages mid-conversation
+- Culture-specific dialog strategies
+
+### 4. Response Generation
+
+Key requirements:
+- Language-specific response templates
+- Cultural adaptation of content
+- RTL text handling for Arabic
+- Language-specific formatting rules
+- Numerical and date format localization
+
+### 5. UI/Frontend Requirements
+
+Key requirements:
+- Language toggle functionality
+- RTL layout support for Arabic
+- Bidirectional (Bidi) text handling
+- Font support for Arabic script
+- Localized UI elements
+- Proper text alignment and direction
+
+### 6. Knowledge Base Queries
+
+Key requirements:
+- Language parameter in all KB queries
+- Entity resolution across languages
+- Consistent response structure with language-specific content
+- Cross-lingual search capabilities
+
+## Cultural Adaptation
+
+Beyond language translation, cultural adaptation includes:
+
+1. **Appropriate Greetings**: Different greeting styles based on time of day and formality level
+2. **Cultural References**: Proper use of Egyptian cultural references and historical context
+3. **Honorifics and Formality**: Maintaining proper formality levels in Arabic
+4. **Local Knowledge**: Providing culturally appropriate information about customs, etiquette, and practices
+5. **Religious Context**: Sensitivity to religious sites, practices, and terminology
+
+## Interface Contracts
+
+All internal API interfaces must consistently support the language parameter throughout the system.

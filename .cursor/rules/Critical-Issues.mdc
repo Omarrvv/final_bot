@@ -1,0 +1,92 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Critical Issues
+
+## Prioritized System Deficiencies
+
+### 1. Knowledge Base Disconnection (Critical)
+
+**Description**: The KnowledgeBase component is a placeholder, disconnected from both the SQLite database and JSON files.
+
+**Impact**:
+- Renders sophisticated NLU/Dialog components inert
+- Prevents access to rich tourism data
+- Forces system to use rudimentary hardcoded dictionary
+
+**Dependencies**:
+- Blocks effective use of DialogManager
+- Prevents RAG pipeline functionality
+- Limits multilingual capabilities
+
+### 2. Architectural Dichotomy (Critical)
+
+**Description**: Two separate architectures with the simpler one currently active.
+
+**Impact**:
+- Advanced capabilities remain unused
+- Poor maintainability with dual-path codebase
+- Confusion for developers about active execution path
+
+### 3. Security Vulnerabilities (Critical)
+
+**Description**: Multiple security issues exist, particularly a misconfigured CORS implementation allowing all origins (`"*"`).
+
+**Impact**:
+- Exposes API to cross-origin attacks
+- Creates risk of unauthorized data access
+- Potential for Cross-Site Request Forgery (CSRF)
+
+### 4. Failing Test Suite (High)
+
+**Description**: The test suite is currently broken/failing.
+
+**Impact**:
+- Prevents reliable CI/CD
+- Increases risk of regressions during refactoring
+- Slows development velocity
+
+### 5. Database Limitations (High)
+
+**Description**: The system uses SQLite which is not ideal for production.
+
+**Impact**:
+- Limits scalability under high load
+- Lacks advanced features (geospatial, vector search)
+- Potential performance bottlenecks
+
+### 6. Monolithic Active Path (High)
+
+**Description**: The currently executing `@.src/app.py` is monolithic and synchronous.
+
+**Impact**:
+- Poor performance under high load
+- Difficult to maintain and extend
+- Limited error handling and resilience
+
+### 7. Session Management Issues (Medium)
+
+**Description**: The system uses file-based sessions instead of the intended Redis implementation.
+
+**Impact**:
+- Prevents horizontal scaling
+- Potential session data loss
+- Performance limitations with file I/O
+
+### 8. Limited Observability (Medium)
+
+**Description**: Lack of comprehensive monitoring, logging, and metrics collection.
+
+**Impact**:
+- Difficult to diagnose issues
+- No visibility into performance bottlenecks
+- Limited ability to detect anomalies
+
+## Dependencies Between Issues
+
+- Knowledge Base Disconnection blocks NLU/Dialog effectiveness
+- Architectural Dichotomy enables Security Vulnerabilities
+- Failing Test Suite blocks reliable CI/CD and increases refactoring risk
+- Database Limitations affect knowledge retrieval performance
