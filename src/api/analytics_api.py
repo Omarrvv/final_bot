@@ -39,257 +39,318 @@ def _get_db_manager() -> DatabaseManager:
                        dependencies=[Depends(get_current_admin_user)]) # Require admin
 async def get_overview_stats():
     """
-    Get overview statistics for the chatbot.
-    Includes total sessions, users, messages, and feedback (last 30 days).
+    Get basic usage statistics.
     """
     try:
         db_manager = _get_db_manager()
         
-        # Get data from the last 30 days
-        end_date = datetime.now()
-        start_date = end_date - timedelta(days=30)
-        
-        events = db_manager.log_analytics_event(
-            filters={
-                "timestamp_gte": start_date.isoformat(),
-                "timestamp_lt": end_date.isoformat()
-            },
-            limit=100000 # Consider performance implications
+        # Get all analytics events
+        events = db_manager.get_analytics_events(
+            limit=100000
         )
         
-        # --- Aggregation Logic (Same as before, but check event_data parsing) ---
-        # Check if event_data was correctly parsed from JSON string by get_analytics_events
-        valid_events = [e for e in events if isinstance(e.get('event_data'), dict)] # Ensure event_data is a dict
-        if len(valid_events) != len(events):
-             logger.warning(f"Some analytics events had invalid event_data format (expected dict). Found {len(valid_events)} valid out of {len(events)}.")
-             
-        stats = {
-            "total_sessions": len(set(e["session_id"] for e in valid_events if e["session_id"])),
-            "total_users": len(set(e["user_id"] for e in valid_events if e["user_id"])),
-            "total_messages": sum(1 for e in valid_events if e["event_type"] in ["user_message", "bot_message"]),
-            "user_messages": sum(1 for e in valid_events if e["event_type"] == "user_message"),
-            "bot_messages": sum(1 for e in valid_events if e["event_type"] == "bot_message"),
-            "average_session_length": 0,
-            "feedback": {
-                "positive": sum(1 for e in valid_events if e["event_type"] == "user_feedback" and e["event_data"].get("is_positive", False)),
-                "negative": sum(1 for e in valid_events if e["event_type"] == "user_feedback" and not e["event_data"].get("is_positive", False))
-            },
-            "time_range": {
-                "start": start_date.isoformat(),
-                "end": end_date.isoformat(),
-                "days": 30
-            }
-        }
+        # Process events to calculate basic statistics
+        valid_events = []
+        user_interactions = 0
+        unique_users = set()
+        unique_sessions = set()
+        intents = {}
         
-        # Calculate average session length (same logic as before)
-        if stats["total_sessions"] > 0:
-            sessions = defaultdict(list)
-            for event in valid_events:
+        for event in events:
+            # Check if event_data was correctly parsed from JSON string by get_analytics_events
+            event_data = event.get("event_data")
+            if isinstance(event_data, dict):
+                valid_events.append(event)
+                
+                # Count event types
+                event_type = event.get("event_type")
+                if event_type == "user_interaction":
+                    user_interactions += 1
+                
+                # Track unique users and sessions
+                user_id = event.get("user_id")
                 session_id = event.get("session_id")
+                
+                if user_id:
+                    unique_users.add(user_id)
                 if session_id:
-                    sessions[session_id].append(event)
-            
-            session_durations = []
-            for session_id, session_events in sessions.items():
-                if len(session_events) < 2: continue # Need at least 2 events for duration
-                session_events.sort(key=lambda e: isoparse(e["timestamp"]))
-                start = isoparse(session_events[0]["timestamp"])
-                end = isoparse(session_events[-1]["timestamp"])
-                duration = (end - start).total_seconds()
-                if 0 < duration < 3600: 
-                    session_durations.append(duration)
-            
-            if session_durations:
-                stats["average_session_length"] = sum(session_durations) / len(session_durations)
+                    unique_sessions.add(session_id)
+                
+                # Count intents
+                if event_type == "user_interaction" and event_data.get("intent"):
+                    intent = event_data.get("intent")
+                    if intent not in intents:
+                        intents[intent] = 0
+                    intents[intent] += 1
         
-        return stats # FastAPI handles JSON response
+        # Warn if some events couldn't be processed
+        if len(valid_events) < len(events):
+            logger.warning(f"Some analytics events had invalid event_data format (expected dict). Found {len(valid_events)} valid out of {len(events)}.")
         
+        # Calculate additional statistics
+        top_intents = sorted(
+            [{"intent": k, "count": v} for k, v in intents.items()],
+            key=lambda x: x["count"], 
+            reverse=True
+        )[:10]  # Get top 10 intents
+        
+        return {
+            "total_events": len(valid_events),
+            "user_interactions": user_interactions,
+            "unique_users": len(unique_users),
+            "unique_sessions": len(unique_sessions),
+            "top_intents": top_intents
+        }
     except Exception as e:
-        logger.error(f"Error getting overview stats: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Failed to retrieve overview statistics")
+        logger.error(f"Error getting overview stats: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve overview stats: {str(e)}")
 
 @analytics_router.get("/daily", 
                        dependencies=[Depends(get_current_admin_user)]) # Require admin
 def get_daily_stats(days: int = Query(7, ge=1, le=90)): # Use Query for validation
     """
-    Get daily statistics for the chatbot.
+    Get daily usage statistics over a period of days.
     """
     try:
         db_manager = _get_db_manager()
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=days)
         
-        # Calculate date range
-        end_date = datetime.now().replace(hour=23, minute=59, second=59, microsecond=999999)
-        start_date = end_date - timedelta(days=days -1)
-        start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
-        
-        events = db_manager.log_analytics_event(
+        # Get events from the specified period
+        events = db_manager.get_analytics_events(
             filters={
                 "timestamp_gte": start_date.isoformat(),
-                "timestamp_lt": (end_date + timedelta(microseconds=1)).isoformat()
+                "timestamp_lt": end_date.isoformat()
             },
             limit=100000
         )
         
-        # --- Aggregation Logic (Same as before) ---
-        daily_summary = defaultdict(lambda: {"sessions": set(), "messages": 0, "users": set()})
+        # Prepare data structures
+        daily_stats = {}
+        
+        # Pre-populate days to ensure all days appear in result
+        for day_offset in range(days):
+            day = (end_date - timedelta(days=day_offset)).strftime("%Y-%m-%d")
+            daily_stats[day] = {
+                "interactions": 0,
+                "unique_sessions": set(),
+                "unique_users": set()
+            }
+        
+        # Process events
         for event in events:
-            try:
-                event_time = isoparse(event["timestamp"])
-                event_date_str = event_time.strftime('%Y-%m-%d')
-                if event.get("session_id"):
-                     daily_summary[event_date_str]["sessions"].add(event["session_id"])
-                if event.get("user_id"):
-                     daily_summary[event_date_str]["users"].add(event["user_id"])
-                if event["event_type"] in ["user_message", "bot_message", "user_interaction"]:
-                     daily_summary[event_date_str]["messages"] += 1
-            except Exception as parse_err:
-                 logger.warning(f"Could not process event timestamp or data: {event.get('id')}, Error: {parse_err}")
+            # Extract date from timestamp (format: YYYY-MM-DDTHH:MM:SS)
+            timestamp = event.get("timestamp", "")
+            if not timestamp or "T" not in timestamp:
+                continue
+                
+            date = timestamp.split("T")[0]  # Get YYYY-MM-DD part
+            if date not in daily_stats:
+                # Skip dates outside our range
+                continue
+                
+            # Count user interactions
+            if event.get("event_type") == "user_interaction":
+                daily_stats[date]["interactions"] += 1
+                
+            # Track unique sessions and users
+            session_id = event.get("session_id")
+            user_id = event.get("user_id")
+            
+            if session_id:
+                daily_stats[date]["unique_sessions"].add(session_id)
+            if user_id:
+                daily_stats[date]["unique_users"].add(user_id)
         
-        results = []
-        current_date = start_date
-        while current_date <= end_date:
-             date_str = current_date.strftime('%Y-%m-%d')
-             stats = daily_summary[date_str]
-             results.append({
-                 "date": date_str,
-                 "sessions": len(stats["sessions"]),
-                 "messages": stats["messages"],
-                 "unique_users": len(stats["users"])
-             })
-             current_date += timedelta(days=1)
+        # Convert sets to counts for JSON serialization
+        for date, stats in daily_stats.items():
+            stats["unique_sessions"] = len(stats["unique_sessions"])
+            stats["unique_users"] = len(stats["unique_users"])
         
-        return results
+        # Sort by date (ascending)
+        sorted_data = [{"date": k, **v} for k, v in daily_stats.items()]
+        sorted_data.sort(key=lambda x: x["date"])
+        
+        return sorted_data
         
     except Exception as e:
-        logger.error(f"Error getting daily stats: {str(e)}", exc_info=True)
+        logger.error(f"Error getting daily stats: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to retrieve daily statistics")
 
-# Note: No Pydantic model defined for response here, relying on dict structure.
-# Consider adding a response_model later for better validation/docs.
 @analytics_router.get("/session/{session_id}", 
                        dependencies=[Depends(get_current_active_user)]) # Require any logged-in user (or admin?)
 async def get_session_stats(session_id: str):
     """
-    Get statistics and events for a specific session.
+    Get detailed statistics for a specific chat session.
     """
     try:
         db_manager = _get_db_manager()
-        events = db_manager.log_analytics_event(filters={"session_id": session_id}, limit=1000)
         
+        # Get events for the specific session
+        events = db_manager.get_analytics_events(filters={"session_id": session_id}, limit=1000)
+        
+        # Return 404 if no events were found for this session
         if not events:
-             raise HTTPException(status_code=404, detail="Session not found or no events logged")
+            raise HTTPException(status_code=404, detail=f"No data found for session: {session_id}")
+        
+        interactions = []
+        start_time = None
+        end_time = None
+        
+        for event in events:
+            event_data = event.get("event_data")
+            timestamp = event.get("timestamp")
             
-        # --- Aggregation Logic (Same as before) ---
-        events.sort(key=lambda e: isoparse(e["timestamp"]))
-        start_time = isoparse(events[0]["timestamp"])
-        end_time = isoparse(events[-1]["timestamp"])
-        duration_seconds = (end_time - start_time).total_seconds()
-        # Filter for user interaction events more robustly
-        user_interactions = [e for e in events if e["event_type"] == "user_interaction"]
+            # Try to determine session timing
+            if timestamp:
+                timestamp_dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                if not start_time or timestamp_dt < start_time:
+                    start_time = timestamp_dt
+                if not end_time or timestamp_dt > end_time:
+                    end_time = timestamp_dt
+                    
+            # Process user interactions
+            if event.get("event_type") == "user_interaction" and isinstance(event_data, dict):
+                interactions.append({
+                    "user_message": event_data.get("user_message"),
+                    "bot_response": event_data.get("bot_response"),
+                    "intent": event_data.get("intent"),
+                    "confidence": event_data.get("confidence"),
+                    "entities": event_data.get("entities"),
+                    "timestamp": timestamp
+                })
         
-        session_details = {
+        # Calculate session duration if possible
+        duration = None
+        if start_time and end_time:
+            duration = (end_time - start_time).total_seconds()
+        
+        return {
             "session_id": session_id,
-            "start_time": start_time.isoformat(),
-            "end_time": end_time.isoformat(),
-            "duration_seconds": duration_seconds,
-            "interaction_count": len(user_interactions),
-            "user_id": events[0].get("user_id"), # Assuming user_id is consistent
-            "events": events # Return raw events for detail
+            "start_time": start_time.isoformat() if start_time else None,
+            "end_time": end_time.isoformat() if end_time else None,
+            "duration_seconds": duration,
+            "interaction_count": len(interactions),
+            "interactions": interactions
         }
-        
-        return session_details
-        
+    
+    except HTTPException:
+        # Re-raise HTTP exceptions (like our 404)
+        raise
     except Exception as e:
-        logger.error(f"Error getting session stats for {session_id}: {str(e)}", exc_info=True)
+        logger.error(f"Error getting session stats: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to retrieve session statistics")
 
 @analytics_router.get("/intents", 
                        dependencies=[Depends(get_current_admin_user)]) # Require admin
 def get_intent_distribution():
     """
-    Get distribution of intents across all sessions.
+    Get distribution of intents detected in user interactions.
     """
     try:
         db_manager = _get_db_manager()
         
-        # Get interaction events (assuming intent is in event_data)
-        events = db_manager.log_analytics_event(filters={"event_type": "user_interaction"}, limit=100000)
+        # Get user interaction events
+        events = db_manager.get_analytics_events(filters={"event_type": "user_interaction"}, limit=100000)
         
-        intent_counts = Counter()
+        intent_counts = {}
+        total_interactions = 0
+        low_confidence_count = 0
+        confidence_threshold = 0.7  # Configurable threshold
+        
         for event in events:
-            # Ensure event_data is a dict and contains intent
             event_data = event.get("event_data")
             if isinstance(event_data, dict):
+                total_interactions += 1
                 intent = event_data.get("intent")
+                confidence = event_data.get("confidence")
+                
+                # Count intent occurrences
                 if intent:
-                    intent_counts[intent] += 1
-            else:
-                logger.warning(f"Skipping event {event.get('id')} for intent count due to invalid event_data format.")
+                    if intent not in intent_counts:
+                        intent_counts[intent] = {"count": 0, "low_confidence": 0}
+                    intent_counts[intent]["count"] += 1
+                    
+                    # Track low confidence detections
+                    if confidence and confidence < confidence_threshold:
+                        intent_counts[intent]["low_confidence"] += 1
+                        low_confidence_count += 1
         
-        # Convert Counter to desired format
-        distribution = [
-            {"intent": intent, "count": count, "percentage": (count / sum(intent_counts.values())) * 100 if sum(intent_counts.values()) > 0 else 0}
-            for intent, count in intent_counts.items()
-        ]
-        distribution.sort(key=lambda x: x["count"], reverse=True)
+        # Calculate percentages and create sorted list
+        intent_distribution = []
+        for intent, data in intent_counts.items():
+            percentage = (data["count"] / total_interactions * 100) if total_interactions > 0 else 0
+            intent_distribution.append({
+                "intent": intent,
+                "count": data["count"],
+                "percentage": round(percentage, 2),
+                "low_confidence_count": data["low_confidence"]
+            })
         
-        return distribution
+        # Sort by count (descending)
+        intent_distribution.sort(key=lambda x: x["count"], reverse=True)
         
+        return {
+            "total_interactions": total_interactions,
+            "low_confidence_count": low_confidence_count,
+            "low_confidence_percentage": round(low_confidence_count / total_interactions * 100, 2) if total_interactions > 0 else 0,
+            "intents": intent_distribution
+        }
+    
     except Exception as e:
-        logger.error(f"Error getting intent distribution: {str(e)}", exc_info=True)
+        logger.error(f"Error getting intent distribution: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to retrieve intent distribution")
 
 @analytics_router.get("/entities", 
                        dependencies=[Depends(get_current_admin_user)]) # Require admin
 def get_entity_distribution():
     """
-    Get distribution of extracted entities across all sessions.
+    Get distribution of entity types detected in user interactions.
     """
     try:
         db_manager = _get_db_manager()
         
-        # Get interaction events (assuming entities are in event_data)
-        events = db_manager.log_analytics_event(filters={"event_type": "user_interaction"}, limit=100000)
+        # Get user interaction events
+        events = db_manager.get_analytics_events(filters={"event_type": "user_interaction"}, limit=100000)
         
-        entity_counts = Counter()
-        entity_values = defaultdict(Counter)
+        entity_counts = {}
+        total_entities = 0
         
         for event in events:
             event_data = event.get("event_data")
             if isinstance(event_data, dict):
-                entities = event_data.get("entities")
-                if isinstance(entities, dict):
-                    for entity_type, entity_list in entities.items():
-                        if isinstance(entity_list, list):
-                             entity_counts[entity_type] += len(entity_list)
-                             for entity_value in entity_list:
-                                 if isinstance(entity_value, dict): # Handle cases where entity is a dict
-                                     value = entity_value.get('value') # Example: extract 'value' field
-                                     if value:
-                                          entity_values[entity_type][str(value).lower()] += 1 # Count lowercased value
-                                 elif isinstance(entity_value, (str, int, float)): # Handle primitive types
-                                     entity_values[entity_type][str(entity_value).lower()] += 1
-            else:
-                 logger.warning(f"Skipping event {event.get('id')} for entity count due to invalid event_data format.")
-                 
-        # Prepare results
-        results = []
-        for entity_type, total_count in entity_counts.items():
-            top_values = [
-                {"value": val, "count": cnt}
-                for val, cnt in entity_values[entity_type].most_common(10) # Get top 10 values
-            ]
-            results.append({
+                entities = event_data.get("entities", [])
+                
+                if isinstance(entities, list):
+                    for entity in entities:
+                        if isinstance(entity, dict):
+                            entity_type = entity.get("type")
+                            if entity_type:
+                                if entity_type not in entity_counts:
+                                    entity_counts[entity_type] = 0
+                                entity_counts[entity_type] += 1
+                                total_entities += 1
+        
+        # Create sorted list of entity types
+        entity_distribution = []
+        for entity_type, count in entity_counts.items():
+            percentage = (count / total_entities * 100) if total_entities > 0 else 0
+            entity_distribution.append({
                 "entity_type": entity_type,
-                "total_count": total_count,
-                "top_values": top_values
+                "count": count,
+                "percentage": round(percentage, 2)
             })
         
-        results.sort(key=lambda x: x["total_count"], reverse=True)
-        return results
-
+        # Sort by count (descending)
+        entity_distribution.sort(key=lambda x: x["count"], reverse=True)
+        
+        return {
+            "total_entities": total_entities,
+            "entities": entity_distribution
+        }
+    
     except Exception as e:
-        logger.error(f"Error getting entity distribution: {str(e)}", exc_info=True)
+        logger.error(f"Error getting entity distribution: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to retrieve entity distribution")
 
 @analytics_router.get("/feedback", 
@@ -302,7 +363,7 @@ def get_feedback_stats():
         db_manager = _get_db_manager()
         
         # Get feedback events
-        events = db_manager.log_analytics_event(filters={"event_type": "user_feedback"}, limit=100000)
+        events = db_manager.get_analytics_events(filters={"event_type": "user_feedback"}, limit=100000)
         
         feedback_list = []
         positive_count = 0
@@ -356,10 +417,10 @@ def get_message_stats(limit: int = Query(100, ge=1, le=1000),
         db_manager = _get_db_manager()
         
         # Get user interaction events, sorted descending by time
-        events = db_manager.log_analytics_event(
+        events = db_manager.get_analytics_events(
             filters={"event_type": "user_interaction"}, 
             limit=limit, 
-            skip=offset,
+            offset=offset,
             sort_by="timestamp", 
             sort_dir=-1
         )

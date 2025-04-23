@@ -28,7 +28,8 @@ echo -e "${GREEN}PYTHONPATH set to: $PYTHONPATH${NC}"
 echo -e "${YELLOW}Starting FastAPI backend with Uvicorn on port 5050...${NC}"
 # Run Uvicorn directly - removed nohup for clearer foreground execution
 # Add --log-config configs/log_conf.yaml if you have a logging config file
-# Removed --reload for consistency with production command
+# ARCHITECTURE TRANSITION NOTE: We're using src.main:app directly instead of the root main.py
+# This is part of the architecture unification process as documented in docs/architecture_transition.md
 uvicorn src.main:app --host 0.0.0.0 --port 5050 &
 BACKEND_PID=$!
 echo -e "${GREEN}Backend started with PID: $BACKEND_PID${NC}"

@@ -1,0 +1,10 @@
+{
+  "en": [
+    "Here's information about {hotel_name}:\n\n{hotel_description}\n\nCategory: {category}\nLocation: {address}\nPrice range: {price_range}\n\nAmenities:\n{amenities}\n\nRoom types:\n{room_types}",
+    "About {hotel_name}:\n\n{hotel_description}\n\n- Category: {category}\n- Address: {address}\n- Price: {price_range}\n\nFacilities:\n{amenities}\n\nAccommodation options:\n{room_types}"
+  ],
+  "ar": [
+    "إليك معلومات عن {hotel_name}:\n\n{hotel_description}\n\nالفئة: {category}\nالموقع: {address}\nنطاق السعر: {price_range}\n\nوسائل الراحة:\n{amenities}\n\nأنواع الغرف:\n{room_types}",
+    "عن {hotel_name}:\n\n{hotel_description}\n\n- الفئة: {category}\n- العنوان: {address}\n- السعر: {price_range}\n\nالمرافق:\n{amenities}\n\nخيارات الإقامة:\n{room_types}"
+  ]
+}

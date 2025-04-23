@@ -57,7 +57,7 @@ class Settings(BaseSettings):
     api_host: str = Field(default="0.0.0.0")
     api_port: int = Field(default=5000)
     frontend_url: Optional[str] = Field(default=None)
-    allowed_origins: List[str] = Field(default_factory=lambda: ["http://localhost:3000"])
+    allowed_origins: str = Field(default="http://localhost:3000")
     
     # Security
     jwt_secret: str = Field(default="generate_a_strong_secret_key_here")
@@ -119,6 +119,10 @@ class Settings(BaseSettings):
         """Validate allowed origins and add frontend_url if set."""
         if not v:
             v = ["http://localhost:3000"]
+        
+        # Handle string input (comma-separated)
+        if isinstance(v, str):
+            v = [origin.strip() for origin in v.split(",")]
         
         # Add frontend_url to allowed_origins if set and not already present
         frontend_url = os.getenv("FRONTEND_URL")

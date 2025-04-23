@@ -10,7 +10,6 @@ import jwt
 from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, Optional
 import functools
-from flask import request, jsonify, current_app, g
 
 # FastAPI specific imports
 from fastapi import Depends, HTTPException, status, Request
@@ -249,53 +248,11 @@ class Auth:
             return {
                 "success": True,
                 "user_id": user["id"],
-                "token": token
+                "token": token,
+                "token_type": "bearer",
+                "expires_in": JWT_EXPIRATION_SECONDS
             }
+            
         except Exception as e:
-            logger.error(f"Error during login for user {username}: {e}", exc_info=True)
-            raise HTTPException(status_code=500, detail="Internal server error during login")
-
-# Removed password hashing/verification helpers if bcrypt is used directly
-
-# --- Flask Decorators for Authentication ---
-def token_required(f):
-    """Flask decorator to require a valid token."""
-    @functools.wraps(f)
-    def decorated(*args, **kwargs):
-        token = None
-        # Get token from Authorization header
-        auth_header = request.headers.get('Authorization')
-        
-        if auth_header and auth_header.startswith('Bearer '):
-            token = auth_header.split(' ')[1]
-            
-        if not token:
-            return jsonify({'message': 'Token is missing'}), 401
-            
-        try:
-            # Decode token
-            payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-            g.user = payload  # Store user info in Flask's g object
-        except jwt.ExpiredSignatureError:
-            return jsonify({'message': 'Token has expired'}), 401
-        except (jwt.InvalidTokenError, Exception) as e:
-            logger.error(f"Token validation error: {e}")
-            return jsonify({'message': 'Invalid token'}), 401
-            
-        return f(*args, **kwargs)
-    return decorated
-
-def admin_required(f):
-    """Flask decorator to require admin role."""
-    @functools.wraps(f)
-    def decorated(*args, **kwargs):
-        # Ensure user is available in g (from token_required)
-        if not hasattr(g, 'user'):
-            return jsonify({'message': 'Authentication required'}), 401
-            
-        # Check if user has admin role
-        if g.user.get('role') != 'admin':
-            return jsonify({'message': 'Admin privileges required'}), 403
-            
-        return f(*args, **kwargs)
-    return decorated
+            logger.error(f"Error verifying password during login: {e}", exc_info=True)
+            raise HTTPException(status_code=500, detail="Error during login process")

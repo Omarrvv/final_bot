@@ -39,6 +39,43 @@ class RAGPipeline:
         self.min_similarity = self.config.get("min_similarity", 0.6)
         self.context_window = self.config.get("context_window", 2000)
     
+    def generate_response(self, query: str, session_id: str, language: str = "en") -> Dict[str, Any]:
+        """
+        Main method for generating a response using the RAG pipeline.
+        
+        Args:
+            query (str): User query
+            session_id (str): Session identifier
+            language (str): Language code (en, ar)
+            
+        Returns:
+            Dict: Generated response with retrieved context
+        """
+        logger.info(f"Generating RAG response for query: {query}")
+        
+        try:
+            # Get context from any active session
+            context = {}
+            
+            # Process the query through the general processing method
+            # Assuming a general intent to start with
+            intent = "general_query"
+            response = self._process_general_query(query, intent, context, language)
+            
+            # Add session ID to the response
+            response["session_id"] = session_id
+            
+            return response
+        except Exception as e:
+            logger.error(f"Error generating RAG response: {str(e)}")
+            return {
+                "text": f"I'm sorry, I encountered an error processing your query about '{query}'.",
+                "session_id": session_id,
+                "language": language,
+                "error": str(e),
+                "response_type": "error",
+            }
+    
     def process(self, query: str, intent: str, context: Dict[str, Any], 
              language: str = "en") -> Dict[str, Any]:
         """

@@ -67,4 +67,37 @@ def load_config():
             if env_config:
                 deep_update(config, env_config)
     
-    return config 
+    return config
+
+# Settings class for the application
+class Settings:
+    """Application settings with environment variable overrides."""
+    
+    def __init__(self):
+        # Default settings 
+        
+        # Session settings
+        self.SESSION_TTL_SECONDS = int(os.environ.get("SESSION_TTL_SECONDS", 86400))  # 24 hours default
+        self.COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "false").lower() == "true"
+        
+        # Redis configuration
+        self.REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
+        self.REDIS_PORT = int(os.environ.get("REDIS_PORT", 6379))
+        self.REDIS_DB = int(os.environ.get("REDIS_DB", 0))
+        self.REDIS_PASSWORD = os.environ.get("REDIS_PASSWORD", None)
+        
+        # API configuration
+        self.API_HOST = os.environ.get("API_HOST", "0.0.0.0")
+        self.API_PORT = int(os.environ.get("API_PORT", 5050))
+        
+        # Security
+        self.SECRET_KEY = os.environ.get("SECRET_KEY", "your-secret-key-change-me-in-production")
+        self.JWT_SECRET = os.environ.get("JWT_SECRET", self.SECRET_KEY)
+        self.JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
+        self.JWT_EXPIRATION = int(os.environ.get("JWT_EXPIRATION", 3600))  # 1 hour default
+        
+        # CORS settings
+        self.ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "*").split(",")
+
+# Create a singleton instance
+settings = Settings() 
