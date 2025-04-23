@@ -1,0 +1,10 @@
+# Default Cursor ignores
+node_modules/
+.git/
+*.log
+*.lock
+ 
+# Explicitly include .env files
+!.env
+!.env.example
+!.env.test 

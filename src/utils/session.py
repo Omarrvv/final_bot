@@ -58,16 +58,24 @@ class SessionManager:
         # Example: file:///path/to/sessions
         
         try:
+            # Check if feature flag USE_REDIS is explicitly set to false
+            use_redis = os.environ.get("USE_REDIS", "").lower() == "true"
+            
             if self.storage_uri.startswith("redis://"):
+                if not use_redis:
+                    logger.warning("Redis URI detected but USE_REDIS=false, using anyway")
                 self._initialize_redis_backend()
             elif self.storage_uri.startswith("file://"):
+                logger.info(f"Initializing file-based session storage: {self.storage_uri}")
                 self._initialize_file_backend()
             else:
-                logger.warning(f"Unsupported storage URI: {self.storage_uri}")
-                logger.info("Using in-memory session storage")
+                logger.warning(f"Unsupported storage URI format: {self.storage_uri}")
+                logger.info("Falling back to file-based session storage")
+                self._fallback_to_file_storage()
         except Exception as e:
-            logger.error(f"Failed to initialize storage backend: {str(e)}")
-            logger.info("Using in-memory session storage")
+            logger.error(f"Failed to initialize storage backend: {str(e)}", exc_info=True)
+            logger.info("Falling back to file-based session storage")
+            self._fallback_to_file_storage()
     
     def _initialize_redis_backend(self):
         """Initialize Redis storage backend."""
@@ -124,11 +132,44 @@ class SessionManager:
             
         except ImportError:
             logger.error("Redis package not installed. Cannot use Redis backend.")
-            logger.info("Using in-memory session storage")
+            logger.info("Falling back to file-based session storage")
+            self._fallback_to_file_storage()
         except Exception as e:
             logger.error(f"Failed to initialize Redis backend: {str(e)}", exc_info=True)
-            logger.info("Using in-memory session storage")
-            self.storage_backend = None
+            logger.info("Falling back to file-based session storage")
+            self._fallback_to_file_storage()
+            
+    def _fallback_to_file_storage(self):
+        """Fall back to file-based storage when Redis is unavailable."""
+        # Try several possible locations for session storage
+        possible_paths = [
+            os.path.join("data", "sessions"),       # ./data/sessions
+            os.path.join("/tmp", "egypt_sessions"), # /tmp/egypt_sessions (should be writable)
+            os.path.expanduser("~/.egypt_sessions") # User's home directory
+        ]
+        
+        for file_path in possible_paths:
+            try:
+                # Try to create directory
+                os.makedirs(file_path, exist_ok=True)
+                
+                # Test write access by trying to create and remove a test file
+                test_file = os.path.join(file_path, ".test_write_access")
+                with open(test_file, 'w') as f:
+                    f.write("test")
+                os.remove(test_file)
+                
+                # Initialize file storage backend
+                self.storage_backend = FileSessionStorage(file_path)
+                logger.info(f"Fallback file storage initialized at: {file_path}")
+                return
+            except (IOError, OSError, PermissionError) as e:
+                logger.warning(f"Cannot use {file_path} for fallback storage: {str(e)}")
+        
+        # If we get here, we couldn't create a writable directory
+        logger.error("Failed to initialize fallback file storage in any location")
+        logger.info("Using in-memory session storage only")
+        self.storage_backend = None
     
     def _initialize_file_backend(self):
         """Initialize file-based storage backend."""
@@ -336,42 +377,91 @@ class SessionManager:
     
     def update_context(self, session_id: str, nlu_result: Dict) -> Dict:
         """
-        Update conversation context based on NLU result.
+        Update the session context with NLU results.
         
         Args:
             session_id (str): Session ID
             nlu_result (dict): NLU processing result
             
         Returns:
-            dict: Updated conversation context
+            dict: Updated context
         """
-        # Get current context
-        context = self.get_context(session_id)
+        try:
+            # Get current session
+            session_data = self.get_session(session_id)
+            if not session_data:
+                logger.warning(f"Cannot update context for non-existent session: {session_id}")
+                return {}
+            
+            # Get current context
+            context = session_data.get("context", {})
+            
+            # Update context with NLU result
+            if "intent" in nlu_result:
+                context["last_intent"] = nlu_result["intent"]
+            
+            if "entities" in nlu_result:
+                # Merge entities, don't completely replace
+                entities = context.get("entities", {})
+                entities.update(nlu_result["entities"])
+                context["entities"] = entities
+            
+            if "language" in nlu_result:
+                context["language"] = nlu_result["language"]
+            
+            # Update dialog state if provided
+            if "dialog_state" in nlu_result:
+                context["dialog_state"] = nlu_result["dialog_state"]
+            
+            # Update session
+            session_data["context"] = context
+            self.update_session(session_id, session_data)
+            
+            return context
+        except Exception as e:
+            logger.error(f"Failed to update context: {str(e)}")
+            return {}
+    
+    def add_message_to_session(self, session_id: str, role: str, content: str) -> bool:
+        """
+        Add a message to the session history.
         
-        # Extract data from NLU result
-        intent = nlu_result.get("intent")
-        entities = nlu_result.get("entities", {})
-        language = nlu_result.get("language", context.get("language", "en"))
-        
-        # Update context with NLU results
-        if intent:
-            # Store last intent
-            context["last_intent"] = intent
-        
-        # Update language
-        context["language"] = language
-        
-        # Update entities
-        current_entities = context.get("entities", {})
-        for entity_type, entity_values in entities.items():
-            current_entities[entity_type] = entity_values
-        
-        context["entities"] = current_entities
-        
-        # Store updated context
-        self.set_context(session_id, context)
-        
-        return context
+        Args:
+            session_id (str): Session ID
+            role (str): Message role ('user' or 'assistant')
+            content (str): Message content
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            # Get current session
+            session_data = self.get_session(session_id)
+            if not session_data:
+                logger.warning(f"Cannot add message to non-existent session: {session_id}")
+                return False
+            
+            # Initialize history if it doesn't exist
+            if "history" not in session_data:
+                session_data["history"] = []
+            
+            # Add message to history
+            message = {
+                "role": role,
+                "content": content,
+                "timestamp": datetime.now().isoformat()
+            }
+            session_data["history"].append(message)
+            
+            # Limit history size to last 20 messages
+            if len(session_data["history"]) > 20:
+                session_data["history"] = session_data["history"][-20:]
+            
+            # Update session
+            return self.update_session(session_id, session_data)
+        except Exception as e:
+            logger.error(f"Failed to add message to session: {str(e)}")
+            return False
     
     def _store_session(self, session_id: str, session_data: Dict) -> bool:
         """
@@ -460,10 +550,48 @@ class SessionManager:
                 expired_sessions = []
                 
                 with self.session_lock:
-                    for session_id, session_data in self.sessions.items():
-                        expires_at = datetime.fromisoformat(session_data["expires_at"])
-                        if expires_at < now:
+                    for session_id, session_data in list(self.sessions.items()):
+                        # Check if session_data is valid dictionary
+                        if not isinstance(session_data, dict):
+                            logger.warning(f"Invalid session data format for {session_id}: {type(session_data)}")
                             expired_sessions.append(session_id)
+                            continue
+                            
+                        # Check if expires_at exists in the session data
+                        if "expires_at" not in session_data:
+                            try:
+                                # Add a default expiration time (current time + TTL)
+                                session_data["expires_at"] = (now + timedelta(seconds=self.session_ttl)).isoformat()
+                                logger.debug(f"Added missing expires_at field to session {session_id}")
+                            except Exception as exp_err:
+                                logger.error(f"Error adding expires_at to session {session_id}: {str(exp_err)}")
+                                # Mark session for deletion if we can't fix it
+                                expired_sessions.append(session_id)
+                            continue  # Skip this session for now
+                            
+                        # Parse expiration time
+                        try:
+                            # Handle both string and datetime objects
+                            if isinstance(session_data["expires_at"], str):
+                                expires_at = datetime.fromisoformat(session_data["expires_at"])
+                            elif isinstance(session_data["expires_at"], datetime):
+                                expires_at = session_data["expires_at"]
+                            else:
+                                logger.error(f"Invalid expires_at type in session {session_id}: {type(session_data['expires_at'])}")
+                                expires_at = now + timedelta(seconds=self.session_ttl)
+                                session_data["expires_at"] = expires_at.isoformat()
+                            
+                            if expires_at < now:
+                                expired_sessions.append(session_id)
+                        except (ValueError, TypeError) as e:
+                            logger.error(f"Invalid expires_at format in session {session_id}: {str(e)}")
+                            # Try to fix the session by updating the expiration
+                            try:
+                                session_data["expires_at"] = (now + timedelta(seconds=self.session_ttl)).isoformat()
+                                logger.info(f"Fixed expires_at for session {session_id}")
+                            except Exception:
+                                # If we can't fix it, mark for deletion
+                                expired_sessions.append(session_id)
                 
                 # Delete expired sessions
                 for session_id in expired_sessions:
@@ -473,7 +601,9 @@ class SessionManager:
                     logger.info(f"Cleaned up {len(expired_sessions)} expired sessions")
             
             except Exception as e:
-                logger.error(f"Error in session cleanup: {str(e)}")
+                logger.error(f"Error in session cleanup: {str(e)}", exc_info=True)
+                # Add a sleep to prevent tight loop in case of persistent errors
+                time.sleep(5)
 
 
 class FileSessionStorage:

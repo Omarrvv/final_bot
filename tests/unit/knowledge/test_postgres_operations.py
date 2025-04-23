@@ -1,0 +1,563 @@
+import pytest
+import os
+import psycopg2
+from psycopg2.extras import RealDictCursor
+import json
+import logging
+from datetime import datetime
+
+from src.knowledge.database import DatabaseManager, DatabaseType
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Fixture for test database connection
+@pytest.fixture
+def pg_test_db():
+    """Create isolated test database connection with real PostgreSQL"""
+    uri = os.environ.get("POSTGRES_URI") or "postgresql://omarmohamed@localhost:5432/postgres"
+    logger.info(f"Testing PostgreSQL connection to: {uri}")
+    
+    try:
+        conn = psycopg2.connect(uri)
+        conn.autocommit = True
+        
+        # Create test schema
+        with conn.cursor() as cur:
+            cur.execute("CREATE SCHEMA IF NOT EXISTS test_schema")
+            
+        yield conn
+        
+        # Cleanup test schema
+        with conn.cursor() as cur:
+            cur.execute("DROP SCHEMA IF EXISTS test_schema CASCADE")
+        conn.close()
+        
+    except Exception as e:
+        logger.error(f"Failed to connect to PostgreSQL: {e}")
+        pytest.skip(f"PostgreSQL connection failed: {e}")
+
+# Fixture for DatabaseManager with PostgreSQL
+@pytest.fixture
+def db_manager():
+    """Create DatabaseManager configured for PostgreSQL"""
+    # Force PostgreSQL usage regardless of environment variable
+    original_testing = os.environ.get("TESTING")
+    
+    # Make sure the TESTING environment variable doesn't override our database choice
+    if "TESTING" in os.environ:
+        del os.environ["TESTING"]
+    
+    os.environ["USE_POSTGRES"] = "true"
+    os.environ["POSTGRES_URI"] = os.environ.get("POSTGRES_URI") or "postgresql://omarmohamed@localhost:5432/postgres"
+    
+    # Create manager with proper constructor signature
+    manager = DatabaseManager()
+    
+    # Ensure we're using PostgreSQL
+    assert manager.db_type == DatabaseType.POSTGRES
+    assert manager.pg_pool is not None
+    
+    yield manager
+    
+    # Clean up test data
+    if manager.pg_pool:
+        with manager.pg_pool.getconn() as conn:
+            with conn.cursor() as cur:
+                tables = ["attractions", "restaurants", "hotels", "accommodations"]
+                for table in tables:
+                    try:
+                        cur.execute(f"DELETE FROM {table} WHERE id LIKE 'test_%'")
+                    except Exception as e:
+                        # Table might not exist, that's OK
+                        pass
+            conn.commit()
+        manager.pg_pool.putconn(conn)
+    
+    # Restore original testing environment
+    if original_testing is not None:
+        os.environ["TESTING"] = original_testing
+    elif "TESTING" in os.environ:
+        del os.environ["TESTING"]
+
+def test_postgres_connection_pool(db_manager):
+    """Test that the PostgreSQL connection pool is properly initialized"""
+    assert db_manager.db_type == DatabaseType.POSTGRES
+    assert db_manager.pg_pool is not None
+    
+    # Test pool checkout
+    conn = db_manager.pg_pool.getconn()
+    assert conn is not None
+    
+    try:
+        # Verify connection works with a simple query
+        with conn.cursor() as cur:
+            cur.execute("SELECT 1 as test")
+            result = cur.fetchone()
+            assert result[0] == 1
+        
+        # Create a temporary table for testing
+        with conn.cursor() as cur:
+            cur.execute("""
+            CREATE TEMPORARY TABLE connection_test (
+                id SERIAL PRIMARY KEY,
+                test_value TEXT
+            )
+            """)
+            
+            # Insert some data
+            cur.execute("INSERT INTO connection_test (test_value) VALUES (%s)", ("test1",))
+            cur.execute("INSERT INTO connection_test (test_value) VALUES (%s)", ("test2",))
+            
+            # Verify data is visible
+            cur.execute("SELECT COUNT(*) FROM connection_test")
+            count = cur.fetchone()[0]
+            assert count == 2
+        
+        # Test multiple operations in the same connection
+        with conn.cursor() as cur:
+            # More inserts
+            cur.execute("INSERT INTO connection_test (test_value) VALUES (%s)", ("test3",))
+            cur.execute("INSERT INTO connection_test (test_value) VALUES (%s)", ("test4",))
+            
+            # Read back
+            cur.execute("SELECT COUNT(*) FROM connection_test")
+            count = cur.fetchone()[0]
+            assert count == 4
+            
+            # Query with conditions 
+            cur.execute("SELECT * FROM connection_test WHERE test_value = %s", ("test3",))
+            result = cur.fetchone()
+            assert result is not None
+            assert result[1] == "test3"
+    finally:
+        # Return connection to pool
+        db_manager.pg_pool.putconn(conn)
+
+def test_postgres_attraction_crud(db_manager):
+    """Test Create, Read, Update, Delete operations for attractions in PostgreSQL"""
+    # Generate a unique test ID
+    test_id = f"test_attraction_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    
+    # Get a direct connection from the pool
+    conn = db_manager.pg_pool.getconn()
+    
+    try:
+        # CREATE - Insert a test attraction
+        with conn.cursor() as cur:
+            insert_sql = """
+            INSERT INTO attractions (
+                id, name_en, name_ar, type, 
+                latitude, longitude, data
+            ) VALUES (
+                %s, %s, %s, %s, 
+                %s, %s, %s
+            )
+            """
+            test_data = {
+                "description_en": "Test description",
+                "description_ar": "وصف الاختبار",
+                "ticket_price": {"adult": 150, "child": 75}
+            }
+            params = (
+                test_id,
+                "Test Attraction",
+                "اختبار المعلم",
+                "historical",
+                30.0444,
+                31.2357,
+                json.dumps(test_data)
+            )
+            cur.execute(insert_sql, params)
+            conn.commit()
+        
+        # READ - Retrieve the attraction
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            select_sql = "SELECT * FROM attractions WHERE id = %s"
+            cur.execute(select_sql, (test_id,))
+            attraction = cur.fetchone()
+            
+            # Verify data
+            assert attraction is not None
+            assert attraction["name_en"] == "Test Attraction"
+            assert attraction["type"] == "historical"
+            assert attraction["latitude"] == 30.0444
+            assert attraction["longitude"] == 31.2357
+            
+            # Check JSON data - data might be returned as a string or as a dict
+            data = attraction["data"]
+            if isinstance(data, str):
+                data = json.loads(data)
+            assert data["description_en"] == "Test description"
+            assert data["ticket_price"]["adult"] == 150
+        
+        # UPDATE - Modify the attraction
+        with conn.cursor() as cur:
+            update_sql = """
+            UPDATE attractions 
+            SET name_en = %s, data = %s
+            WHERE id = %s
+            """
+            updated_data = {
+                "description_en": "Updated description",
+                "description_ar": "وصف الاختبار المحدث",
+                "ticket_price": {"adult": 200, "child": 100}
+            }
+            cur.execute(update_sql, ("Updated Test Attraction", json.dumps(updated_data), test_id))
+            conn.commit()
+        
+        # READ AGAIN - Verify update
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(select_sql, (test_id,))
+            updated_attraction = cur.fetchone()
+            
+            # Verify updated data
+            assert updated_attraction["name_en"] == "Updated Test Attraction"
+            
+            # Check updated JSON data - data might be returned as a string or as a dict
+            updated_data_from_db = updated_attraction["data"]
+            if isinstance(updated_data_from_db, str):
+                updated_data_from_db = json.loads(updated_data_from_db)
+            assert updated_data_from_db["description_en"] == "Updated description"
+            assert updated_data_from_db["ticket_price"]["adult"] == 200
+        
+        # DELETE - Remove the attraction
+        with conn.cursor() as cur:
+            delete_sql = "DELETE FROM attractions WHERE id = %s"
+            cur.execute(delete_sql, (test_id,))
+            conn.commit()
+        
+        # Verify deletion
+        with conn.cursor() as cur:
+            cur.execute(select_sql, (test_id,))
+            deleted_check = cur.fetchone()
+            assert deleted_check is None
+            
+    finally:
+        # Always return the connection to the pool
+        db_manager.pg_pool.putconn(conn)
+
+def test_postgres_attraction_search(db_manager):
+    """Test search functionality for attractions in PostgreSQL"""
+    # Create test attractions
+    test_attractions = []
+    
+    # Get a direct connection from the pool
+    conn = db_manager.pg_pool.getconn()
+    
+    try:
+        # Create multiple test attractions with different attributes
+        for i in range(3):
+            test_id = f"test_attraction_search_{i}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+            test_attractions.append(test_id)
+            
+            # Insert test attraction
+            with conn.cursor() as cur:
+                insert_sql = """
+                INSERT INTO attractions (
+                    id, name_en, name_ar, type, 
+                    latitude, longitude, data
+                ) VALUES (
+                    %s, %s, %s, %s, 
+                    %s, %s, %s
+                )
+                """
+                attraction_type = "historical" if i % 2 == 0 else "cultural"
+                data = json.dumps({
+                    "description_en": f"Test description {i}",
+                    "description_ar": f"وصف الاختبار {i}",
+                    "ticket_price": {"adult": 100 + i * 50, "child": 50 + i * 25}
+                })
+                
+                params = (
+                    test_id,
+                    f"Test Attraction {i}",
+                    f"اختبار المعلم {i}",
+                    attraction_type,
+                    30.0444,
+                    31.2357,
+                    data
+                )
+                cur.execute(insert_sql, params)
+        
+        # Commit all inserts at once
+        conn.commit()
+        
+        # Test search by name
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            search_sql = """
+            SELECT * FROM attractions 
+            WHERE name_en LIKE %s
+            """
+            cur.execute(search_sql, ("%Test Attraction%",))
+            name_results = cur.fetchall()
+            
+            # Verify search results
+            assert len(name_results) >= 3
+            for result in name_results:
+                assert "Test Attraction" in result["name_en"]
+        
+        # Test search by type
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            search_sql = """
+            SELECT * FROM attractions 
+            WHERE type = %s
+            """
+            cur.execute(search_sql, ("historical",))
+            type_results = cur.fetchall()
+            
+            # Verify search results
+            assert len(type_results) >= 1
+            for result in type_results:
+                assert result["type"] == "historical"
+        
+    finally:
+        # Clean up test data
+        with conn.cursor() as cur:
+            for test_id in test_attractions:
+                delete_sql = "DELETE FROM attractions WHERE id = %s"
+                cur.execute(delete_sql, (test_id,))
+            conn.commit()
+        
+        # Return connection to pool
+        db_manager.pg_pool.putconn(conn)
+
+def test_postgres_restaurant_operations(db_manager):
+    """Test operations specific to restaurants in PostgreSQL"""
+    # Create test restaurant
+    test_id = f"test_restaurant_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    test_restaurant = {
+        "id": test_id,
+        "name_en": "Test Restaurant",
+        "name_ar": "مطعم اختباري",
+        "location": {"lat": 30.0444, "lng": 31.2357},
+        "cuisine": "Egyptian",
+        "data": json.dumps({
+            "description_en": "A test restaurant for unit testing",
+            "description_ar": "مطعم اختباري للاختبارات",
+            "price_range": "moderate",
+            "menu_highlights": ["Koshari", "Ful Medames"]
+        })
+    }
+    
+    # INSERT - using the PostgreSQL-specific method directly
+    if hasattr(db_manager, "_insert_restaurant_postgres"):
+        insert_result = db_manager._insert_restaurant_postgres(test_restaurant)
+        assert insert_result is True
+    else:
+        # Fall back to the general method if the specific one doesn't exist
+        insert_result = db_manager.insert_restaurant(test_restaurant)
+        assert insert_result is True
+    
+    # GET - using the PostgreSQL-specific method directly
+    if hasattr(db_manager, "_get_restaurant_postgres"):
+        restaurant = db_manager._get_restaurant_postgres(test_id)
+    else:
+        restaurant = db_manager.get_restaurant_by_id(test_id)
+    
+    assert restaurant is not None
+    assert restaurant["name_en"] == "Test Restaurant"
+    assert restaurant["cuisine"] == "Egyptian"
+    
+    # SEARCH - using the PostgreSQL-specific method directly
+    if hasattr(db_manager, "_search_restaurants_postgres"):
+        search_results = db_manager._search_restaurants_postgres({"cuisine": "Egyptian"})
+    else:
+        search_results = db_manager.search_restaurants({"cuisine": "Egyptian"})
+    
+    assert len(search_results) >= 1
+    assert any(r["id"] == test_id for r in search_results)
+    
+    # Clean up - direct SQL for flexibility
+    with db_manager.pg_pool.getconn() as conn:
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM restaurants WHERE id = %s", (test_id,))
+        conn.commit()
+        db_manager.pg_pool.putconn(conn)
+
+def test_postgres_hotel_operations(db_manager):
+    """Test operations specific to hotels in PostgreSQL"""
+    # Create test hotel
+    test_id = f"test_hotel_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    test_hotel = {
+        "id": test_id,
+        "name_en": "Test Hotel",
+        "name_ar": "فندق اختباري",
+        "location": {"lat": 30.0444, "lng": 31.2357},
+        "stars": 4,
+        "data": json.dumps({
+            "description_en": "A test hotel for unit testing",
+            "description_ar": "فندق اختباري للاختبارات",
+            "price_range": "luxury",
+            "amenities": ["Pool", "Spa", "WiFi"]
+        })
+    }
+    
+    # INSERT - using the PostgreSQL-specific method directly if it exists
+    if hasattr(db_manager, "_insert_hotel_postgres"):
+        insert_result = db_manager._insert_hotel_postgres(test_hotel)
+        assert insert_result is True
+    else:
+        # Fall back to accommodations or general method
+        try:
+            insert_result = db_manager.insert_accommodation(test_hotel)
+        except AttributeError:
+            insert_result = db_manager.insert_hotel(test_hotel)
+        assert insert_result is True
+    
+    # GET - using the PostgreSQL-specific method directly if it exists
+    if hasattr(db_manager, "_get_hotel_postgres"):
+        hotel = db_manager._get_hotel_postgres(test_id)
+    else:
+        try:
+            hotel = db_manager.get_accommodation_by_id(test_id)
+        except AttributeError:
+            hotel = db_manager.get_hotel_by_id(test_id)
+    
+    assert hotel is not None
+    assert hotel["name_en"] == "Test Hotel"
+    assert hotel["stars"] == 4
+    
+    # SEARCH - using the PostgreSQL-specific method directly if it exists
+    if hasattr(db_manager, "_search_hotels_postgres"):
+        search_results = db_manager._search_hotels_postgres({"stars": 4})
+    else:
+        try:
+            search_results = db_manager.search_accommodations({"stars": 4})
+        except AttributeError:
+            search_results = db_manager.search_hotels({"stars": 4})
+    
+    assert len(search_results) >= 1
+    assert any(r["id"] == test_id for r in search_results)
+    
+    # Clean up - direct SQL for flexibility
+    with db_manager.pg_pool.getconn() as conn:
+        with conn.cursor() as cur:
+            # Try both tables since we don't know which one was used
+            try:
+                cur.execute("DELETE FROM hotels WHERE id = %s", (test_id,))
+            except:
+                try:
+                    cur.execute("DELETE FROM accommodations WHERE id = %s", (test_id,))
+                except:
+                    pass  # If neither works, we'll have to leave it
+        conn.commit()
+        db_manager.pg_pool.putconn(conn)
+
+def test_postgres_error_handling(db_manager):
+    """Test error handling in PostgreSQL operations"""
+    # Test handling of duplicate keys
+    test_id = f"test_duplicate_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    test_attraction = {
+        "id": test_id,
+        "name_en": "Test Duplicate",
+        "name_ar": "اختبار مكرر",
+        "type": "historical",
+        "location": {"lat": 30.0444, "lng": 31.2357},
+        "data": json.dumps({"description_en": "Test description"})
+    }
+    
+    # First insert should succeed
+    first_result = db_manager.insert_attraction(test_attraction)
+    assert first_result is True
+    
+    # Second insert with same ID should fail gracefully
+    second_result = db_manager.insert_attraction(test_attraction)
+    assert second_result is False  # Should return False, not raise exception
+    
+    # Test handling of invalid IDs
+    invalid_result = db_manager.get_attraction_by_id("nonexistent_id_12345")
+    assert invalid_result is None  # Should return None, not raise exception
+    
+    # Clean up
+    db_manager.delete_attraction(test_id)
+
+def test_postgres_transaction_management(db_manager, pg_test_db):
+    """Test transaction management in PostgreSQL"""
+    test_id = f"test_transaction_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    
+    # Direct connection for testing transactions
+    with pg_test_db.cursor() as cur:
+        # Start transaction
+        pg_test_db.autocommit = False
+        
+        # Insert test data
+        cur.execute(
+            "INSERT INTO attractions (id, name_en, name_ar, type, location, data) VALUES (%s, %s, %s, %s, %s, %s)",
+            (test_id, "Transaction Test", "اختبار المعاملة", "historical", 
+             json.dumps({"lat": 30.0444, "lng": 31.2357}), 
+             json.dumps({"description_en": "Test description"}))
+        )
+        
+        # Check data is visible within transaction
+        cur.execute("SELECT * FROM attractions WHERE id = %s", (test_id,))
+        in_transaction = cur.fetchone()
+        assert in_transaction is not None
+        
+        # Rollback transaction
+        pg_test_db.rollback()
+        
+        # Verify data is not in database after rollback
+        cur.execute("SELECT * FROM attractions WHERE id = %s", (test_id,))
+        after_rollback = cur.fetchone()
+        assert after_rollback is None
+        
+        # Reset autocommit
+        pg_test_db.autocommit = True
+
+def test_postgres_connection_pool_stress(db_manager):
+    """Test connection pool behavior under moderate load"""
+    # Run multiple concurrent operations to test pool
+    concurrent_ops = 3  # Adjust based on your pool settings
+    
+    for i in range(concurrent_ops):
+        test_id = f"test_pool_{i}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        
+        # Get a direct connection from the pool
+        conn = db_manager.pg_pool.getconn()
+        try:
+            # Set autocommit to False for transaction control
+            conn.autocommit = False
+            
+            # Insert test data
+            with conn.cursor() as cur:
+                insert_sql = """
+                INSERT INTO attractions (id, name_en, name_ar, type, data) 
+                VALUES (%s, %s, %s, %s, %s)
+                """
+                params = (
+                    test_id,
+                    f"Pool Test {i}",
+                    f"اختبار التجمع {i}",
+                    "historical",
+                    json.dumps({"description_en": f"Connection pool test {i}"})
+                )
+                cur.execute(insert_sql, params)
+            
+            # Commit the insert transaction
+            conn.commit()
+            
+            # Verify data was inserted
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                select_sql = "SELECT * FROM attractions WHERE id = %s"
+                cur.execute(select_sql, (test_id,))
+                attraction = cur.fetchone()
+                assert attraction is not None
+                assert attraction["name_en"] == f"Pool Test {i}"
+            
+            # Delete the test data
+            with conn.cursor() as cur:
+                delete_sql = "DELETE FROM attractions WHERE id = %s"
+                cur.execute(delete_sql, (test_id,))
+            
+            # Commit the delete transaction  
+            conn.commit()
+            
+        except Exception as e:
+            # Rollback on error
+            conn.rollback()
+            raise
+        finally:
+            # Always return connection to the pool
+            db_manager.pg_pool.putconn(conn) 

@@ -1,0 +1,10 @@
+{
+  "en": [
+    "I found these hotels in {location}:\n\n{hotel_list}\n\nWould you like more details about any of these?",
+    "Here are some accommodation options in {location}:\n\n{hotel_list}\n\nI can provide more information about any of these hotels if you're interested."
+  ],
+  "ar": [
+    "وجدت هذه الفنادق في {location}:\n\n{hotel_list}\n\nهل ترغب في مزيد من التفاصيل حول أي من هذه؟",
+    "إليك بعض خيارات الإقامة في {location}:\n\n{hotel_list}\n\nيمكنني تقديم مزيد من المعلومات حول أي من هذه الفنادق إذا كنت مهتمًا."
+  ]
+}

@@ -238,6 +238,55 @@ class ResponseGenerator:
         else:
             logger.warning(f"Unknown action type: {action_type}")
             return self._generate_fallback_response(language)
+
+    def generate_response(self, response_type: str, language: str, params: Dict = None) -> str:
+        """
+        Alternative signature for generate_response to handle direct calls from chatbot.py.
+        
+        Args:
+            response_type (str): The type of response to generate
+            language (str): The language for the response
+            params (Dict, optional): Parameters for the response
+            
+        Returns:
+            str: The generated response text
+        """
+        # Simple fallback if params are None
+        if params is None:
+            params = {}
+        
+        # Get template for response type
+        template = self._get_template(response_type, language)
+        
+        # Generate response based on type
+        if response_type == "attraction_details":
+            return self._generate_attraction_details(template, params, language)
+        elif response_type == "restaurant_list":
+            return self._generate_restaurant_list(template, params, language)
+        elif response_type == "restaurant_details":
+            return self._generate_restaurant_details(template, params, language)
+        elif response_type == "hotel_list":
+            return self._generate_hotel_list(template, params, language)
+        elif response_type == "hotel_details":
+            return self._generate_hotel_details(template, params, language)
+        elif response_type == "practical_info":
+            return self._generate_practical_info(template, params, language)
+        elif response_type == "transportation_info":
+            return self._generate_transportation_info(template, params, language)
+        elif response_type == "suggested_itinerary":
+            return self._generate_itinerary(template, params, language)
+        elif response_type == "greeting":
+            return template
+        elif response_type == "farewell":
+            return template
+        elif response_type == "fallback":
+            return template
+        elif response_type == "general":
+            return template
+        else:
+            # Use fallback for unknown response types
+            logger.warning(f"Unknown response type: {response_type}, using fallback")
+            return self._get_template("fallback", language)
     
     def _generate_response_action(self, dialog_action: Dict, nlu_result: Dict, context: Dict) -> Dict:
         """Generate a response for a response action."""

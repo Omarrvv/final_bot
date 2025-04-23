@@ -6,8 +6,16 @@ import os
 import json
 import pytest
 from pathlib import Path
+from unittest.mock import patch, AsyncMock, MagicMock
 from .setup_test_env import setup_test_environment, cleanup_test_environment
 from fastapi.testclient import TestClient
+import secrets
+import jwt
+from datetime import datetime, timedelta, timezone
+import sqlite3
+
+# Import DatabaseManager for fixture
+from src.knowledge.database import DatabaseManager
 
 # Global variable to store temporary directory
 _TEMP_TEST_DIR = None
@@ -71,6 +79,27 @@ def mock_env_vars():
     }
     return env_vars
 
+# --- Mock Redis for all tests --- 
+@pytest.fixture(scope="session", autouse=True)
+def mock_redis():
+    """
+    Mock Redis for all tests to prevent any real Redis connections.
+    This ensures tests don't rely on external Redis service.
+    """
+    mock_redis_client = AsyncMock()
+    mock_redis_client.ping.return_value = True
+    mock_redis_client.close.return_value = None
+    
+    # Create a from_url mock that returns our mock client
+    async def mock_from_url(*args, **kwargs):
+        return mock_redis_client
+    
+    # Patch redis.asyncio.from_url
+    with patch('redis.asyncio.from_url', mock_from_url):
+        # Patch FastAPILimiter.init to be a no-op
+        with patch('fastapi_limiter.FastAPILimiter.init', AsyncMock(return_value=None)):
+            yield mock_redis_client
+
 # --- Add FastAPI App and Async Client Fixtures --- 
 
 @pytest.fixture
@@ -105,3 +134,163 @@ async def minimal_client(minimal_app):
     from httpx import AsyncClient
     async with AsyncClient(app=minimal_app, base_url="http://test") as client:
         yield client
+
+@pytest.fixture
+def test_auth_token():
+    """Generate a test auth token for authentication."""
+    # Generate a simple session token for testing
+    return secrets.token_hex(16)
+
+@pytest.fixture
+def mock_session_validate():
+    """Mock session validation to return test user data."""
+    async def mock_validate(*args, **kwargs):
+        # Return test user data for all validation attempts
+        return {
+            "user_id": "test_user_1",
+            "username": "testuser",
+            "email": "test@example.com",
+            "role": "user",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+    
+    # Patch the session validation
+    with patch("src.services.session.SessionService.validate_session", mock_validate):
+        yield
+
+@pytest.fixture
+def authenticated_client(app, test_auth_token, mock_session_validate):
+    """Provides a FastAPI TestClient that is pre-authenticated."""
+    with TestClient(app) as test_client:
+        # Set the session_token cookie
+        test_client.cookies.set("session_token", test_auth_token)
+        # Also set it as a Bearer token in default headers
+        test_client.headers["Authorization"] = f"Bearer {test_auth_token}"
+        yield test_client
+
+@pytest.fixture
+def initialized_db_manager():
+    """Fixture that provides a DatabaseManager with properly initialized tables."""
+    # Use in-memory database for tests
+    db_uri = "sqlite:///:memory:"
+    db_manager = DatabaseManager(database_uri=db_uri)
+    
+    # Create tables
+    db_manager._create_sqlite_tables()
+    
+    # Insert test data for attractions
+    cursor = db_manager.connection.cursor()
+    
+    # Insert a test attraction
+    test_attraction = {
+        "id": "test_attraction_1",
+        "name_en": "Test Attraction",
+        "name_ar": "معلم اختبار",
+        "type": "historical",
+        "city": "Cairo",
+        "region": "Cairo",
+        "latitude": 30.0444,
+        "longitude": 31.2357,
+        "description_en": "A test attraction description",
+        "description_ar": "وصف لمعلم اختبار",
+        "data": json.dumps({"details": "Test details"}),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    cursor.execute('''
+        INSERT INTO attractions (
+            id, name_en, name_ar, type, city, region, latitude, longitude,
+            description_en, description_ar, data, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (
+        test_attraction["id"], test_attraction["name_en"], test_attraction["name_ar"],
+        test_attraction["type"], test_attraction["city"], test_attraction["region"],
+        test_attraction["latitude"], test_attraction["longitude"],
+        test_attraction["description_en"], test_attraction["description_ar"],
+        test_attraction["data"], test_attraction["created_at"], test_attraction["updated_at"]
+    ))
+    
+    # Insert a test restaurant
+    test_restaurant = {
+        "id": "test_restaurant_1",
+        "name_en": "Test Restaurant",
+        "name_ar": "مطعم اختبار",
+        "type": "restaurant",
+        "cuisine": "Egyptian",
+        "city": "Cairo",
+        "region": "Cairo",
+        "latitude": 30.0444,
+        "longitude": 31.2357,
+        "description_en": "A test restaurant description",
+        "description_ar": "وصف لمطعم اختبار",
+        "data": json.dumps({"price_range": "moderate"}),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    cursor.execute('''
+        INSERT INTO restaurants (
+            id, name_en, name_ar, cuisine, city, region, latitude, longitude,
+            description_en, description_ar, data, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (
+        test_restaurant["id"], test_restaurant["name_en"], test_restaurant["name_ar"],
+        test_restaurant["cuisine"], test_restaurant["city"], test_restaurant["region"],
+        test_restaurant["latitude"], test_restaurant["longitude"],
+        test_restaurant["description_en"], test_restaurant["description_ar"],
+        test_restaurant["data"], test_restaurant["created_at"], test_restaurant["updated_at"]
+    ))
+    
+    # Insert a test hotel/accommodation
+    test_hotel = {
+        "id": "test_hotel_1",
+        "name_en": "Test Hotel",
+        "name_ar": "فندق اختبار",
+        "type": "hotel",
+        "star_rating": 4,
+        "city": "Cairo",
+        "region": "Cairo",
+        "latitude": 30.0444,
+        "longitude": 31.2357,
+        "description_en": "A test hotel description",
+        "description_ar": "وصف لفندق اختبار",
+        "data": json.dumps({"amenities": ["wifi", "pool"]}),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    cursor.execute('''
+        INSERT INTO accommodations (
+            id, name_en, name_ar, type, city, region, latitude, longitude,
+            description_en, description_ar, data, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (
+        test_hotel["id"], test_hotel["name_en"], test_hotel["name_ar"],
+        test_hotel["type"], test_hotel["city"], test_hotel["region"],
+        test_hotel["latitude"], test_hotel["longitude"],
+        test_hotel["description_en"], test_hotel["description_ar"],
+        test_hotel["data"], test_hotel["created_at"], test_hotel["updated_at"]
+    ))
+    
+    # Commit changes
+    db_manager.connection.commit()
+    
+    return db_manager
+
+@pytest.fixture
+def test_knowledge_base(initialized_db_manager):
+    """Fixture that provides a KnowledgeBase with test data."""
+    from src.knowledge.knowledge_base import KnowledgeBase
+    kb = KnowledgeBase(db_manager=initialized_db_manager)
+    return kb
+
+@pytest.fixture
+def query_data():
+    """Test query data fixture for KB integration tests."""
+    return {
+        "name": "Egyptian Museum query",
+        "message": "information about the Egyptian Museum",
+        "language": "en",
+        "expected_keywords": ["museum", "Cairo", "artifacts", "collection"]
+    }

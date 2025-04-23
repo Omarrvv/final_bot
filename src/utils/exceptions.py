@@ -34,20 +34,31 @@ class AuthorizationError(ChatbotError):
 class ResourceNotFoundError(ChatbotError):
     """Exception raised when a requested resource is not found."""
     
-    def __init__(self, resource_type: str, resource_id: str, message: Optional[str] = None):
+    def __init__(self, resource_type: str = None, resource_id: str = None, message: Optional[str] = None):
         """
         Initialize the exception.
         
         Args:
-            resource_type (str): Type of resource (e.g., "attraction", "session")
-            resource_id (str): ID of the resource that wasn't found
+            resource_type (str, optional): Type of resource (e.g., "attraction", "session")
+            resource_id (str, optional): ID of the resource that wasn't found
             message (str, optional): Custom error message
         """
-        default_message = f"{resource_type.capitalize()} not found: {resource_id}"
-        super().__init__(message or default_message, {
-            "resource_type": resource_type,
-            "resource_id": resource_id
-        })
+        # Allow creating with just a message for backward compatibility with tests
+        if message is None and resource_type is not None:
+            # Check if resource_type is actually a message (string)
+            if isinstance(resource_type, str) and resource_id is None:
+                message = resource_type
+                resource_type = None
+            else:
+                message = f"{resource_type.capitalize()} not found: {resource_id}"
+        
+        details = {}
+        if resource_type:
+            details["resource_type"] = resource_type
+        if resource_id:
+            details["resource_id"] = resource_id
+            
+        super().__init__(message or "Resource not found", details)
 
 class ValidationError(ChatbotError):
     """Exception raised when input validation fails."""
@@ -65,22 +76,34 @@ class ValidationError(ChatbotError):
 class ServiceError(ChatbotError):
     """Exception raised when an external service call fails."""
     
-    def __init__(self, service_name: str, method: str, error: str, details: Optional[Dict[str, Any]] = None):
+    def __init__(self, service_name: str = None, method: str = None, error: str = None, 
+                 details: Optional[Dict[str, Any]] = None, message: Optional[str] = None):
         """
         Initialize the exception.
         
         Args:
-            service_name (str): Name of the service
-            method (str): Method that was called
-            error (str): Error message
+            service_name (str, optional): Name of the service
+            method (str, optional): Method that was called
+            error (str, optional): Error message
             details (Dict, optional): Additional error details
+            message (str, optional): Custom error message (for backward compatibility)
         """
-        message = f"Service '{service_name}.{method}' failed: {error}"
+        if message is None:
+            if service_name and method and error:
+                message = f"Service '{service_name}.{method}' failed: {error}"
+            elif service_name and not method and not error:
+                # Allow simple message in service_name for backward compatibility
+                message = service_name
+                service_name = None
+            else:
+                message = error or "Service call failed"
+                
         error_details = details or {}
-        error_details.update({
-            "service": service_name,
-            "method": method
-        })
+        if service_name:
+            error_details["service"] = service_name
+        if method:
+            error_details["method"] = method
+            
         super().__init__(message, error_details)
 
 class NLUError(ChatbotError):

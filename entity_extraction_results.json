@@ -1,0 +1,130 @@
+{
+  "test_results": {
+    "before_enhancement": [
+      {
+        "query": "Tell me about the pyramids",
+        "error": "'dict' object has no attribute 'entities'"
+      },
+      {
+        "query": "How old are the pyramids?",
+        "error": "'dict' object has no attribute 'entities'"
+      },
+      {
+        "query": "I want to visit the pyramids of Giza",
+        "error": "'dict' object has no attribute 'entities'"
+      },
+      {
+        "query": "What can you tell me about the Great Pyramid?",
+        "error": "'dict' object has no attribute 'entities'"
+      },
+      {
+        "query": "Are the pyramids in Cairo?",
+        "error": "'dict' object has no attribute 'entities'"
+      },
+      {
+        "query": "Where can I find the Sphinx?",
+        "error": "'dict' object has no attribute 'entities'"
+      },
+      {
+        "query": "What is the history of Luxor Temple?",
+        "error": "'dict' object has no attribute 'entities'"
+      },
+      {
+        "query": "How do I get to the Valley of the Kings?",
+        "error": "'dict' object has no attribute 'entities'"
+      },
+      {
+        "query": "Tell me about Egyptian landmarks",
+        "error": "'dict' object has no attribute 'entities'"
+      },
+      {
+        "query": "What are the best attractions in Egypt?",
+        "error": "'dict' object has no attribute 'entities'"
+      },
+      {
+        "query": "Is Khan el Khalili worth visiting?",
+        "error": "'dict' object has no attribute 'entities'"
+      },
+      {
+        "query": "What should I see in Luxor?",
+        "error": "'dict' object has no attribute 'entities'"
+      },
+      {
+        "query": "Where is the Egyptian Museum located?",
+        "error": "'dict' object has no attribute 'entities'"
+      },
+      {
+        "query": "Tell me about the Karnak Temple",
+        "error": "'dict' object has no attribute 'entities'"
+      }
+    ],
+    "after_enhancement": [
+      {
+        "query": "Tell me about the pyramids",
+        "error": "'dict' object has no attribute 'entities'"
+      },
+      {
+        "query": "How old are the pyramids?",
+        "error": "'dict' object has no attribute 'entities'"
+      },
+      {
+        "query": "I want to visit the pyramids of Giza",
+        "error": "'dict' object has no attribute 'entities'"
+      },
+      {
+        "query": "What can you tell me about the Great Pyramid?",
+        "error": "'dict' object has no attribute 'entities'"
+      },
+      {
+        "query": "Are the pyramids in Cairo?",
+        "error": "'dict' object has no attribute 'entities'"
+      },
+      {
+        "query": "Where can I find the Sphinx?",
+        "error": "'dict' object has no attribute 'entities'"
+      },
+      {
+        "query": "What is the history of Luxor Temple?",
+        "error": "'dict' object has no attribute 'entities'"
+      },
+      {
+        "query": "How do I get to the Valley of the Kings?",
+        "error": "'dict' object has no attribute 'entities'"
+      },
+      {
+        "query": "Tell me about Egyptian landmarks",
+        "error": "'dict' object has no attribute 'entities'"
+      },
+      {
+        "query": "What are the best attractions in Egypt?",
+        "error": "'dict' object has no attribute 'entities'"
+      },
+      {
+        "query": "Is Khan el Khalili worth visiting?",
+        "error": "'dict' object has no attribute 'entities'"
+      },
+      {
+        "query": "What should I see in Luxor?",
+        "error": "'dict' object has no attribute 'entities'"
+      },
+      {
+        "query": "Where is the Egyptian Museum located?",
+        "error": "'dict' object has no attribute 'entities'"
+      },
+      {
+        "query": "Tell me about the Karnak Temple",
+        "error": "'dict' object has no attribute 'entities'"
+      }
+    ]
+  },
+  "db_results": {
+    "pyramid": [],
+    "giza": [],
+    "sphinx": [],
+    "luxor": [],
+    "karnak": [],
+    "king": [],
+    "museum": [],
+    "khan": []
+  }
+}

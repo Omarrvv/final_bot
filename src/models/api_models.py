@@ -2,7 +2,7 @@
 Pydantic models for API request and response validation.
 """
 from pydantic import BaseModel, Field
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Union
 
 class ChatMessageRequest(BaseModel):
     """Model for the request body of the /api/chat endpoint."""
@@ -43,6 +43,8 @@ class ResetResponse(BaseModel):
 
 class ResetRequest(BaseModel):
     session_id: Optional[str] = None
+    create_new: Optional[bool] = False
+    create_new_with_id: Optional[bool] = False
 
 class Language(BaseModel):
     code: str
@@ -62,5 +64,9 @@ class FeedbackRequest(BaseModel):
     user_id: Optional[str] = None
 
 class FeedbackResponse(BaseModel):
-    success: bool
-    message: str 
+    """Response model for the feedback endpoint."""
+    message: str
+
+class CSRFTokenResponse(BaseModel):
+    """Response model for the CSRF token endpoint."""
+    csrf_token: str

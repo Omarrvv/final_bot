@@ -1,0 +1,10 @@
+{
+  "en": [
+    "Here's what I know about {attraction_name}:\n\n{attraction_description}\n\n{attraction_history}\n\nPractical information:\n- Opening hours: {opening_hours}\n- Ticket prices: {ticket_prices}\n- Best time to visit: {best_time}",
+    "Let me tell you about {attraction_name}:\n\n{attraction_description}\n\n{attraction_history}\n\nVisitor information:\n- Hours: {opening_hours}\n- Admission: {ticket_prices}\n- Recommended: {best_time}"
+  ],
+  "ar": [
+    "إليك ما أعرفه عن {attraction_name}:\n\n{attraction_description}\n\n{attraction_history}\n\nمعلومات عملية:\n- ساعات العمل: {opening_hours}\n- أسعار التذاكر: {ticket_prices}\n- أفضل وقت للزيارة: {best_time}",
+    "دعني أخبرك عن {attraction_name}:\n\n{attraction_description}\n\n{attraction_history}\n\nمعلومات الزوار:\n- الساعات: {opening_hours}\n- رسوم الدخول: {ticket_prices}\n- موصى به: {best_time}"
+  ]
+}

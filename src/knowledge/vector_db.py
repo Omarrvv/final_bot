@@ -20,6 +20,7 @@ class VectorDB:
     """
     
     def __init__(self, vector_db_uri: Optional[str] = None, 
+                embedding_model = None,
                 dimension: int = 1536, 
                 content_path: str = "./data/vectors"):
         """
@@ -27,12 +28,14 @@ class VectorDB:
         
         Args:
             vector_db_uri (str, optional): Connection URI for external vector DB
+            embedding_model: Model for encoding text to vectors
             dimension (int): Dimension of embedding vectors
             content_path (str): Path to store vector files if not using external DB
         """
         self.vector_db_uri = vector_db_uri
         self.dimension = dimension
         self.content_path = content_path
+        self.embedding_model = embedding_model
         
         # Initialize external vector DB connection if URI provided
         self.external_db = None
@@ -426,3 +429,99 @@ class VectorDB:
             results.append(result)
         
         return results
+    
+    def add_documents(self, documents: List[str], metadata: List[Dict] = None) -> List[str]:
+        """
+        Add documents to the vector database.
+        
+        Args:
+            documents: List of text documents to embed and store
+            metadata: List of metadata dictionaries for each document
+            
+        Returns:
+            List of IDs for the added documents
+        """
+        logger.info(f"Adding {len(documents)} documents to vector database")
+        
+        if metadata is None:
+            metadata = [{} for _ in documents]
+            
+        if len(metadata) != len(documents):
+            raise ValueError("Number of metadata items must match number of documents")
+            
+        if not self.embedding_model:
+            raise ValueError("Embedding model required to add documents")
+            
+        # Create document embeddings
+        try:
+            # Some embedding models support batch encoding
+            embeddings = self.embedding_model.encode(documents)
+            
+            # Handle case where model returns single embedding instead of list
+            if len(documents) == 1 and not isinstance(embeddings, list):
+                embeddings = [embeddings]
+                
+        except AttributeError:
+            # Fall back to individual encoding if batch not supported
+            embeddings = []
+            for doc in documents:
+                embed = self.embedding_model.encode(doc)
+                embeddings.append(embed)
+        
+        # Default collection for documents
+        collection = "documents"
+        
+        # Store embeddings with metadata
+        ids = []
+        for i, (doc, embed, meta) in enumerate(zip(documents, embeddings, metadata)):
+            # Generate ID if not in metadata
+            doc_id = meta.get("id", str(uuid.uuid4()))
+            ids.append(doc_id)
+            
+            # Add text to metadata for retrieval
+            meta["text"] = doc
+            
+            # Store in vector DB
+            self.add_vector(collection, doc_id, embed, meta)
+            
+        return ids
+        
+    def similarity_search(self, query: str, k: int = 5, collection: str = "documents") -> List[Dict]:
+        """
+        Search for similar documents using semantic similarity.
+        
+        Args:
+            query: Search query text
+            k: Number of results to return
+            collection: Vector collection to search in
+            
+        Returns:
+            List of document dictionaries with content and metadata
+        """
+        logger.info(f"Performing similarity search for: {query}")
+        
+        if not self.embedding_model:
+            raise ValueError("Embedding model required for similarity search")
+            
+        # Encode query to vector
+        query_vector = self.embedding_model.encode(query)
+        
+        # Search for similar vectors
+        results = self.search(collection, query_vector, limit=k)
+        
+        # Format results
+        formatted_results = []
+        for doc_id, score in results:
+            # Get metadata for document
+            if collection in self.vectors and doc_id in self.vectors[collection]:
+                metadata = self.vectors[collection][doc_id].get("metadata", {})
+                text = metadata.get("text", "")
+                
+                formatted_results.append({
+                    "id": doc_id,
+                    "score": score,
+                    "text": text,
+                    "metadata": metadata
+                })
+                
+        return formatted_results

@@ -1,0 +1,10 @@
+{
+  "en": [
+    "Here's information about {transport_type} in Egypt:\n\n{transport_details}",
+    "Transportation details about {transport_type} for your Egypt trip:\n\n{transport_details}"
+  ],
+  "ar": [
+    "إليك معلومات حول {transport_type} في مصر:\n\n{transport_details}",
+    "تفاصيل النقل حول {transport_type} لرحلتك إلى مصر:\n\n{transport_details}"
+  ]
+}

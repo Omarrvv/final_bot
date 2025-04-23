@@ -5,12 +5,8 @@
       "name": "Egypt Chatbot",
       "type": "debugpy",
       "request": "launch",
-      "module": "flask",
-      "env": {
-        "FLASK_APP": "src/app.py",
-        "FLASK_ENV": "development"
-      },
-      "args": ["run", "--no-debugger", "--host=0.0.0.0", "--port=8000"],
+      "module": "uvicorn",
+      "args": ["src.main:app", "--host=0.0.0.0", "--port=5050", "--reload"],
       "jinja": true,
       "envFile": "${workspaceFolder}/.env"
     }

@@ -42,7 +42,7 @@ def setup_test_environment():
         "DATABASE_URI": database_uri, # Use the file-based URI
         "SESSION_STORAGE_URI": "memory://", # Use in-memory session storage
         "VECTOR_DB_URI": None, # Disable vector DB for tests
-        "TESTING": "true",
+        "TESTING": "true", # Explicitly mark as testing environment
         "LOG_LEVEL": "INFO", # Use INFO to see more logs during testing if needed
         "ENV": "test",
         # Minimal required feature flags

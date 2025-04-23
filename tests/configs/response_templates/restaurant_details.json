@@ -1,0 +1,10 @@
+{
+  "en": [
+    "Here's information about {restaurant_name}:\n\n{restaurant_description}\n\nCuisine: {cuisine}\nLocation: {address}\nHours: {opening_hours}\nPrice range: {price_range}\n\nMenu highlights:\n{menu_highlights}",
+    "About {restaurant_name}:\n\n{restaurant_description}\n\n- Cuisine: {cuisine}\n- Address: {address}\n- Hours: {opening_hours}\n- Price: {price_range}\n\nPopular dishes:\n{menu_highlights}"
+  ],
+  "ar": [
+    "إليك معلومات عن {restaurant_name}:\n\n{restaurant_description}\n\nالمطبخ: {cuisine}\nالموقع: {address}\nالساعات: {opening_hours}\nنطاق السعر: {price_range}\n\nأبرز عناصر القائمة:\n{menu_highlights}",
+    "عن {restaurant_name}:\n\n{restaurant_description}\n\n- المطبخ: {cuisine}\n- العنوان: {address}\n- الساعات: {opening_hours}\n- السعر: {price_range}\n\nالأطباق الشعبية:\n{menu_highlights}"
+  ]
+}
