@@ -196,10 +196,10 @@ def main():
             extensions_status[extension_name] = "Already enabled"
             continue
             
-                # Try to enable the extension
+        # Try to enable the extension
         if enable_extension(conn, extension_name):
             extensions_status[extension_name] = "Enabled successfully"
-                else:
+        else:
             extensions_status[extension_name] = "Failed to enable"
     
     # Close connection
@@ -223,4 +223,4 @@ def main():
     return 0
 
 if __name__ == "__main__":
-    sys.exit(main()) 
+    sys.exit(main())

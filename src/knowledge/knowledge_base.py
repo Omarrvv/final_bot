@@ -146,9 +146,9 @@ class KnowledgeBase:
                         logger.info(f"Getting all attractions up to limit: {limit}")
                         search_query = {}
                         if language == "ar":
-                            search_query["name_ar"] = {"$not": None}
+                            search_query["name_ar"] = {"NOT": None}
                         else:
-                            search_query["name_en"] = {"$not": None}
+                            search_query["name_en"] = {"NOT": None}
                         results = self.db_manager.search_attractions(
                             query=search_query,
                             limit=limit

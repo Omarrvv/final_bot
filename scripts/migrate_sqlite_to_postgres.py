@@ -46,6 +46,8 @@ def load_config():
     # Get database URIs
     sqlite_uri = os.getenv("DATABASE_URI", "sqlite:///./data/egypt_chatbot.db")
     postgres_uri = os.getenv("POSTGRES_URI")
+
+    logger.info(f"PostgreSQL URI from env: {postgres_uri}")
     
     if not sqlite_uri:
         logger.error("DATABASE_URI environment variable not set")
@@ -472,4 +474,4 @@ def main():
     postgres_conn.close()
 
 if __name__ == "__main__":
-    main() 
+    main()
