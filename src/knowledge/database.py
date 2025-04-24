@@ -128,36 +128,50 @@ class DatabaseManager:
             logger.error("Attempted to execute PostgreSQL query when not using PostgreSQL")
             return None
             
+        # --- Start Change: Restore pool connection usage --- 
         conn = None
         try:
-            conn = self._get_pg_connection()
-            
+            conn = self._get_pg_connection() # Use the pool again
+            if not conn:
+                 logger.error("Failed to get PostgreSQL connection from pool.")
+                 return None # Or raise an exception
+        # --- End Change ---
+        
+        # try: # Original try block started here, now combined
             # Use RealDictCursor by default if not specified
             cursor_factory = cursor_factory or RealDictCursor
             
+            if conn.closed:
+                logger.error("PostgreSQL connection is closed. Cannot execute query.")
+                raise psycopg2.InterfaceError("Connection is closed")
+
             with conn.cursor(cursor_factory=cursor_factory) as cursor:
                 cursor.execute(query, params or ())
                 
                 if query.strip().upper().startswith(("SELECT", "WITH")):
-                    # Only fetch for SELECT queries
                     if fetchall:
                         return cursor.fetchall()
                     else:
                         return cursor.fetchone()
                 else:
-                    # For non-SELECT queries, return affected row count
+                    conn.commit() # Commit only for non-SELECT queries
                     return cursor.rowcount
                     
         except Exception as e:
             logger.error(f"Error executing PostgreSQL query: {e}")
             logger.error(f"Query: {query}")
             logger.error(f"Params: {params}")
-            if conn:
-                conn.rollback()
-            raise
+            if conn and not conn.closed:
+                 try:
+                     conn.rollback() # Rollback on error if connection is open
+                 except Exception as rb_err:
+                     logger.error(f"Error during rollback: {rb_err}")
+            return None
+        # --- Start Change: Restore finally block to return connection --- 
         finally:
             if conn:
                 self._return_pg_connection(conn)
+        # --- End Change ---
 
     def _create_postgres_tables(self) -> None:
         """Create necessary tables in PostgreSQL if they don't exist."""
@@ -1127,78 +1141,85 @@ class DatabaseManager:
             return []
 
     def _insert_restaurant_postgres(self, restaurant_data):
-        """Insert a restaurant into the PostgreSQL database."""
+        """Insert or update a restaurant into the PostgreSQL database based on the defined schema."""
         table_name = "restaurants"
         if not self._postgres_table_exists(table_name):
             logger.warning(f"Table {table_name} does not exist in PostgreSQL database")
             return False
             
         try:
-            # Extract required fields
             restaurant_id = restaurant_data.get("id")
             if not restaurant_id:
                 logger.error("Restaurant ID is required")
                 return False
                 
-            # Prepare JSONB fields
-            name_jsonb = json.dumps({"en": restaurant_data.get("name_en", ""), "ar": restaurant_data.get("name_ar", "")})
-            location_jsonb = json.dumps(restaurant_data.get("location", {}))
-            
-            # Optional description
-            description_jsonb = None
-            if "data" in restaurant_data and restaurant_data["data"]:
-                try:
-                    data = json.loads(restaurant_data["data"]) if isinstance(restaurant_data["data"], str) else restaurant_data["data"]
-                    description_jsonb = json.dumps({
-                        "en": data.get("description_en", ""),
-                        "ar": data.get("description_ar", "")
-                    })
-                except (json.JSONDecodeError, TypeError):
-                    logger.warning(f"Invalid JSON data for restaurant {restaurant_id}")
-            
-            # Insert the restaurant
+            # Prepare data for columns based on schema
+            name_en = restaurant_data.get("name_en")
+            name_ar = restaurant_data.get("name_ar")
+            res_type = restaurant_data.get("type") # Assuming 'type' column exists
+            cuisine = restaurant_data.get("cuisine")
+            city = restaurant_data.get("city")
+            region = restaurant_data.get("region")
+            latitude = restaurant_data.get("latitude")
+            longitude = restaurant_data.get("longitude")
+            description_en = restaurant_data.get("description_en")
+            description_ar = restaurant_data.get("description_ar")
+            price_range = restaurant_data.get("price_range")
+            # Prepare the 'data' JSONB field - include any extra fields
+            extra_data = {k: v for k, v in restaurant_data.items() if k not in [
+                'id', 'name_en', 'name_ar', 'type', 'cuisine', 'city', 'region',
+                'latitude', 'longitude', 'description_en', 'description_ar', 'price_range'
+            ]}
+            data_jsonb = Json(extra_data) if extra_data else None
+            now = datetime.now()
+
+            # Use ON CONFLICT for UPSERT
             sql_query = f"""
                 INSERT INTO {table_name} (
-                    id, name, cuisine, location, description
-                ) VALUES (%s, %s, %s, %s, %s)
+                    id, name_en, name_ar, type, cuisine, city, region, 
+                    latitude, longitude, description_en, description_ar, 
+                    price_range, data, created_at, updated_at
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (id) DO UPDATE SET
-                    name = %s,
-                    cuisine = %s,
-                    location = %s,
-                    description = %s
+                    name_en = EXCLUDED.name_en,
+                    name_ar = EXCLUDED.name_ar,
+                    type = EXCLUDED.type,
+                    cuisine = EXCLUDED.cuisine,
+                    city = EXCLUDED.city,
+                    region = EXCLUDED.region,
+                    latitude = EXCLUDED.latitude,
+                    longitude = EXCLUDED.longitude,
+                    description_en = EXCLUDED.description_en,
+                    description_ar = EXCLUDED.description_ar,
+                    price_range = EXCLUDED.price_range,
+                    data = EXCLUDED.data,
+                    updated_at = EXCLUDED.updated_at
             """
             
-            cuisine = restaurant_data.get("cuisine", "")
-            params = [
-                restaurant_id, 
-                name_jsonb, 
-                cuisine, 
-                location_jsonb, 
-                description_jsonb,
-                name_jsonb, 
-                cuisine, 
-                location_jsonb, 
-                description_jsonb
-            ]
+            params = (
+                restaurant_id, name_en, name_ar, res_type, cuisine, city, region,
+                latitude, longitude, description_en, description_ar,
+                price_range, data_jsonb, now, now
+            )
             
-            with self.pg_pool.getconn() as conn:
-                with conn.cursor() as cursor:
-                    cursor.execute(sql_query, params)
-                    
-                    # Update name_en and name_ar columns as well
-                    cursor.execute(
-                        f"UPDATE {table_name} SET name_en = %s, name_ar = %s WHERE id = %s",
-                        [restaurant_data.get("name_en", ""), restaurant_data.get("name_ar", ""), restaurant_id]
-                    )
-                    
-                conn.commit()
-                self.pg_pool.putconn(conn)
+            # Execute using the pool
+            result = self.execute_postgres_query(sql_query, params)
+            
+            # Check result (execute_postgres_query returns rowcount for non-SELECT)
+            if result is None: # Indicates an error occurred during execution
+                 logger.error(f"Failed to insert/update restaurant {restaurant_id} in PostgreSQL (execution error).")
+                 return False
             
             logger.info(f"Inserted/updated restaurant {restaurant_id} in PostgreSQL")
+            
+            # Optionally update geom column if coordinates were provided
+            if latitude is not None and longitude is not None:
+                self.update_geospatial_columns(tables=[table_name])
+                
             return True
             
         except Exception as e:
-            logger.error(f"Error inserting restaurant in PostgreSQL: {e}")
+            logger.error(f"Error in _insert_restaurant_postgres for {restaurant_data.get('id')}: {e}")
             return False
 
     def insert_restaurant(self, restaurant_data):
@@ -1230,30 +1251,33 @@ class DatabaseManager:
                 name_en = restaurant_data.get('name_en', '')
                 name_ar = restaurant_data.get('name_ar', '')
                 cuisine = restaurant_data.get('cuisine', '')
-                location = restaurant_data.get('location', {})
+                # SQLite schema might differ, adjust as needed
+                city = restaurant_data.get('city', '') 
+                price_range = restaurant_data.get('price_range', '')
+                description_en = restaurant_data.get('description_en', '')
+                description_ar = restaurant_data.get('description_ar', '')
+                latitude = restaurant_data.get('latitude')
+                longitude = restaurant_data.get('longitude')
                 
                 # JSON data
-                extra_data = None
-                if 'data' in restaurant_data and restaurant_data['data']:
-                    extra_data = restaurant_data['data']
+                extra_data = {k: v for k, v in restaurant_data.items() if k not in [
+                    'id', 'name_en', 'name_ar', 'cuisine', 'city', 'price_range', 
+                    'description_en', 'description_ar', 'latitude', 'longitude'
+                ]}
+                data_json = json.dumps(extra_data) if extra_data else None
                 
-                # Extract location data
-                latitude = None
-                longitude = None
-                if isinstance(location, dict):
-                    latitude = location.get('lat')
-                    longitude = location.get('lng')
-                
-                # Build the query
+                # Build the query based on SQLite schema
                 sql = """
                     INSERT OR REPLACE INTO restaurants (
-                        id, name_en, name_ar, cuisine, latitude, longitude, data
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                        id, name_en, name_ar, cuisine, city, price_range, 
+                        description_en, description_ar, latitude, longitude, data
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """
                 
                 # Execute the query
                 cursor.execute(sql, (
-                    restaurant_id, name_en, name_ar, cuisine, latitude, longitude, extra_data
+                    restaurant_id, name_en, name_ar, cuisine, city, price_range,
+                    description_en, description_ar, latitude, longitude, data_json
                 ))
                 
                 self.connection.commit()
@@ -1261,7 +1285,291 @@ class DatabaseManager:
                 return True
                 
             except Exception as e:
-                logger.error(f"Error inserting restaurant: {str(e)}", exc_info=True)
+                logger.error(f"Error inserting restaurant in SQLite: {str(e)}", exc_info=True)
+                self.connection.rollback()
+                return False
+
+    def _insert_attraction_postgres(self, attraction_data):
+        """Insert or update an attraction into the PostgreSQL database."""
+        table_name = "attractions"
+        if not self._postgres_table_exists(table_name):
+            logger.warning(f"Table {table_name} does not exist in PostgreSQL database")
+            return False
+            
+        try:
+            attraction_id = attraction_data.get("id")
+            if not attraction_id:
+                logger.error("Attraction ID is required")
+                return False
+                
+            # Prepare data based on schema
+            name_en = attraction_data.get("name_en")
+            name_ar = attraction_data.get("name_ar")
+            att_type = attraction_data.get("type")
+            city = attraction_data.get("city")
+            region = attraction_data.get("region")
+            latitude = attraction_data.get("latitude")
+            longitude = attraction_data.get("longitude")
+            description_en = attraction_data.get("description_en")
+            description_ar = attraction_data.get("description_ar")
+            extra_data = {k: v for k, v in attraction_data.items() if k not in [
+                'id', 'name_en', 'name_ar', 'type', 'city', 'region',
+                'latitude', 'longitude', 'description_en', 'description_ar'
+            ]}
+            data_jsonb = Json(extra_data) if extra_data else None
+            now = datetime.now()
+
+            sql_query = f"""
+                INSERT INTO {table_name} (
+                    id, name_en, name_ar, type, city, region, 
+                    latitude, longitude, description_en, description_ar, 
+                    data, created_at, updated_at
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (id) DO UPDATE SET
+                    name_en = EXCLUDED.name_en,
+                    name_ar = EXCLUDED.name_ar,
+                    type = EXCLUDED.type,
+                    city = EXCLUDED.city,
+                    region = EXCLUDED.region,
+                    latitude = EXCLUDED.latitude,
+                    longitude = EXCLUDED.longitude,
+                    description_en = EXCLUDED.description_en,
+                    description_ar = EXCLUDED.description_ar,
+                    data = EXCLUDED.data,
+                    updated_at = EXCLUDED.updated_at
+            """
+            
+            params = (
+                attraction_id, name_en, name_ar, att_type, city, region,
+                latitude, longitude, description_en, description_ar,
+                data_jsonb, now, now
+            )
+            
+            result = self.execute_postgres_query(sql_query, params)
+            
+            if result is None:
+                 logger.error(f"Failed to insert/update attraction {attraction_id} in PostgreSQL (execution error).")
+                 return False
+            
+            logger.info(f"Inserted/updated attraction {attraction_id} in PostgreSQL")
+            
+            if latitude is not None and longitude is not None:
+                self.update_geospatial_columns(tables=[table_name])
+                
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error in _insert_attraction_postgres for {attraction_data.get('id')}: {e}")
+            return False
+
+    def insert_attraction(self, attraction_data):
+        """
+        Insert an attraction into the database.
+        
+        Args:
+            attraction_data: Dictionary containing attraction data
+            
+        Returns:
+            Boolean indicating success
+        """
+        if self.db_type == DatabaseType.POSTGRES:
+            return self._insert_attraction_postgres(attraction_data)
+        else:
+            # ... existing SQLite implementation ...
+            logger.debug(f"Inserting attraction in SQLite: {attraction_data.get('id')}")
+            try:
+                cursor = self.connection.cursor()
+                
+                # Extract data
+                attraction_id = attraction_data.get('id')
+                if not attraction_id:
+                    logger.error("Attraction ID is required")
+                    return False
+                
+                # Prepare data for insert
+                name_en = attraction_data.get('name_en', '')
+                name_ar = attraction_data.get('name_ar', '')
+                description_en = attraction_data.get('description_en', '')
+                description_ar = attraction_data.get('description_ar', '')
+                att_type = attraction_data.get('type', '')
+                city = attraction_data.get('city', '')
+                region = attraction_data.get('region', '')
+                latitude = attraction_data.get('latitude')
+                longitude = attraction_data.get('longitude')
+                
+                # JSON data
+                extra_data = {k: v for k, v in attraction_data.items() if k not in [
+                    'id', 'name_en', 'name_ar', 'description_en', 'description_ar', 
+                    'type', 'city', 'region', 'latitude', 'longitude'
+                ]}
+                data_json = json.dumps(extra_data) if extra_data else None
+                
+                # Build the query based on SQLite schema
+                sql = """
+                    INSERT OR REPLACE INTO attractions (
+                        id, name_en, name_ar, description_en, description_ar, 
+                        type, city, region, latitude, longitude, data
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """
+                
+                # Execute the query
+                cursor.execute(sql, (
+                    attraction_id, name_en, name_ar, description_en, description_ar,
+                    att_type, city, region, latitude, longitude, data_json
+                ))
+                
+                self.connection.commit()
+                logger.info(f"Inserted/updated attraction {attraction_id} in SQLite")
+                return True
+                
+            except Exception as e:
+                logger.error(f"Error inserting attraction in SQLite: {str(e)}", exc_info=True)
+                self.connection.rollback()
+                return False
+
+    def _insert_accommodation_postgres(self, accommodation_data):
+        """Insert or update an accommodation into the PostgreSQL database."""
+        table_name = "accommodations"
+        if not self._postgres_table_exists(table_name):
+            logger.warning(f"Table {table_name} does not exist in PostgreSQL database")
+            return False
+            
+        try:
+            accommodation_id = accommodation_data.get("id")
+            if not accommodation_id:
+                logger.error("Accommodation ID is required")
+                return False
+                
+            # Prepare data based on schema
+            name_en = accommodation_data.get("name_en")
+            name_ar = accommodation_data.get("name_ar")
+            acc_type = accommodation_data.get("type")
+            category = accommodation_data.get("category") # Or star_rating?
+            city = accommodation_data.get("city")
+            region = accommodation_data.get("region")
+            latitude = accommodation_data.get("latitude")
+            longitude = accommodation_data.get("longitude")
+            description_en = accommodation_data.get("description_en")
+            description_ar = accommodation_data.get("description_ar")
+            price_min = accommodation_data.get("price_min")
+            price_max = accommodation_data.get("price_max")
+            extra_data = {k: v for k, v in accommodation_data.items() if k not in [
+                'id', 'name_en', 'name_ar', 'type', 'category', 'city', 'region',
+                'latitude', 'longitude', 'description_en', 'description_ar',
+                'price_min', 'price_max'
+            ]}
+            data_jsonb = Json(extra_data) if extra_data else None
+            now = datetime.now()
+
+            sql_query = f"""
+                INSERT INTO {table_name} (
+                    id, name_en, name_ar, type, category, city, region, 
+                    latitude, longitude, description_en, description_ar, 
+                    price_min, price_max, data, created_at, updated_at
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (id) DO UPDATE SET
+                    name_en = EXCLUDED.name_en,
+                    name_ar = EXCLUDED.name_ar,
+                    type = EXCLUDED.type,
+                    category = EXCLUDED.category,
+                    city = EXCLUDED.city,
+                    region = EXCLUDED.region,
+                    latitude = EXCLUDED.latitude,
+                    longitude = EXCLUDED.longitude,
+                    description_en = EXCLUDED.description_en,
+                    description_ar = EXCLUDED.description_ar,
+                    price_min = EXCLUDED.price_min,
+                    price_max = EXCLUDED.price_max,
+                    data = EXCLUDED.data,
+                    updated_at = EXCLUDED.updated_at
+            """
+            
+            params = (
+                accommodation_id, name_en, name_ar, acc_type, category, city, region,
+                latitude, longitude, description_en, description_ar,
+                price_min, price_max, data_jsonb, now, now
+            )
+            
+            result = self.execute_postgres_query(sql_query, params)
+            
+            if result is None:
+                 logger.error(f"Failed to insert/update accommodation {accommodation_id} in PostgreSQL (execution error).")
+                 return False
+            
+            logger.info(f"Inserted/updated accommodation {accommodation_id} in PostgreSQL")
+            
+            if latitude is not None and longitude is not None:
+                self.update_geospatial_columns(tables=[table_name])
+                
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error in _insert_accommodation_postgres for {accommodation_data.get('id')}: {e}")
+            return False
+
+    def insert_accommodation(self, accommodation_data):
+        """
+        Insert an accommodation into the database.
+        
+        Args:
+            accommodation_data: Dictionary containing accommodation data
+            
+        Returns:
+            Boolean indicating success
+        """
+        if self.db_type == DatabaseType.POSTGRES:
+            return self._insert_accommodation_postgres(accommodation_data)
+        else:
+            # ... existing SQLite implementation ...
+            logger.debug(f"Inserting accommodation in SQLite: {accommodation_data.get('id')}")
+            try:
+                cursor = self.connection.cursor()
+                
+                # Extract data
+                accommodation_id = accommodation_data.get('id')
+                if not accommodation_id:
+                    logger.error("Accommodation ID is required")
+                    return False
+                
+                # Prepare data for insert
+                name_en = accommodation_data.get('name_en', '')
+                name_ar = accommodation_data.get('name_ar', '')
+                description_en = accommodation_data.get('description_en', '')
+                description_ar = accommodation_data.get('description_ar', '')
+                acc_type = accommodation_data.get('type', '')
+                city = accommodation_data.get('city', '')
+                star_rating = accommodation_data.get('star_rating') # SQLite schema
+                price_range = accommodation_data.get('price_range', '') # SQLite schema
+                latitude = accommodation_data.get('latitude')
+                longitude = accommodation_data.get('longitude')
+                
+                # JSON data
+                extra_data = {k: v for k, v in accommodation_data.items() if k not in [
+                    'id', 'name_en', 'name_ar', 'description_en', 'description_ar', 
+                    'type', 'city', 'star_rating', 'price_range', 'latitude', 'longitude'
+                ]}
+                data_json = json.dumps(extra_data) if extra_data else None
+                
+                # Build the query based on SQLite schema
+                sql = """
+                    INSERT OR REPLACE INTO accommodations (
+                        id, name_en, name_ar, description_en, description_ar, 
+                        type, city, star_rating, price_range, latitude, longitude, data
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """
+                
+                # Execute the query
+                cursor.execute(sql, (
+                    accommodation_id, name_en, name_ar, description_en, description_ar,
+                    acc_type, city, star_rating, price_range, latitude, longitude, data_json
+                ))
+                
+                self.connection.commit()
+                logger.info(f"Inserted/updated accommodation {accommodation_id} in SQLite")
+                return True
+                
+            except Exception as e:
+                logger.error(f"Error inserting accommodation in SQLite: {str(e)}", exc_info=True)
                 self.connection.rollback()
                 return False
 
@@ -1370,59 +1678,102 @@ class DatabaseManager:
     def _initialize_postgres_connection(self) -> bool:
         """
         Initialize PostgreSQL database connection with connection pooling.
+        Prioritizes a simple DSN format first.
         
         Returns:
             bool: True if successful, False otherwise
         """
-        postgres_uri = self.postgres_uri
-        
-        if not postgres_uri:
-            logger.error("Attempted to initialize PostgreSQL without POSTGRES_URI set.")
-            return False
-            
+        # --- Start Change: Prioritize simple DSN ---
+        # Try the simple, known-working DSN first
+        simple_dsn = "dbname=egypt_chatbot"
         try:
-            # Create a connection pool with min=1, max=10 connections
+            logger.info(f"Attempting PostgreSQL connection with simple DSN: '{simple_dsn}'")
+            # Test connection
+            conn = psycopg2.connect(simple_dsn)
+            logger.info("Simple DSN connection successful.")
+            
+            # Set autocommit to False for transactional control
+            conn.autocommit = False
+            self.postgres_connection = conn # Store the direct connection
+            
+            # Create the connection pool using the simple DSN
             min_conn = 1
             max_conn = 10
-            
-            # Use smaller pool for testing
             if os.environ.get('TESTING') == 'true':
                 min_conn = 1
                 max_conn = 3
-            
-            logger.info(f"Creating PostgreSQL connection pool (min={min_conn}, max={max_conn})...")
-            
+                
+            logger.info(f"Creating PostgreSQL connection pool (min={min_conn}, max={max_conn}) using simple DSN...")
             self.pg_pool = pool.ThreadedConnectionPool(
                 minconn=min_conn,
                 maxconn=max_conn,
-                dsn=postgres_uri
+                dsn=simple_dsn
             )
             
-            # Test pool by getting a connection
+            # Test pool
             test_conn = self.pg_pool.getconn()
-            
-            # Also create a direct connection for operations that need it
-            self.postgres_connection = psycopg2.connect(postgres_uri)
-            
-            # Set autocommit to False for transactional control
-            self.postgres_connection.autocommit = False
-            
-            # Create tables if they don't exist
-            self._create_postgres_tables()
-            
-            # Return test connection to pool
             self.pg_pool.putconn(test_conn)
             
-            logger.info("PostgreSQL connection pool established successfully")
-            logger.info("Direct PostgreSQL connection test successful")
+            # Create tables if they don't exist (using the pool)
+            self._create_postgres_tables()
             
+            logger.info("PostgreSQL connection pool established successfully using simple DSN.")
             return True
             
-        except Exception as e:
-            logger.error(f"Failed to initialize PostgreSQL connection: {str(e)}")
-            self.postgres_connection = None
-            self.pg_pool = None
-            return False
+        except Exception as simple_connect_error:
+            logger.warning(f"Simple DSN connection ('{simple_dsn}') failed: {simple_connect_error}. Falling back to POSTGRES_URI from environment.")
+            # --- End Change ---
+
+            # Fallback to using POSTGRES_URI from environment if simple DSN fails
+            postgres_uri = self.postgres_uri
+            if not postgres_uri:
+                logger.error("POSTGRES_URI environment variable is not set, and simple DSN failed.")
+                return False
+                
+            try:
+                # Log the URI for debugging (hiding password if present)
+                debug_uri = postgres_uri
+                if '@' in debug_uri and ':' in debug_uri.split('@')[0]:
+                    parts = debug_uri.split('@')
+                    auth_parts = parts[0].split(':')
+                    if len(auth_parts) > 1: auth_parts[1] = '****'
+                    parts[0] = ':'.join(auth_parts)
+                    debug_uri = '@'.join(parts)
+                logger.info(f"Attempting PostgreSQL connection with URI from environment: {debug_uri}")
+                
+                # Create a direct connection first to test
+                self.postgres_connection = psycopg2.connect(postgres_uri)
+                self.postgres_connection.autocommit = False
+                
+                # Create the pool using the environment URI
+                min_conn = 1
+                max_conn = 10
+                if os.environ.get('TESTING') == 'true':
+                    min_conn = 1
+                    max_conn = 3
+                
+                logger.info(f"Creating PostgreSQL connection pool (min={min_conn}, max={max_conn}) using environment URI...")
+                self.pg_pool = pool.ThreadedConnectionPool(
+                    minconn=min_conn,
+                    maxconn=max_conn,
+                    dsn=postgres_uri
+                )
+                
+                # Test pool
+                test_conn = self.pg_pool.getconn()
+                self.pg_pool.putconn(test_conn)
+                
+                # Create tables if they don't exist
+                self._create_postgres_tables()
+                
+                logger.info("PostgreSQL connection pool established successfully using environment URI.")
+                return True
+                
+            except Exception as env_uri_error:
+                logger.error(f"Failed to initialize PostgreSQL connection using environment URI: {env_uri_error}")
+                self.postgres_connection = None
+                self.pg_pool = None
+                return False
 
     def _create_sqlite_tables(self):
         """
@@ -1591,6 +1942,7 @@ class DatabaseManager:
     def search_attractions(self, query=None, limit=10, offset=0):
         """
         Search attractions based on query criteria.
+        Handles both SQLite and PostgreSQL.
         
         Args:
             query (dict): Dictionary of search criteria
@@ -1600,79 +1952,110 @@ class DatabaseManager:
         Returns:
             List of attractions matching criteria
         """
-        try:
-            if not query:
-                query = {}
+        if self.db_type == DatabaseType.POSTGRES:
+            # --- Start Change: Use PostgreSQL query execution --- 
+            try:
+                if not query: query = {}
                 
-            # Convert dictionary query to SQL WHERE clause
-            where_clauses = []
-            params = []
-            
-            for key, value in query.items():
-                if isinstance(value, dict):
-                    # Handle operators like $like, $gt, etc.
-                    for op, op_value in value.items():
-                        if op == "$like":
-                            where_clauses.append(f"{key} LIKE ?")
-                            params.append(op_value)
-                        elif op == "$gt":
-                            where_clauses.append(f"{key} > ?")
-                            params.append(op_value)
-                        elif op == "$lt":
-                            where_clauses.append(f"{key} < ?")
-                            params.append(op_value)
-                        elif op == "$gte":
-                            where_clauses.append(f"{key} >= ?")
-                            params.append(op_value)
-                        elif op == "$lte":
-                            where_clauses.append(f"{key} <= ?")
-                            params.append(op_value)
-                        elif op == "$ne" or op == "$not":
-                            where_clauses.append(f"{key} != ?")
-                            params.append(op_value)
-                        elif op == "$in":
-                            placeholders = ",".join("?" * len(op_value))
-                            where_clauses.append(f"{key} IN ({placeholders})")
-                            params.extend(op_value)
-                else:
-                    # Simple equality
-                    where_clauses.append(f"{key} = ?")
-                    params.append(value)
+                # Build WHERE clause and params using the PostgreSQL helper
+                where_clause, params = self._build_postgres_where_clause(query)
+                
+                sql = "SELECT * FROM attractions"
+                if where_clause:
+                    sql += f" WHERE {where_clause}"
+                
+                sql += " ORDER BY name_en" # Add a default order
+                sql += " LIMIT %s OFFSET %s"
+                params.extend([limit, offset])
+                
+                results = self.execute_postgres_query(sql, params, fetchall=True)
+                
+                # execute_postgres_query already returns dicts with RealDictCursor
+                return results if results else []
+                
+            except Exception as e:
+                logger.error(f"Error searching attractions in PostgreSQL: {str(e)}")
+                return []
+            # --- End Change ---
+        else: # Original SQLite implementation
+            try:
+                if not query:
+                    query = {}
                     
-            # Construct the SQL query
-            sql = "SELECT * FROM attractions"
-            if where_clauses:
-                sql += " WHERE " + " AND ".join(where_clauses)
+                # Convert dictionary query to SQL WHERE clause
+                where_clauses = []
+                params = []
                 
-            sql += f" LIMIT {limit} OFFSET {offset}"
-            
-            # Execute the query
-            cursor = self.connection.cursor()
-            cursor.execute(sql, params)
-            
-            # Convert rows to dictionaries
-            results = []
-            for row in cursor.fetchall():
-                attraction = dict(row)
+                for key, value in query.items():
+                    if isinstance(value, dict):
+                        # Handle operators like $like, $gt, etc.
+                        for op, op_value in value.items():
+                            if op == "$like":
+                                where_clauses.append(f"{key} LIKE ?")
+                                params.append(op_value)
+                            elif op == "$gt":
+                                where_clauses.append(f"{key} > ?")
+                                params.append(op_value)
+                            elif op == "$lt":
+                                where_clauses.append(f"{key} < ?")
+                                params.append(op_value)
+                            elif op == "$gte":
+                                where_clauses.append(f"{key} >= ?")
+                                params.append(op_value)
+                            elif op == "$lte":
+                                where_clauses.append(f"{key} <= ?")
+                                params.append(op_value)
+                            elif op == "$ne" or op == "NOT":
+                                where_clauses.append(f"{key} != ?")
+                                params.append(op_value)
+                            elif op == "$in":
+                                placeholders = ",".join("?" * len(op_value))
+                                where_clauses.append(f"{key} IN ({placeholders})")
+                                params.extend(op_value)
+                    else:
+                        # Simple equality
+                        where_clauses.append(f"{key} = ?")
+                        params.append(value)
+
+                # Construct the SQL query
+                sql = "SELECT * FROM attractions"
+                if where_clauses:
+                    sql += " WHERE " + " AND ".join(where_clauses)
+                    
+                sql += f" LIMIT {limit} OFFSET {offset}"
                 
-                # Parse JSON data if present
-                if 'data' in attraction and attraction['data']:
-                    try:
-                        attraction['data'] = json.loads(attraction['data'])
-                    except json.JSONDecodeError:
-                        logger.warning(f"Failed to parse JSON data for attraction {attraction.get('id')}")
-                        
-                results.append(attraction)
+                # Execute the query
+                # Ensure self.connection is valid for SQLite
+                if not self.connection:
+                    logger.error("SQLite connection is not available for search_attractions")
+                    return []
+                cursor = self.connection.cursor()
+                cursor.execute(sql, params)
                 
-            return results
-            
-        except Exception as e:
-            logger.error(f"Error searching attractions: {str(e)}")
-            return []
+                # Convert rows to dictionaries
+                results = []
+                for row in cursor.fetchall():
+                    attraction = dict(row)
+                    
+                    # Parse JSON data if present
+                    if 'data' in attraction and attraction['data']:
+                        try:
+                            attraction['data'] = json.loads(attraction['data'])
+                        except json.JSONDecodeError:
+                            logger.warning(f"Failed to parse JSON data for attraction {attraction.get('id')}")
+                            
+                    results.append(attraction)
+                    
+                return results
+                
+            except Exception as e:
+                logger.error(f"Error searching attractions in SQLite: {str(e)}")
+                return []
 
     def search_restaurants(self, query=None, limit=10, offset=0):
         """
         Search restaurants based on query criteria.
+        Handles both SQLite and PostgreSQL.
         
         Args:
             query (dict): Dictionary of search criteria
@@ -1682,80 +2065,108 @@ class DatabaseManager:
         Returns:
             List of restaurants matching criteria
         """
-        try:
-            if not query:
-                query = {}
+        if self.db_type == DatabaseType.POSTGRES:
+             # --- Start Change: Use PostgreSQL query execution --- 
+            try:
+                if not query: query = {}
                 
-            # Convert dictionary query to SQL WHERE clause
-            where_clauses = []
-            params = []
-            
-            for key, value in query.items():
-                if isinstance(value, dict):
-                    # Handle operators like $like, $gt, etc.
-                    for op, op_value in value.items():
-                        if op == "$like":
-                            where_clauses.append(f"{key} LIKE ?")
-                            params.append(op_value)
-                        elif op == "$gt":
-                            where_clauses.append(f"{key} > ?")
-                            params.append(op_value)
-                        elif op == "$lt":
-                            where_clauses.append(f"{key} < ?")
-                            params.append(op_value)
-                        elif op == "$gte":
-                            where_clauses.append(f"{key} >= ?")
-                            params.append(op_value)
-                        elif op == "$lte":
-                            where_clauses.append(f"{key} <= ?")
-                            params.append(op_value)
-                        elif op == "$ne" or op == "$not":
-                            where_clauses.append(f"{key} != ?")
-                            params.append(op_value)
-                        elif op == "$in":
-                            placeholders = ",".join("?" * len(op_value))
-                            where_clauses.append(f"{key} IN ({placeholders})")
-                            params.extend(op_value)
-                else:
-                    # Simple equality
-                    where_clauses.append(f"{key} = ?")
-                    params.append(value)
+                where_clause, params = self._build_postgres_where_clause(query)
+                
+                sql = "SELECT * FROM restaurants"
+                if where_clause:
+                    sql += f" WHERE {where_clause}"
+                
+                sql += " ORDER BY name_en" # Add a default order
+                sql += " LIMIT %s OFFSET %s"
+                params.extend([limit, offset])
+                
+                results = self.execute_postgres_query(sql, params, fetchall=True)
+                return results if results else []
+                
+            except Exception as e:
+                logger.error(f"Error searching restaurants in PostgreSQL: {str(e)}")
+                return []
+            # --- End Change ---
+        else: # Original SQLite implementation
+            try:
+                if not query:
+                    query = {}
+                
+                # Convert dictionary query to SQL WHERE clause
+                where_clauses = []
+                params = []
+                
+                for key, value in query.items():
+                    if isinstance(value, dict):
+                        # Handle operators like $like, $gt, etc.
+                        for op, op_value in value.items():
+                            if op == "$like":
+                                where_clauses.append(f"{key} LIKE ?")
+                                params.append(op_value)
+                            # ... (rest of SQLite operators) ...
+                            elif op == "$gt":
+                                where_clauses.append(f"{key} > ?")
+                                params.append(op_value)
+                            elif op == "$lt":
+                                where_clauses.append(f"{key} < ?")
+                                params.append(op_value)
+                            elif op == "$gte":
+                                where_clauses.append(f"{key} >= ?")
+                                params.append(op_value)
+                            elif op == "$lte":
+                                where_clauses.append(f"{key} <= ?")
+                                params.append(op_value)
+                            elif op == "$ne" or op == "NOT":
+                                where_clauses.append(f"{key} != ?")
+                                params.append(op_value)
+                            elif op == "$in":
+                                placeholders = ",".join("?" * len(op_value))
+                                where_clauses.append(f"{key} IN ({placeholders})")
+                                params.extend(op_value)
+                    else:
+                        # Simple equality
+                        where_clauses.append(f"{key} = ?")
+                        params.append(value)
+
+                # Construct the SQL query
+                sql = "SELECT * FROM restaurants"
+                if where_clauses:
+                    sql += " WHERE " + " AND ".join(where_clauses)
                     
-            # Construct the SQL query
-            sql = "SELECT * FROM restaurants"
-            if where_clauses:
-                sql += " WHERE " + " AND ".join(where_clauses)
+                sql += f" LIMIT {limit} OFFSET {offset}"
                 
-            sql += f" LIMIT {limit} OFFSET {offset}"
-            
-            # Execute the query
-            cursor = self.connection.cursor()
-            cursor.execute(sql, params)
-            
-            # Convert rows to dictionaries
-            results = []
-            for row in cursor.fetchall():
-                restaurant = dict(row)
+                # Execute the query
+                if not self.connection:
+                    logger.error("SQLite connection is not available for search_restaurants")
+                    return []
+                cursor = self.connection.cursor()
+                cursor.execute(sql, params)
                 
-                # Parse JSON data if present
-                if 'data' in restaurant and restaurant['data']:
-                    try:
-                        restaurant['data'] = json.loads(restaurant['data'])
-                    except json.JSONDecodeError:
-                        logger.warning(f"Failed to parse JSON data for restaurant {restaurant.get('id')}")
-                        
-                results.append(restaurant)
+                # Convert rows to dictionaries
+                results = []
+                for row in cursor.fetchall():
+                    restaurant = dict(row)
+                    
+                    # Parse JSON data if present
+                    if 'data' in restaurant and restaurant['data']:
+                        try:
+                            restaurant['data'] = json.loads(restaurant['data'])
+                        except json.JSONDecodeError:
+                            logger.warning(f"Failed to parse JSON data for restaurant {restaurant.get('id')}")
+                            
+                    results.append(restaurant)
+                    
+                return results
                 
-            return results
-            
-        except Exception as e:
-            logger.error(f"Error searching restaurants: {str(e)}")
-            return []
+            except Exception as e:
+                logger.error(f"Error searching restaurants in SQLite: {str(e)}")
+                return []
 
     def search_accommodations(self, query=None, limit=10, offset=0):
         """
         Search accommodations based on query criteria.
-        
+        Handles both SQLite and PostgreSQL.
+
         Args:
             query (dict): Dictionary of search criteria
             limit (int): Maximum number of results to return
@@ -1764,75 +2175,102 @@ class DatabaseManager:
         Returns:
             List of accommodations matching criteria
         """
-        try:
-            if not query:
-                query = {}
+        if self.db_type == DatabaseType.POSTGRES:
+            # --- Start Change: Use PostgreSQL query execution --- 
+            try:
+                if not query: query = {}
                 
-            # Convert dictionary query to SQL WHERE clause
-            where_clauses = []
-            params = []
-            
-            for key, value in query.items():
-                if isinstance(value, dict):
-                    # Handle operators like $like, $gt, etc.
-                    for op, op_value in value.items():
-                        if op == "$like":
-                            where_clauses.append(f"{key} LIKE ?")
-                            params.append(op_value)
-                        elif op == "$gt":
-                            where_clauses.append(f"{key} > ?")
-                            params.append(op_value)
-                        elif op == "$lt":
-                            where_clauses.append(f"{key} < ?")
-                            params.append(op_value)
-                        elif op == "$gte":
-                            where_clauses.append(f"{key} >= ?")
-                            params.append(op_value)
-                        elif op == "$lte":
-                            where_clauses.append(f"{key} <= ?")
-                            params.append(op_value)
-                        elif op == "$ne" or op == "$not":
-                            where_clauses.append(f"{key} != ?")
-                            params.append(op_value)
-                        elif op == "$in":
-                            placeholders = ",".join("?" * len(op_value))
-                            where_clauses.append(f"{key} IN ({placeholders})")
-                            params.extend(op_value)
-                else:
-                    # Simple equality
-                    where_clauses.append(f"{key} = ?")
-                    params.append(value)
+                where_clause, params = self._build_postgres_where_clause(query)
+                
+                sql = "SELECT * FROM accommodations"
+                if where_clause:
+                    sql += f" WHERE {where_clause}"
+                
+                sql += " ORDER BY name_en" # Add a default order
+                sql += " LIMIT %s OFFSET %s"
+                params.extend([limit, offset])
+                
+                results = self.execute_postgres_query(sql, params, fetchall=True)
+                return results if results else []
+                
+            except Exception as e:
+                logger.error(f"Error searching accommodations in PostgreSQL: {str(e)}")
+                return []
+            # --- End Change ---
+        else: # Original SQLite implementation
+            try:
+                if not query:
+                    query = {}
+                
+                # Convert dictionary query to SQL WHERE clause
+                where_clauses = []
+                params = []
+                
+                for key, value in query.items():
+                    if isinstance(value, dict):
+                        # Handle operators like $like, $gt, etc.
+                        for op, op_value in value.items():
+                            if op == "$like":
+                                where_clauses.append(f"{key} LIKE ?")
+                                params.append(op_value)
+                            # ... (rest of SQLite operators) ...
+                            elif op == "$gt":
+                                where_clauses.append(f"{key} > ?")
+                                params.append(op_value)
+                            elif op == "$lt":
+                                where_clauses.append(f"{key} < ?")
+                                params.append(op_value)
+                            elif op == "$gte":
+                                where_clauses.append(f"{key} >= ?")
+                                params.append(op_value)
+                            elif op == "$lte":
+                                where_clauses.append(f"{key} <= ?")
+                                params.append(op_value)
+                            elif op == "$ne" or op == "NOT":
+                                where_clauses.append(f"{key} != ?")
+                                params.append(op_value)
+                            elif op == "$in":
+                                placeholders = ",".join("?" * len(op_value))
+                                where_clauses.append(f"{key} IN ({placeholders})")
+                                params.extend(op_value)
+                    else:
+                        # Simple equality
+                        where_clauses.append(f"{key} = ?")
+                        params.append(value)
+
+                # Construct the SQL query
+                sql = "SELECT * FROM accommodations"
+                if where_clauses:
+                    sql += " WHERE " + " AND ".join(where_clauses)
                     
-            # Construct the SQL query
-            sql = "SELECT * FROM accommodations"
-            if where_clauses:
-                sql += " WHERE " + " AND ".join(where_clauses)
+                sql += f" LIMIT {limit} OFFSET {offset}"
                 
-            sql += f" LIMIT {limit} OFFSET {offset}"
-            
-            # Execute the query
-            cursor = self.connection.cursor()
-            cursor.execute(sql, params)
-            
-            # Convert rows to dictionaries
-            results = []
-            for row in cursor.fetchall():
-                accommodation = dict(row)
+                # Execute the query
+                if not self.connection:
+                    logger.error("SQLite connection is not available for search_accommodations")
+                    return []
+                cursor = self.connection.cursor()
+                cursor.execute(sql, params)
                 
-                # Parse JSON data if present
-                if 'data' in accommodation and accommodation['data']:
-                    try:
-                        accommodation['data'] = json.loads(accommodation['data'])
-                    except json.JSONDecodeError:
-                        logger.warning(f"Failed to parse JSON data for accommodation {accommodation.get('id')}")
-                        
-                results.append(accommodation)
+                # Convert rows to dictionaries
+                results = []
+                for row in cursor.fetchall():
+                    accommodation = dict(row)
+                    
+                    # Parse JSON data if present
+                    if 'data' in accommodation and accommodation['data']:
+                        try:
+                            accommodation['data'] = json.loads(accommodation['data'])
+                        except json.JSONDecodeError:
+                            logger.warning(f"Failed to parse JSON data for accommodation {accommodation.get('id')}")
+                            
+                    results.append(accommodation)
+                    
+                return results
                 
-            return results
-            
-        except Exception as e:
-            logger.error(f"Error searching accommodations: {str(e)}")
-            return []
+            except Exception as e:
+                logger.error(f"Error searching accommodations in SQLite: {str(e)}")
+                return []
 
     def enhanced_search(self, table, search_text=None, filters=None, limit=10):
         """
@@ -1932,6 +2370,7 @@ class DatabaseManager:
     def get_attraction(self, attraction_id):
         """
         Get attraction by ID.
+        Handles both SQLite and PostgreSQL.
         
         Args:
             attraction_id (str): ID of the attraction
@@ -1939,32 +2378,46 @@ class DatabaseManager:
         Returns:
             Attraction data or None if not found
         """
-        try:
-            cursor = self.connection.cursor()
-            cursor.execute("SELECT * FROM attractions WHERE id = ?", (attraction_id,))
-            row = cursor.fetchone()
-            
-            if not row:
+        if self.db_type == DatabaseType.POSTGRES:
+            # --- Start Change: Use PostgreSQL query execution --- 
+            try:
+                sql = "SELECT * FROM attractions WHERE id = %s"
+                result = self.execute_postgres_query(sql, (attraction_id,), fetchall=False)
+                # RealDictCursor already returns a dict or None
+                return result
+            except Exception as e:
+                logger.error(f"Error getting attraction {attraction_id} from PostgreSQL: {str(e)}")
                 return None
+            # --- End Change ---
+        else: # Original SQLite implementation
+            try:
+                # ... existing SQLite code ...
+                cursor = self.connection.cursor()
+                cursor.execute("SELECT * FROM attractions WHERE id = ?", (attraction_id,))
+                row = cursor.fetchone()
                 
-            attraction = dict(row)
-            
-            # Parse JSON data if present
-            if 'data' in attraction and attraction['data']:
-                try:
-                    attraction['data'] = json.loads(attraction['data'])
-                except json.JSONDecodeError:
-                    logger.warning(f"Failed to parse JSON data for attraction {attraction_id}")
+                if not row:
+                    return None
                     
-            return attraction
-            
-        except Exception as e:
-            logger.error(f"Error getting attraction {attraction_id}: {str(e)}")
-            return None
+                attraction = dict(row)
+                
+                # Parse JSON data if present
+                if 'data' in attraction and attraction['data']:
+                    try:
+                        attraction['data'] = json.loads(attraction['data'])
+                    except json.JSONDecodeError:
+                        logger.warning(f"Failed to parse JSON data for attraction {attraction_id}")
+                        
+                return attraction
+                
+            except Exception as e:
+                logger.error(f"Error getting attraction {attraction_id}: {str(e)}")
+                return None
 
     def get_restaurant(self, restaurant_id):
         """
         Get restaurant by ID.
+        Handles both SQLite and PostgreSQL.
         
         Args:
             restaurant_id (str): ID of the restaurant
@@ -1972,32 +2425,45 @@ class DatabaseManager:
         Returns:
             Restaurant data or None if not found
         """
-        try:
-            cursor = self.connection.cursor()
-            cursor.execute("SELECT * FROM restaurants WHERE id = ?", (restaurant_id,))
-            row = cursor.fetchone()
-            
-            if not row:
+        if self.db_type == DatabaseType.POSTGRES:
+            # --- Start Change: Use PostgreSQL query execution --- 
+            try:
+                sql = "SELECT * FROM restaurants WHERE id = %s"
+                result = self.execute_postgres_query(sql, (restaurant_id,), fetchall=False)
+                return result
+            except Exception as e:
+                logger.error(f"Error getting restaurant {restaurant_id} from PostgreSQL: {str(e)}")
                 return None
+            # --- End Change ---
+        else: # Original SQLite implementation
+            try:
+                # ... existing SQLite code ...
+                cursor = self.connection.cursor()
+                cursor.execute("SELECT * FROM restaurants WHERE id = ?", (restaurant_id,))
+                row = cursor.fetchone()
                 
-            restaurant = dict(row)
-            
-            # Parse JSON data if present
-            if 'data' in restaurant and restaurant['data']:
-                try:
-                    restaurant['data'] = json.loads(restaurant['data'])
-                except json.JSONDecodeError:
-                    logger.warning(f"Failed to parse JSON data for restaurant {restaurant_id}")
+                if not row:
+                    return None
                     
-            return restaurant
-            
-        except Exception as e:
-            logger.error(f"Error getting restaurant {restaurant_id}: {str(e)}")
-            return None
+                restaurant = dict(row)
+                
+                # Parse JSON data if present
+                if 'data' in restaurant and restaurant['data']:
+                    try:
+                        restaurant['data'] = json.loads(restaurant['data'])
+                    except json.JSONDecodeError:
+                        logger.warning(f"Failed to parse JSON data for restaurant {restaurant_id}")
+                        
+                return restaurant
+                
+            except Exception as e:
+                logger.error(f"Error getting restaurant {restaurant_id}: {str(e)}")
+                return None
 
     def get_accommodation(self, accommodation_id):
         """
         Get accommodation by ID.
+        Handles both SQLite and PostgreSQL.
         
         Args:
             accommodation_id (str): ID of the accommodation
@@ -2005,28 +2471,40 @@ class DatabaseManager:
         Returns:
             Accommodation data or None if not found
         """
-        try:
-            cursor = self.connection.cursor()
-            cursor.execute("SELECT * FROM accommodations WHERE id = ?", (accommodation_id,))
-            row = cursor.fetchone()
-            
-            if not row:
+        if self.db_type == DatabaseType.POSTGRES:
+            # --- Start Change: Use PostgreSQL query execution --- 
+            try:
+                sql = "SELECT * FROM accommodations WHERE id = %s"
+                result = self.execute_postgres_query(sql, (accommodation_id,), fetchall=False)
+                return result
+            except Exception as e:
+                logger.error(f"Error getting accommodation {accommodation_id} from PostgreSQL: {str(e)}")
                 return None
+            # --- End Change ---
+        else: # Original SQLite implementation
+            try:
+                # ... existing SQLite code ...
+                cursor = self.connection.cursor()
+                cursor.execute("SELECT * FROM accommodations WHERE id = ?", (accommodation_id,))
+                row = cursor.fetchone()
                 
-            accommodation = dict(row)
-            
-            # Parse JSON data if present
-            if 'data' in accommodation and accommodation['data']:
-                try:
-                    accommodation['data'] = json.loads(accommodation['data'])
-                except json.JSONDecodeError:
-                    logger.warning(f"Failed to parse JSON data for accommodation {accommodation_id}")
+                if not row:
+                    return None
                     
-            return accommodation
-            
-        except Exception as e:
-            logger.error(f"Error getting accommodation {accommodation_id}: {str(e)}")
-            return None
+                accommodation = dict(row)
+                
+                # Parse JSON data if present
+                if 'data' in accommodation and accommodation['data']:
+                    try:
+                        accommodation['data'] = json.loads(accommodation['data'])
+                    except json.JSONDecodeError:
+                        logger.warning(f"Failed to parse JSON data for accommodation {accommodation_id}")
+                        
+                return accommodation
+                
+            except Exception as e:
+                logger.error(f"Error getting accommodation {accommodation_id}: {str(e)}")
+                return None
 
     def disconnect(self):
         """
@@ -2065,3 +2543,429 @@ class DatabaseManager:
             bool: True if disconnection successful, False otherwise
         """
         return self.disconnect()
+
+    # --- Session Management ---
+
+    def _save_session_postgres(self, session_id: str, session_data: Dict, expires_at: Optional[datetime] = None) -> bool:
+        """Save session data to PostgreSQL."""
+        table_name = "sessions"
+        try:
+            data_jsonb = Json(session_data)
+            now = datetime.now()
+            # Default expiration: 1 day from now if not provided
+            if expires_at is None:
+                expires_at = now + timedelta(days=1)
+            
+            sql = f"""
+                INSERT INTO {table_name} (id, data, created_at, updated_at, expires_at)
+                VALUES (%s, %s, %s, %s, %s)
+                ON CONFLICT (id) DO UPDATE SET
+                    data = EXCLUDED.data,
+                    updated_at = EXCLUDED.updated_at,
+                    expires_at = EXCLUDED.expires_at
+            """
+            params = (session_id, data_jsonb, now, now, expires_at)
+            result = self.execute_postgres_query(sql, params)
+            return result is not None
+        except Exception as e:
+            logger.error(f"Error saving session {session_id} to PostgreSQL: {e}")
+            return False
+
+    def save_session(self, session_id: str, session_data: Dict, expires_at: Optional[datetime] = None) -> bool:
+        """
+        Save session data.
+        
+        Args:
+            session_id (str): Unique ID for the session
+            session_data (dict): Data to save
+            expires_at (datetime, optional): Expiration time
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        if self.db_type == DatabaseType.POSTGRES:
+            return self._save_session_postgres(session_id, session_data, expires_at)
+        else:
+            # ... existing SQLite implementation ...
+            try:
+                data_json = json.dumps(session_data)
+                now = datetime.now()
+                if expires_at is None:
+                    expires_at = now + timedelta(days=1)
+                
+                cursor = self.connection.cursor()
+                cursor.execute("""
+                    INSERT OR REPLACE INTO sessions (id, data, updated_at, expires_at)
+                    VALUES (?, ?, ?, ?)
+                """, (session_id, data_json, now, expires_at))
+                self.connection.commit()
+                return True
+            except Exception as e:
+                logger.error(f"Error saving session {session_id} to SQLite: {e}")
+                self.connection.rollback()
+                return False
+
+    def _load_session_postgres(self, session_id: str) -> Optional[Dict]:
+        """Load session data from PostgreSQL."""
+        table_name = "sessions"
+        try:
+            now = datetime.now()
+            sql = f"SELECT data FROM {table_name} WHERE id = %s AND expires_at > %s"
+            result = self.execute_postgres_query(sql, (session_id, now), fetchall=False)
+            
+            if result and 'data' in result:
+                # psycopg2 automatically decodes JSONB to dict
+                return result['data']
+            return None
+        except Exception as e:
+            logger.error(f"Error loading session {session_id} from PostgreSQL: {e}")
+            return None
+
+    def load_session(self, session_id: str) -> Optional[Dict]:
+        """
+        Load session data.
+        
+        Args:
+            session_id (str): Unique ID for the session
+            
+        Returns:
+            dict or None: Session data if found and not expired, else None
+        """
+        if self.db_type == DatabaseType.POSTGRES:
+            return self._load_session_postgres(session_id)
+        else:
+            # ... existing SQLite implementation ...
+            try:
+                now = datetime.now()
+                cursor = self.connection.cursor()
+                cursor.execute("SELECT data FROM sessions WHERE id = ? AND expires_at > ?", (session_id, now))
+                row = cursor.fetchone()
+                
+                if row and row['data']:
+                    return json.loads(row['data'])
+                return None
+            except Exception as e:
+                logger.error(f"Error loading session {session_id} from SQLite: {e}")
+                return None
+
+    def _delete_session_postgres(self, session_id: str) -> bool:
+        """Delete session data from PostgreSQL."""
+        table_name = "sessions"
+        try:
+            sql = f"DELETE FROM {table_name} WHERE id = %s"
+            result = self.execute_postgres_query(sql, (session_id,))
+            # result is rowcount, check if it's >= 0 (0 if not found, >0 if deleted)
+            return result is not None and result >= 0 
+        except Exception as e:
+            logger.error(f"Error deleting session {session_id} from PostgreSQL: {e}")
+            return False
+
+    def delete_session(self, session_id: str) -> bool:
+        """
+        Delete session data.
+        
+        Args:
+            session_id (str): Unique ID for the session
+            
+        Returns:
+            bool: True if successful or session didn't exist, False on error
+        """
+        if self.db_type == DatabaseType.POSTGRES:
+            return self._delete_session_postgres(session_id)
+        else:
+            # ... existing SQLite implementation ...
+            try:
+                cursor = self.connection.cursor()
+                cursor.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
+                self.connection.commit()
+                return True
+            except Exception as e:
+                logger.error(f"Error deleting session {session_id} from SQLite: {e}")
+                self.connection.rollback()
+                return False
+
+    # --- User Management ---
+    # Note: User management (hashing passwords etc.) should ideally be in a separate service/module
+
+    def _create_user_postgres(self, user_data: Dict) -> Optional[str]:
+        """Create a new user in PostgreSQL."""
+        table_name = "users"
+        try:
+            user_id = user_data.get('id', str(uuid.uuid4()))
+            username = user_data.get('username')
+            email = user_data.get('email')
+            password_hash = user_data.get('password_hash') # Assume pre-hashed
+            salt = user_data.get('salt') # Assume salt is provided
+            role = user_data.get('role', 'user')
+            extra_data = {k: v for k, v in user_data.items() if k not in 
+                            ['id', 'username', 'email', 'password_hash', 'salt', 'role']}
+            data_jsonb = Json(extra_data) if extra_data else None
+            now = datetime.now()
+
+            if not username or not password_hash or not salt:
+                logger.error("Username, password hash, and salt are required to create a user.")
+                return None
+
+            sql = f"""
+                INSERT INTO {table_name} (id, username, email, password_hash, salt, role, data, created_at, last_login)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id
+            """
+            params = (user_id, username, email, password_hash, salt, role, data_jsonb, now, now)
+            
+            # Use fetchall=False to get the RETURNING id
+            result = self.execute_postgres_query(sql, params, fetchall=False)
+            
+            return result['id'] if result else None
+        except psycopg2.IntegrityError as ie:
+            logger.warning(f"Failed to create user (likely duplicate username/email): {ie}")
+            return None
+        except Exception as e:
+            logger.error(f"Error creating user in PostgreSQL: {e}")
+            return None
+
+    def create_user(self, user_data: Dict) -> Optional[str]:
+        """Create a new user."""
+        if self.db_type == DatabaseType.POSTGRES:
+            return self._create_user_postgres(user_data)
+        else:
+            # ... existing SQLite implementation ...
+            try:
+                user_id = user_data.get('id', str(uuid.uuid4()))
+                username = user_data.get('username')
+                email = user_data.get('email')
+                password_hash = user_data.get('password_hash') # Assume pre-hashed
+                is_active = user_data.get('is_active', True)
+                is_admin = user_data.get('is_admin', False)
+                now = datetime.now()
+
+                if not username or not password_hash:
+                    logger.error("Username and password hash are required.")
+                    return None
+
+                cursor = self.connection.cursor()
+                cursor.execute("""
+                    INSERT INTO users (id, username, email, password_hash, is_active, is_admin, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """, (user_id, username, email, password_hash, is_active, is_admin, now, now))
+                self.connection.commit()
+                return user_id
+            except sqlite3.IntegrityError as ie:
+                 logger.warning(f"Failed to create user in SQLite (likely duplicate username/email): {ie}")
+                 self.connection.rollback()
+                 return None
+            except Exception as e:
+                logger.error(f"Error creating user in SQLite: {e}")
+                self.connection.rollback()
+                return None
+
+    def _get_user_postgres(self, identifier: str, by: str = 'id') -> Optional[Dict]:
+        """Get user data from PostgreSQL by id, username, or email."""
+        table_name = "users"
+        allowed_fields = {'id', 'username', 'email'}
+        if by not in allowed_fields:
+            logger.error(f"Invalid field for getting user: {by}")
+            return None
+            
+        try:
+            sql = f"SELECT * FROM {table_name} WHERE {by} = %s"
+            result = self.execute_postgres_query(sql, (identifier,), fetchall=False)
+            return result # Already a dict or None
+        except Exception as e:
+            logger.error(f"Error getting user by {by} from PostgreSQL: {e}")
+            return None
+
+    def get_user(self, identifier: str, by: str = 'id') -> Optional[Dict]:
+        """Get user data by id, username, or email."""
+        if self.db_type == DatabaseType.POSTGRES:
+            return self._get_user_postgres(identifier, by)
+        else:
+            # ... existing SQLite implementation ...
+            allowed_fields = {'id', 'username', 'email'}
+            if by not in allowed_fields:
+                logger.error(f"Invalid field for getting user: {by}")
+                return None
+            try:
+                cursor = self.connection.cursor()
+                cursor.execute(f"SELECT * FROM users WHERE {by} = ?", (identifier,))
+                row = cursor.fetchone()
+                return dict(row) if row else None
+            except Exception as e:
+                logger.error(f"Error getting user by {by} from SQLite: {e}")
+                return None
+
+    # Add _update_user_postgres, _delete_user_postgres and update main methods if needed
+    # ... (Similar pattern for update/delete)
+
+    # --- Analytics ---
+
+    def _log_analytics_event_postgres(self, event_data: Dict) -> bool:
+        """Log an analytics event to PostgreSQL."""
+        table_name = "analytics"
+        try:
+            event_id = event_data.get('id', str(uuid.uuid4()))
+            session_id = event_data.get('session_id')
+            user_id = event_data.get('user_id')
+            event_type = event_data.get('event_type')
+            timestamp = event_data.get('timestamp', datetime.now())
+            # Store all other fields in event_data JSONB
+            core_fields = {'id', 'session_id', 'user_id', 'event_type', 'timestamp'}
+            data_payload = {k: v for k, v in event_data.items() if k not in core_fields}
+            event_data_jsonb = Json(data_payload)
+
+            if not event_type:
+                logger.error("event_type is required for analytics logging.")
+                return False
+
+            sql = f"""
+                INSERT INTO {table_name} (id, session_id, user_id, event_type, event_data, timestamp)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """
+            params = (event_id, session_id, user_id, event_type, event_data_jsonb, timestamp)
+            result = self.execute_postgres_query(sql, params)
+            return result is not None
+        except Exception as e:
+            logger.error(f"Error logging analytics event to PostgreSQL: {e}")
+            return False
+
+    def log_analytics_event(self, event_data: Dict) -> bool:
+        """
+        Log an analytics event.
+        
+        Args:
+            event_data (dict): Data for the event
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        if self.db_type == DatabaseType.POSTGRES:
+            return self._log_analytics_event_postgres(event_data)
+        else:
+            # ... existing SQLite implementation ...
+            try:
+                event_id = event_data.get('id', str(uuid.uuid4()))
+                session_id = event_data.get('session_id')
+                user_id = event_data.get('user_id')
+                query = event_data.get('query')
+                response = event_data.get('response')
+                feedback = event_data.get('feedback')
+                intent = event_data.get('intent')
+                entities = json.dumps(event_data.get('entities', {}))
+                duration = event_data.get('duration')
+                timestamp = event_data.get('timestamp', datetime.now())
+
+                cursor = self.connection.cursor()
+                cursor.execute("""
+                    INSERT INTO analytics (id, session_id, user_id, query, response, feedback, intent, entities, duration, timestamp)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (event_id, session_id, user_id, query, response, feedback, intent, entities, duration, timestamp))
+                self.connection.commit()
+                return True
+            except Exception as e:
+                logger.error(f"Error logging analytics event to SQLite: {e}")
+                self.connection.rollback()
+                return False
+
+    # --- City Management ---
+
+    def _insert_city_postgres(self, city_data: Dict) -> bool:
+        """Insert or update a city in PostgreSQL."""
+        table_name = "cities"
+        try:
+            city_id = city_data.get("id")
+            if not city_id:
+                logger.error("City ID is required")
+                return False
+
+            name_en = city_data.get("name_en")
+            name_ar = city_data.get("name_ar")
+            region = city_data.get("region")
+            description_en = city_data.get("description_en")
+            description_ar = city_data.get("description_ar")
+            extra_data = {k: v for k, v in city_data.items() if k not in 
+                            ['id', 'name_en', 'name_ar', 'region', 'description_en', 'description_ar']}
+            data_jsonb = Json(extra_data) if extra_data else None
+            now = datetime.now()
+
+            sql = f"""
+                INSERT INTO {table_name} (id, name_en, name_ar, region, description_en, description_ar, data, created_at, updated_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (id) DO UPDATE SET
+                    name_en = EXCLUDED.name_en,
+                    name_ar = EXCLUDED.name_ar,
+                    region = EXCLUDED.region,
+                    description_en = EXCLUDED.description_en,
+                    description_ar = EXCLUDED.description_ar,
+                    data = EXCLUDED.data,
+                    updated_at = EXCLUDED.updated_at
+            """
+            params = (city_id, name_en, name_ar, region, description_en, description_ar, data_jsonb, now, now)
+            result = self.execute_postgres_query(sql, params)
+            return result is not None
+        except Exception as e:
+            logger.error(f"Error inserting/updating city {city_id} in PostgreSQL: {e}")
+            return False
+
+    def insert_city(self, city_data: Dict) -> bool:
+        """Insert or update a city."""
+        if self.db_type == DatabaseType.POSTGRES:
+            return self._insert_city_postgres(city_data)
+        else:
+            # ... existing SQLite implementation ...
+            try:
+                city_id = city_data.get('id')
+                if not city_id:
+                    logger.error("City ID is required")
+                    return False
+                
+                name_en = city_data.get('name_en', '')
+                name_ar = city_data.get('name_ar', '')
+                description_en = city_data.get('description_en', '')
+                description_ar = city_data.get('description_ar', '')
+                region = city_data.get('region', '')
+                latitude = city_data.get('latitude')
+                longitude = city_data.get('longitude')
+                extra_data = {k: v for k, v in city_data.items() if k not in 
+                                ['id', 'name_en', 'name_ar', 'description_en', 'description_ar', 'region', 'latitude', 'longitude']}
+                data_json = json.dumps(extra_data) if extra_data else None
+                now = datetime.now()
+
+                cursor = self.connection.cursor()
+                cursor.execute("""
+                    INSERT OR REPLACE INTO cities (id, name_en, name_ar, description_en, description_ar, region, latitude, longitude, data, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (city_id, name_en, name_ar, description_en, description_ar, region, latitude, longitude, data_json, now, now))
+                self.connection.commit()
+                return True
+            except Exception as e:
+                logger.error(f"Error inserting city in SQLite: {e}")
+                self.connection.rollback()
+                return False
+
+    def _get_city_postgres(self, city_id: str) -> Optional[Dict]:
+        """Get city data from PostgreSQL by ID."""
+        table_name = "cities"
+        try:
+            sql = f"SELECT * FROM {table_name} WHERE id = %s"
+            result = self.execute_postgres_query(sql, (city_id,), fetchall=False)
+            return result
+        except Exception as e:
+            logger.error(f"Error getting city {city_id} from PostgreSQL: {e}")
+            return None
+
+    def get_city(self, city_id: str) -> Optional[Dict]:
+        """Get city data by ID."""
+        if self.db_type == DatabaseType.POSTGRES:
+            return self._get_city_postgres(city_id)
+        else:
+            # ... existing SQLite implementation ...
+            try:
+                cursor = self.connection.cursor()
+                cursor.execute("SELECT * FROM cities WHERE id = ?", (city_id,))
+                row = cursor.fetchone()
+                return dict(row) if row else None
+            except Exception as e:
+                logger.error(f"Error getting city {city_id} from SQLite: {e}")
+                return None
+
+    # ... (_insert_restaurant_postgres, insert_restaurant, etc.) ...

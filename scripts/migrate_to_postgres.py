@@ -284,7 +284,7 @@ def check_table_exists(pg_conn: psycopg2.extensions.connection, table_name: str)
     """Check if a table exists in PostgreSQL."""
     try:
         with pg_conn.cursor() as cursor:
-        cursor.execute(f"""
+            cursor.execute(f"""
                 SELECT EXISTS (
                     SELECT FROM information_schema.tables 
                     WHERE table_schema = 'public' 
@@ -346,11 +346,11 @@ def migrate_table(sqlite_conn: sqlite3.Connection, pg_conn: psycopg2.extensions.
                 try:
                     # Execute batch insert
                     execute_values(cursor, sql, batch_data, template=None, page_size=batch_size)
-        pg_conn.commit()
+                    pg_conn.commit()
                     inserted += len(batch)
                     logger.info(f"Inserted {len(batch)} records into {table_name}")
-    except psycopg2.Error as e:
-        pg_conn.rollback()
+                except psycopg2.Error as e:
+                    pg_conn.rollback()
                     logger.error(f"Error inserting into {table_name}: {e}")
                     errors += len(batch)
         
@@ -372,10 +372,10 @@ def update_geospatial_columns(pg_conn: psycopg2.extensions.connection) -> bool:
         
         with pg_conn.cursor() as cursor:
             for table in geo_tables:
-            # Check if table exists
+                # Check if table exists
                 if not check_table_exists(pg_conn, table):
                     logger.warning(f"Table {table} does not exist. Skipping geospatial update.")
-                continue
+                    continue
             
                 # Check if geometry column already exists
                 cursor.execute(f"""
@@ -594,7 +594,7 @@ def main():
     
     # Connect to databases
     try:
-    pg_conn = get_postgres_connection(postgres_uri)
+        pg_conn = get_postgres_connection(postgres_uri)
         
         # Check required extensions
         postgis_enabled = check_postgis_extension(pg_conn)
@@ -618,7 +618,7 @@ def main():
         if not args.skip_sqlite and os.path.exists(sqlite_db_path):
             sqlite_conn = get_sqlite_connection(sqlite_db_path)
     
-    # Migrate each table
+            # Migrate each table
             for table in TABLES_TO_MIGRATE:
                 results[table] = migrate_table(sqlite_conn, pg_conn, table, args.batch_size)
             
@@ -640,7 +640,7 @@ def main():
         print_migration_summary(results, json_results)
         
         # Close PostgreSQL connection
-    pg_conn.close()
+        pg_conn.close()
         
         return True
     except Exception as e:
@@ -650,4 +650,4 @@ def main():
 
 if __name__ == "__main__":
     success = main()
-    sys.exit(0 if success else 1) 
+    sys.exit(0 if success else 1)
