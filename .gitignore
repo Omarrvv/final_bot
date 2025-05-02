@@ -1,9 +1,64 @@
-node_modules/
+# Python virtual environments
+egypt_bot/
 chatbot_env_311/
-*.bin
-chatbot_env_311/
-lid.176.bin
-logs/
+venv/
+env/
+ENV/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+coverage.xml
+*.cover
+
+# Logs
 logs/
 *.log
-deprecated_scripts/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment variables and secrets
+
+.secrets
+
+# Binary files
+*.bin
+lid.176.bin
+dummy_path.bin
+
+# JS/React dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE specific files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+
+# Local development configuration
+local_settings.py
+
+# MCP Browser Tools
+browser-tools-mcp/
