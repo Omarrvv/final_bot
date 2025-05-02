@@ -6,11 +6,11 @@ import os
 import secrets
 from typing import Optional
 from fastapi import APIRouter, Request, Depends, HTTPException, Response, Cookie
-from fastapi_limiter.depends import RateLimiter
+
 
 from ...models.api_models import ResetRequest, ResetResponse, CSRFTokenResponse
 from ...utils.exceptions import ChatbotError
-from ..routes.chat import get_chatbot, get_rate_limiter
+from ..routes.chat import get_chatbot
 
 # Create router
 router = APIRouter(tags=["Session Management"])
@@ -23,8 +23,7 @@ async def get_chatbot(request: Request):
         raise HTTPException(status_code=503, detail="Chatbot service unavailable")
     return request.app.state.chatbot
 
-@router.post("/reset", response_model=ResetResponse,
-             dependencies=get_rate_limiter())
+@router.post("/reset", response_model=ResetResponse)
 async def reset_session(
     reset_request: ResetRequest, 
     request: Request,

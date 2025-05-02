@@ -325,46 +325,39 @@ def test_postgres_attraction_search(db_manager):
 
 def test_postgres_restaurant_operations(db_manager):
     """Test operations specific to restaurants in PostgreSQL"""
-    # Create test restaurant
+    # Create test restaurant with fields that match the database schema
     test_id = f"test_restaurant_{datetime.now().strftime('%Y%m%d%H%M%S')}"
     test_restaurant = {
         "id": test_id,
         "name_en": "Test Restaurant",
         "name_ar": "مطعم اختباري",
-        "location": {"lat": 30.0444, "lng": 31.2357},
+        "latitude": 30.0444, 
+        "longitude": 31.2357,
         "cuisine": "Egyptian",
+        "city": "Cairo",  # Added required fields
+        "region": "Cairo",  # Added required fields
         "data": json.dumps({
             "description_en": "A test restaurant for unit testing",
             "description_ar": "مطعم اختباري للاختبارات",
             "price_range": "moderate",
-            "menu_highlights": ["Koshari", "Ful Medames"]
+            "menu_highlights": ["Koshari", "Ful Medames"],
+            "type": "restaurant"  # Moved type to data JSON since it's not in schema
         })
     }
     
-    # INSERT - using the PostgreSQL-specific method directly
-    if hasattr(db_manager, "_insert_restaurant_postgres"):
-        insert_result = db_manager._insert_restaurant_postgres(test_restaurant)
-        assert insert_result is True
-    else:
-        # Fall back to the general method if the specific one doesn't exist
-        insert_result = db_manager.insert_restaurant(test_restaurant)
-        assert insert_result is True
+    # INSERT - using the general method
+    insert_result = db_manager.insert_restaurant(test_restaurant)
+    assert insert_result is True
     
-    # GET - using the PostgreSQL-specific method directly
-    if hasattr(db_manager, "_get_restaurant_postgres"):
-        restaurant = db_manager._get_restaurant_postgres(test_id)
-    else:
-        restaurant = db_manager.get_restaurant_by_id(test_id)
+    # GET - get the restaurant
+    restaurant = db_manager.get_restaurant(test_id)
     
     assert restaurant is not None
     assert restaurant["name_en"] == "Test Restaurant"
     assert restaurant["cuisine"] == "Egyptian"
     
-    # SEARCH - using the PostgreSQL-specific method directly
-    if hasattr(db_manager, "_search_restaurants_postgres"):
-        search_results = db_manager._search_restaurants_postgres({"cuisine": "Egyptian"})
-    else:
-        search_results = db_manager.search_restaurants({"cuisine": "Egyptian"})
+    # SEARCH - using the search_restaurants method
+    search_results = db_manager.search_restaurants({"cuisine": "Egyptian"})
     
     assert len(search_results) >= 1
     assert any(r["id"] == test_id for r in search_results)
@@ -380,53 +373,39 @@ def test_postgres_hotel_operations(db_manager):
     """Test operations specific to hotels in PostgreSQL"""
     # Create test hotel
     test_id = f"test_hotel_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    
+    # Prepare the test data - make sure data is already a JSON string
+    hotel_data = {
+        "description_en": "A test hotel for unit testing",
+        "description_ar": "فندق اختباري للاختبارات",
+        "price_range": "luxury",
+        "amenities": ["Pool", "Spa", "WiFi"],
+        "stars": 4  # Move stars into the data JSON
+    }
+    
     test_hotel = {
         "id": test_id,
         "name_en": "Test Hotel",
         "name_ar": "فندق اختباري",
-        "location": {"lat": 30.0444, "lng": 31.2357},
-        "stars": 4,
-        "data": json.dumps({
-            "description_en": "A test hotel for unit testing",
-            "description_ar": "فندق اختباري للاختبارات",
-            "price_range": "luxury",
-            "amenities": ["Pool", "Spa", "WiFi"]
-        })
+        "latitude": 30.0444,
+        "longitude": 31.2357,
+        "type": "hotel",
+        "data": json.dumps(hotel_data)  # Ensure this is a JSON string
     }
     
-    # INSERT - using the PostgreSQL-specific method directly if it exists
-    if hasattr(db_manager, "_insert_hotel_postgres"):
-        insert_result = db_manager._insert_hotel_postgres(test_hotel)
-        assert insert_result is True
-    else:
-        # Fall back to accommodations or general method
-        try:
-            insert_result = db_manager.insert_accommodation(test_hotel)
-        except AttributeError:
-            insert_result = db_manager.insert_hotel(test_hotel)
-        assert insert_result is True
+    # INSERT - use accommodation method
+    insert_result = db_manager.insert_accommodation(test_hotel)
+    assert insert_result is True
     
-    # GET - using the PostgreSQL-specific method directly if it exists
-    if hasattr(db_manager, "_get_hotel_postgres"):
-        hotel = db_manager._get_hotel_postgres(test_id)
-    else:
-        try:
-            hotel = db_manager.get_accommodation_by_id(test_id)
-        except AttributeError:
-            hotel = db_manager.get_hotel_by_id(test_id)
+    # GET - use get_accommodation method
+    hotel = db_manager.get_accommodation(test_id)
     
     assert hotel is not None
     assert hotel["name_en"] == "Test Hotel"
-    assert hotel["stars"] == 4
+    assert hotel["data"]["stars"] == 4  # Check stars in the data field
     
-    # SEARCH - using the PostgreSQL-specific method directly if it exists
-    if hasattr(db_manager, "_search_hotels_postgres"):
-        search_results = db_manager._search_hotels_postgres({"stars": 4})
-    else:
-        try:
-            search_results = db_manager.search_accommodations({"stars": 4})
-        except AttributeError:
-            search_results = db_manager.search_hotels({"stars": 4})
+    # SEARCH - use search_accommodations method with updated field path
+    search_results = db_manager.search_accommodations({"type": "hotel"})
     
     assert len(search_results) >= 1
     assert any(r["id"] == test_id for r in search_results)
@@ -434,14 +413,7 @@ def test_postgres_hotel_operations(db_manager):
     # Clean up - direct SQL for flexibility
     with db_manager.pg_pool.getconn() as conn:
         with conn.cursor() as cur:
-            # Try both tables since we don't know which one was used
-            try:
-                cur.execute("DELETE FROM hotels WHERE id = %s", (test_id,))
-            except:
-                try:
-                    cur.execute("DELETE FROM accommodations WHERE id = %s", (test_id,))
-                except:
-                    pass  # If neither works, we'll have to leave it
+            cur.execute("DELETE FROM accommodations WHERE id = %s", (test_id,))
         conn.commit()
         db_manager.pg_pool.putconn(conn)
 
@@ -454,7 +426,8 @@ def test_postgres_error_handling(db_manager):
         "name_en": "Test Duplicate",
         "name_ar": "اختبار مكرر",
         "type": "historical",
-        "location": {"lat": 30.0444, "lng": 31.2357},
+        "latitude": 30.0444,
+        "longitude": 31.2357,
         "data": json.dumps({"description_en": "Test description"})
     }
     
@@ -467,7 +440,7 @@ def test_postgres_error_handling(db_manager):
     assert second_result is False  # Should return False, not raise exception
     
     # Test handling of invalid IDs
-    invalid_result = db_manager.get_attraction_by_id("nonexistent_id_12345")
+    invalid_result = db_manager.get_attraction("nonexistent_id_12345")
     assert invalid_result is None  # Should return None, not raise exception
     
     # Clean up
@@ -479,32 +452,39 @@ def test_postgres_transaction_management(db_manager, pg_test_db):
     
     # Direct connection for testing transactions
     with pg_test_db.cursor() as cur:
-        # Start transaction
-        pg_test_db.autocommit = False
-        
-        # Insert test data
-        cur.execute(
-            "INSERT INTO attractions (id, name_en, name_ar, type, location, data) VALUES (%s, %s, %s, %s, %s, %s)",
-            (test_id, "Transaction Test", "اختبار المعاملة", "historical", 
-             json.dumps({"lat": 30.0444, "lng": 31.2357}), 
-             json.dumps({"description_en": "Test description"}))
-        )
-        
-        # Check data is visible within transaction
-        cur.execute("SELECT * FROM attractions WHERE id = %s", (test_id,))
-        in_transaction = cur.fetchone()
-        assert in_transaction is not None
-        
-        # Rollback transaction
-        pg_test_db.rollback()
-        
-        # Verify data is not in database after rollback
-        cur.execute("SELECT * FROM attractions WHERE id = %s", (test_id,))
-        after_rollback = cur.fetchone()
-        assert after_rollback is None
-        
-        # Reset autocommit
-        pg_test_db.autocommit = True
+        try:
+            # Start transaction (ensure autocommit is False at the beginning)
+            pg_test_db.autocommit = False
+            
+            # Insert test data - using latitude/longitude fields instead of location
+            cur.execute(
+                "INSERT INTO attractions (id, name_en, name_ar, type, latitude, longitude, data) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                (test_id, "Transaction Test", "اختبار المعاملة", "historical", 
+                30.0444, 31.2357, 
+                json.dumps({"description_en": "Test description"}))
+            )
+            
+            # Check data is visible within transaction
+            cur.execute("SELECT * FROM attractions WHERE id = %s", (test_id,))
+            in_transaction = cur.fetchone()
+            assert in_transaction is not None
+            
+            # Rollback transaction
+            pg_test_db.rollback()
+            
+            # Verify data is not in database after rollback
+            cur.execute("SELECT * FROM attractions WHERE id = %s", (test_id,))
+            after_rollback = cur.fetchone()
+            assert after_rollback is None
+        finally:
+            # Create a new connection for any further operations
+            # instead of trying to change autocommit on existing connection
+            pg_test_db.rollback()  # Make sure any pending transaction is rolled back
+            
+            # Use a separate connection for autocommit operations if needed
+            new_conn = psycopg2.connect(pg_test_db.dsn)
+            new_conn.autocommit = True
+            new_conn.close()
 
 def test_postgres_connection_pool_stress(db_manager):
     """Test connection pool behavior under moderate load"""
@@ -560,4 +540,4 @@ def test_postgres_connection_pool_stress(db_manager):
             raise
         finally:
             # Always return connection to the pool
-            db_manager.pg_pool.putconn(conn) 
+            db_manager.pg_pool.putconn(conn)

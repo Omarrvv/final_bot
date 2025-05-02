@@ -22,10 +22,22 @@ class FastAPISettings(BaseSettings):
     SECRET_KEY: str = Field(default=os.getenv("SECRET_KEY", "your-secret-key"), env="SECRET_KEY")
     SESSION_COOKIE_NAME: str = Field(default="egypt_tourism_session", env="SESSION_COOKIE_NAME")
     SESSION_EXPIRY: int = Field(default=3600 * 24, env="SESSION_EXPIRY")  # 24 hours in seconds
-    ALLOWED_ORIGINS: List[str] = Field(
-        default=["*"],
+    allowed_origins: str = Field(
+        default="http://localhost:3000,http://localhost:5050",
         env="ALLOWED_ORIGINS"
     )
+    _allowed_origins_list: List[str] = []
+    
+    @property
+    def cors_origins(self) -> List[str]:
+        """Get allowed origins as a list."""
+        if not self._allowed_origins_list:
+            self._allowed_origins_list = [
+                origin.strip() 
+                for origin in self.allowed_origins.split(",") 
+                if origin.strip()
+            ]
+        return self._allowed_origins_list
     
     # Redis Settings for Session Storage
     REDIS_HOST: str = Field(default="localhost", env="REDIS_HOST")
@@ -77,4 +89,4 @@ def get_api_metadata() -> Dict[str, Any]:
         "title": settings.API_TITLE,
         "description": settings.API_DESCRIPTION,
         "version": settings.API_VERSION,
-    } 
+    }

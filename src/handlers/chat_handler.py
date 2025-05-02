@@ -81,14 +81,19 @@ class ChatHandler:
             
             # Prepare response
             chat_response = {
-                "message": response.message,
-                "intent": nlu_result.intent,
-                "confidence": nlu_result.confidence,
-                "entities": nlu_result.entities,
+                "text": response.message,
+                "response_type": getattr(response, "response_type", nlu_result.intent or "text"),
                 "session_id": session_id,
+                "language": getattr(response, "language", "en"),
+                "suggestions": getattr(response, "suggestions", None),
+                "intent": nlu_result.intent,
+                "entities": nlu_result.entities,
+                "confidence": nlu_result.confidence,
                 "message_id": str(uuid.uuid4())
             }
-            
+            # Remove None suggestions for strict models
+            if chat_response["suggestions"] is None:
+                del chat_response["suggestions"]
             return chat_response
             
         except Exception as e:
@@ -104,9 +109,13 @@ class ChatHandler:
             )
             
             return {
-                "message": "I apologize, but I encountered an error while processing your message. Please try again.",
-                "error": str(e),
-                "session_id": session_id
+                "text": "I apologize, but I encountered an error while processing your message. Please try again.",
+                "response_type": "error",
+                "session_id": session_id,
+                "language": "en",
+                "intent": None,
+                "entities": {},
+                "error": str(e)
             }
 
     def handle_feedback(self, message_id: str, rating: int, comment: Optional[str] = None, 

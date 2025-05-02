@@ -169,11 +169,10 @@ class Auth:
         # Check email later if needed
         
         # Generate salt and hash password
-        password_bytes = password.encode('utf-8')
-        salt = bcrypt.gensalt()
-        # Store hash and salt as bytes or hex strings depending on DB expectation
-        hashed_password = bcrypt.hashpw(password_bytes, salt).hex() # Example: store as hex
-        salt_hex = salt.hex() # Example: store as hex
+        # Fix: Convert password to string if needed (bcrypt now expects str not bytes)
+        # We're passing the password directly as string
+        salt = bcrypt.gensalt().decode('utf-8')  # Convert bytes to string
+        hashed_password = bcrypt.hashpw(password, salt)
         
         # Create user record
         user_id = str(uuid.uuid4())
@@ -182,7 +181,7 @@ class Auth:
             "username": username,
             "email": email,
             "password_hash": hashed_password,
-            "salt": salt_hex,
+            "salt": salt,
             "role": role,
             "created_at": datetime.now(timezone.utc).isoformat(),
             "last_login": None,
@@ -218,19 +217,14 @@ class Auth:
         
         # Verify password
         try:
-            password_bytes = password.encode('utf-8')
-            stored_hash_hex = user.get("password_hash")
-            stored_salt_hex = user.get("salt")
+            stored_hash = user.get("password_hash")
+            stored_salt = user.get("salt")
             
-            if not stored_hash_hex or not stored_salt_hex:
+            if not stored_hash or not stored_salt:
                 raise HTTPException(status_code=500, detail="User record is incomplete (missing hash/salt)")
             
-            # Convert hex back to bytes for bcrypt
-            stored_hash = bytes.fromhex(stored_hash_hex)
-            stored_salt = bytes.fromhex(stored_salt_hex) # Not actually needed by checkpw
-            
-            # Verify with bcrypt
-            if not bcrypt.checkpw(password_bytes, stored_hash):
+            # Use bcrypt to check password - using string parameters
+            if not bcrypt.checkpw(password, stored_salt):
                  raise HTTPException(status_code=401, detail="Invalid username or password")
                 
             # Update last login time (optional, maybe do this after successful login)

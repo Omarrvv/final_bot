@@ -54,6 +54,15 @@ class Chatbot:
         self._initialized = True # Consider if this flag is still needed
         logger.info("Egypt Tourism Chatbot initialized successfully")
     
+    def _ensure_response_fields(self, resp: dict, session_id: str, language: str, default_type: str = "text") -> dict:
+        # Guarantee required fields for ChatbotResponse
+        resp = dict(resp) if resp else {}
+        resp.setdefault("text", "")
+        resp.setdefault("response_type", default_type)
+        resp.setdefault("session_id", session_id or str(uuid.uuid4()))
+        resp.setdefault("language", language or "en")
+        return resp
+
     async def process_message(self, user_message: str, session_id: str = None, language: str = None) -> Dict[str, Any]:
         """
         Process a user message and generate a response.
@@ -99,7 +108,9 @@ class Chatbot:
             if any(keyword in user_message.lower() for keyword in attraction_keywords):
                 logger.info(f"Detected potential attraction query: '{user_message}'")
                 # Call specialized attraction query handler
-                return await self.process_attraction_query(user_message, session_id, language)
+                resp = await self.process_attraction_query(user_message, session_id, language)
+            resp = self._ensure_response_fields(resp, session_id, language, default_type="attraction_info")
+            return resp
                 
             # Regular message processing logic continues here...
             
@@ -114,10 +125,14 @@ class Chatbot:
             intent = nlu_result.get("intent")
             
             if intent in ["greeting", "hello", "hi"]:
-                return self._create_greeting_response(session_id, language)
+                resp = self._create_greeting_response(session_id, language)
+                resp = self._ensure_response_fields(resp, session_id, language, default_type="greeting")
+                return resp
                 
             if intent in ["goodbye", "bye", "farewell"]:
-                return self._create_farewell_response(session_id, language)
+                resp = self._create_farewell_response(session_id, language)
+                resp = self._ensure_response_fields(resp, session_id, language, default_type="farewell")
+                return resp
                 
             if intent in ["attraction_info", "attract_query"]:
                 # Extract attraction entity if available
@@ -127,7 +142,9 @@ class Chatbot:
                     attraction = entities["attraction"][0]
                     
                 if attraction:
-                    return await self.process_attraction_query(f"Tell me about {attraction}", session_id, language)
+                    resp = await self.process_attraction_query(f"Tell me about {attraction}", session_id, language)
+                    resp = self._ensure_response_fields(resp, session_id, language, default_type="attraction_info")
+                    return resp
             
             # Get dialog action based on intent and entities
             dialog_action = await self._get_dialog_action(nlu_result, session)
@@ -161,7 +178,8 @@ class Chatbot:
             if language:
                 error_response["language"] = language
                 
-            return error_response
+            resp = self._ensure_response_fields(error_response, session_id, language, default_type="error")
+            return resp
     
     async def _handle_service_calls(self, service_calls: List[Dict], context: Dict) -> Dict[str, Any]:
         """

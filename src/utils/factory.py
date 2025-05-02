@@ -184,8 +184,11 @@ class ComponentFactory:
     def create_database_manager(self) -> Any:
         """Create the database manager component."""
         from src.knowledge.database import DatabaseManager
-        # Initialize DatabaseManager using the configured URI
-        db_manager = DatabaseManager(database_uri=settings.database_uri)
+        
+        # Always use PostgreSQL now that we've standardized on it
+        logger.info("Creating DatabaseManager with PostgreSQL database")
+        db_manager = DatabaseManager()
+        
         # Optional: Check connection or perform initial setup if needed
         # db_manager.check_connection() 
         return db_manager
@@ -394,4 +397,4 @@ class ComponentFactory:
         )
 
 # Create a global factory instance
-component_factory = ComponentFactory() 
+component_factory = ComponentFactory()

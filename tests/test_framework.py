@@ -16,10 +16,7 @@ import shutil
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-# Remove the problematic import
-# from src.app import EgyptTourismChatbot 
-
-# Keep other necessary imports
+# Keep necessary imports
 from src.nlu.engine import NLUEngine
 from src.knowledge.knowledge_base import KnowledgeBase
 from src.dialog.manager import DialogManager
@@ -54,7 +51,8 @@ class BaseTestCase(unittest.TestCase):
         
         # Set up environment variables for testing
         os.environ["CONTENT_PATH"] = os.path.join(self.temp_dir, "data")
-        os.environ["DATABASE_URI"] = f"sqlite:///{os.path.join(self.temp_dir, 'test.db')}"
+        # Use PostgreSQL test database instead of SQLite
+        os.environ["POSTGRES_URI"] = "postgresql://postgres:postgres@localhost:5432/egypt_chatbot_test"
         os.environ["SESSION_STORAGE_URI"] = f"file:///{os.path.join(self.temp_dir, 'sessions')}"
         os.environ["FLASK_ENV"] = "testing"
         os.environ["TESTING"] = "true"
@@ -77,7 +75,7 @@ class BaseTestCase(unittest.TestCase):
         shutil.rmtree(self.temp_dir)
         
         # Reset environment variables
-        for key in ["CONTENT_PATH", "DATABASE_URI", "SESSION_STORAGE_URI", "FLASK_ENV", "TESTING"]:
+        for key in ["CONTENT_PATH", "POSTGRES_URI", "SESSION_STORAGE_URI", "FLASK_ENV", "TESTING"]:
             if key in os.environ:
                 del os.environ[key]
     

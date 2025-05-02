@@ -1,18 +1,18 @@
 {
-  "last_updated": "2025-04-19T16:25:27.328178",
+  "last_updated": "2025-04-24T16:29:53.979953",
   "categories": {
     "attractions": {
-      "count": 11,
+      "count": 9,
       "entities": [
         {
           "id": "transportation",
-          "name": "Unknown",
+          "name": "Transportation Guide",
           "file": "transportation.json",
           "type": "unknown"
         },
         {
           "id": "local_cuisine",
-          "name": "Unknown",
+          "name": "Local Cuisine Guide",
           "file": "local_cuisine.json",
           "type": "unknown"
         },
@@ -23,12 +23,6 @@
           "type": "necropolis"
         },
         {
-          "id": "popular_destinations",
-          "name": "Unknown",
-          "file": "popular_destinations.json",
-          "type": "unknown"
-        },
-        {
           "id": "karnak_temple",
           "name": "Karnak Temple Complex",
           "file": "karnak_temple.json",
@@ -36,7 +30,7 @@
         },
         {
           "id": "cultural_insights",
-          "name": "Unknown",
+          "name": "Cultural Insights Guide",
           "file": "cultural_insights.json",
           "type": "unknown"
         },
@@ -48,14 +42,8 @@
         },
         {
           "id": "accommodations",
-          "name": "Unknown",
+          "name": "Accommodation Guide",
           "file": "accommodations.json",
-          "type": "unknown"
-        },
-        {
-          "id": "historical_sites",
-          "name": "Unknown",
-          "file": "historical_sites.json",
           "type": "unknown"
         },
         {
@@ -252,6 +240,10 @@
         }
       ]
     },
+    "egypt_chatbot.db # Primary DB for KB": {
+      "count": 0,
+      "entities": []
+    },
     "events": {
       "count": 0,
       "entities": []
@@ -265,5 +257,5 @@
       "entities": []
     }
   },
-  "entity_count": 33
+  "entity_count": 31
 }

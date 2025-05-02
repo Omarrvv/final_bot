@@ -1,97 +1,209 @@
 # Egypt Tourism Chatbot
 
-## Architecture Migration Notice
+A modern, production-grade conversational AI chatbot for Egyptian tourism, built with **FastAPI** (backend, Python), **PostgreSQL** (primary DB), and **React** (frontend). The system leverages modular NLU, dialog, analytics, and advanced feature flags for maximum flexibility and scalability.
 
-This application has been migrated from a Flask-based architecture to FastAPI.
-The new application structure is contained in the `src/` directory with `src/main.py` as the entry point.
+---
 
-To start the application, use:
-```bash
-python -m uvicorn src.main:app --host 0.0.0.0 --port 5050
-```
+## 🚀 Key Features
 
-Or use the provided `start_chatbot.sh` script.
+- **FastAPI backend** with clean, modular architecture (`src/`)
+- **PostgreSQL** as the default and only supported DB (with support for JSONB, PostGIS, pgvector)
+- **Feature Flags** for toggling advanced NLU, dialog, RAG, service integrations, etc.
+- **Session Management** via Redis (preferred) or file fallback
+- **Security:** CORS, CSRF, input validation (Pydantic)
+- **Analytics & Monitoring:** Built-in endpoints for usage and performance stats
+- **React Frontend** with chat UI, suggestions, and feedback
+- **Comprehensive Test Suite** (pytest for backend, JS tests for frontend)
 
-A modern conversational AI chatbot for Egyptian tourism information, built with **FastAPI** (backend) and React (frontend).
+---
 
-## Project Structure
+## 🗂️ Project Structure
 
-- **Backend**: FastAPI application (`src/`) using dependency injection, with NLU, dialog management, and knowledge base components.
-- **Frontend**: React application (`react-frontend/`) with a modern chat interface, served by the FastAPI backend.
+- `src/` - FastAPI backend (main entry: `src/main.py`)
+- `src/api/` - API endpoint definitions (analytics, admin, auth, etc.)
+- `src/routes/` - Knowledge base and DB access endpoints
+- `src/knowledge/` - KnowledgeBase and DatabaseManager logic
+- `src/nlu/`, `src/dialog/`, `src/response/` - Modular NLU, dialog, and response generation
+- `src/utils/` - Settings, feature flags, dependency injection, logging, etc.
+- `react-frontend/` - React chat frontend
+- `tests/` - Backend test suite (pytest)
+- `data/`, `scripts/`, `docs/` - Data, migration, and documentation
 
-## Setup and Installation
+---
+
+## ⚙️ Setup and Installation
 
 ### Prerequisites
 
-- Conda (for environment management)
-- Python 3.12+ (as defined in `environment.yml`)
-- Node.js 14+ and npm (for building the frontend)
-- SQLite CLI (optional, for inspecting the database: `sudo apt-get install sqlite3` or `brew install sqlite`)
+- **Python 3.12+** (see `environment.yml`)
+- **PostgreSQL 13+** (with `postgis`, `pgvector` extensions enabled)
+- **Redis** (for sessions, if `USE_REDIS=true`)
+- **Node.js 14+** (for frontend)
+- **Conda** (recommended for env management)
 
-### Backend & Frontend Setup
+### Backend Setup
 
-1.  **Clone the repository:**
+1. **Clone the repo:**
+   ```bash
+   git clone <repository-url>
+   cd egypt-chatbot-wind-cursor
+   ```
+2. **Create and activate environment:**
+   ```bash
+   conda env create -f environment.yml
+   conda activate egypt-tourism
+   pip install -r requirements.txt
+   ```
+3. **Configure environment:**
+   ```bash
+   cp .env.example .env
+   # Edit .env to set DB URI, feature flags, API keys, etc.
+   ```
+4. **PostgreSQL setup:**
+   - Create DB: `createdb egypt_chatbot`
+   - Enable extensions: `CREATE EXTENSION IF NOT EXISTS postgis; CREATE EXTENSION IF NOT EXISTS vector;`
+   - Run migration scripts in `/scripts` or `/data` as needed
+5. **Redis (optional):**
+   - Start Redis if using session/limiter features
 
-    ```bash
-    git clone <repository-url>
-    cd egypt-chatbot-wind-cursor
-    ```
+### Frontend Setup
 
-2.  **Create Conda Environment:**
+1. **Install dependencies:**
+   ```bash
+   cd react-frontend
+   npm install
+   ```
+2. **Run frontend:**
+   ```bash
+   npm start
+   ```
 
-    ```bash
-    conda env create -f environment.yml
-    conda activate egypt-tourism
-    ```
+### Running the Application
 
-    _(This installs both Python and Node.js versions specified in the file)_
+- **Backend:**
+  ```bash
+  uvicorn src.main:app --host 0.0.0.0 --port 5050
+  ```
+- **Frontend:**
+  ```bash
+  cd react-frontend && npm start
+  ```
 
-3.  **Install Python Dependencies:** (If not fully handled by `environment.yml` or if changed)
+---
 
-    ```bash
-    pip install -r requirements.txt
-    ```
+## 🧩 Feature Flags
 
-4.  **Set up Environment Variables:**
-    Create a `.env` file in the project root by copying `.env.example`:
+Feature flags are set in `.env` and loaded via Pydantic settings:
 
-    ```bash
-    cp .env.example .env
-    ```
+- `USE_POSTGRES=true` (PostgreSQL only)
+- `USE_NEW_KB`, `USE_NEW_API`, `USE_NEW_NLU`, `USE_NEW_DIALOG`, `USE_RAG`, `USE_SERVICE_HUB`, `USE_REDIS` (see `.env.example` for all flags)
 
-    Edit the `.env` file and fill in necessary values:
+---
 
-    ```dotenv
-    # General
-    LOG_LEVEL=INFO
-    # Set TESTING=true for test environment specific settings (like file sessions)
-    TESTING=false
+## 🔌 API Endpoints (Core)
 
-    # Database & KB
-    DATABASE_URI="sqlite:///./data/egypt_chatbot.db" # Main SQLite DB
-    VECTOR_DB_URI="./data/vector_db"              # Local vector storage path
-    CONTENT_PATH="./data"                         # Path to JSON data sources
+- `/api/chat` - Main chat endpoint (POST)
+- `/api/knowledge/attractions`, `/hotels`, `/restaurants`, `/cities`, `/practical_info` - Search and retrieval
+- `/api/suggestions`, `/api/languages`, `/api/feedback`, `/api/health` - Support endpoints
+- `/stats/*` - Analytics/admin endpoints (admin only)
 
-    # Session Storage (Choose ONE)
-    # For Redis (Recommended - requires Redis server running, e.g., via docker-compose up -d redis)
-    SESSION_STORAGE_URI="redis://localhost:6379/0"
-    # For File Storage (Simpler, non-persistent across restarts if in temp dir)
-    # SESSION_STORAGE_URI="file://./data/sessions"
+---
 
-    # Services & APIs
-    ANTHROPIC_API_KEY="your-anthropic-api-key" # Required for LLM features
-    # WEATHER_API_KEY="your-weather-api-key"       # Optional: For weather service
-    # TRANSLATION_API_KEY="your-translation-key" # Optional: For translation service
+## 🧠 NLU, Dialog, and Response Pipeline
 
-    # Security (Required for user auth features)
-    JWT_SECRET="your-strong-secret-key-for-jwt" # IMPORTANT: Change this!
+- Modular pipeline: User input → NLU (intent/entity) → Dialog manager → Response generator → Output
+- NLU/Dialog/Response modules are feature-flagged and easily swappable
+- LLM integration (Anthropic Claude) available if API key is set
 
-    # Config Paths (Defaults usually okay)
-    # MODELS_CONFIG="./configs/models.json"
-    # FLOWS_CONFIG="./configs/dialog_flows.json"
-    # SERVICES_CONFIG="./configs/services.json"
-    # TEMPLATES_PATH="./configs/response_templates"
-    ```
+---
+
+## 📊 Analytics & Monitoring
+
+- Analytics events logged for user interactions, feedback, etc.
+- `/stats` endpoints provide admin access to usage, intent/entity, feedback, and message stats
+- Logging throughout the backend (Python `logging`)
+- [Prometheus/Grafana integration possible with further setup]
+
+---
+
+## 🧪 Testing
+
+- **Backend:**
+  - Run all tests: `pytest`
+  - Tests live in `/tests` (unit, integration, fixtures)
+- **Frontend:**
+  - Run in `react-frontend/` with `npm test`
+- **Test data:**
+  - Seed via scripts in `/scripts` or `/data` as needed
+
+---
+
+## 📝 Project Status & Roadmap
+
+- **Current:** Fully functional FastAPI + PostgreSQL backend, React frontend, analytics, modular NLU/dialog, admin endpoints, and test suite
+- **Next:** Enhance vector/geo search, expand analytics, improve CI/CD, add more languages, and optimize for production
+
+---
+
+## 🕰️ Historical Note
+
+- **Legacy SQLite support and Flask code have been deprecated.**
+- See `/docs` and `.cursor/rules/the-plan.md` for migration and refactoring history.
+
+---
+
+## 📚 Documentation
+
+- See `/docs` for DB schema, performance KPIs, and architecture details
+- See `.env.example` for all config options
+- See `/scripts` for migration and population scripts
+
+---
+
+## 🤝 Contributing
+
+- PRs, issues, and feedback welcome!
+- See `CONTRIBUTING.md` if present
+
+---
+
+## 📬 Contact
+
+- [Your contact info or team email here]
+
+  Edit the `.env` file and fill in necessary values:
+
+  ```dotenv
+  # General
+  LOG_LEVEL=INFO
+  # Set TESTING=true for test environment specific settings (like file sessions)
+  TESTING=false
+
+  # Database & KB
+  DATABASE_URI="postgresql://postgres:postgres@localhost:5432/egypt_chatbot" # PostgreSQL connection string
+  VECTOR_DB_URI="./data/vector_db"              # Local vector storage path
+  CONTENT_PATH="./data"                         # Path to JSON data sources
+
+  # Session Storage (Choose ONE)
+  # For Redis (Recommended - requires Redis server running, e.g., via docker-compose up -d redis)
+  SESSION_STORAGE_URI="redis://localhost:6379/0"
+  # For File Storage (Simpler, non-persistent across restarts if in temp dir)
+  # SESSION_STORAGE_URI="file://./data/sessions"
+
+  # Services & APIs
+  ANTHROPIC_API_KEY="your-anthropic-api-key" # Required for LLM features
+  # WEATHER_API_KEY="your-weather-api-key"       # Optional: For weather service
+  # TRANSLATION_API_KEY="your-translation-key" # Optional: For translation service
+
+  # Security (Required for user auth features)
+  JWT_SECRET="your-strong-secret-key-for-jwt" # IMPORTANT: Change this!
+
+  # Config Paths (Defaults usually okay)
+  # MODELS_CONFIG="./configs/models.json"
+  # FLOWS_CONFIG="./configs/dialog_flows.json"
+  # SERVICES_CONFIG="./configs/services.json"
+  # TEMPLATES_PATH="./configs/response_templates"
+  ```
 
 5.  **Initialize Database Schema:**
 
@@ -352,15 +464,14 @@ LOG_LEVEL=INFO
 
 # Architecture Transition Note
 
-**Important:** This project is transitioning from a dual architecture (Flask-based `app.py` and FastAPI-based `src/main.py`) to a consolidated FastAPI architecture using `src/main.py` exclusively. The transition plan is documented in `docs/architecture_transition.md`.
+**Important:** This project has completed its transition from a dual architecture (Flask-based `app.py` and FastAPI-based `src/main.py`) to a consolidated FastAPI architecture using `src/main.py` exclusively. The transition plan is documented in `docs/architecture_transition.md`.
 
-The main entry point for the application is now `src/main.py`, which is a FastAPI application. The root-level `main.py` file has been updated to import and run the application from `src/main.py` instead of `src/app.py`.
+The main entry point for the application is now `src/main.py`, which is a FastAPI application. There is no longer a `src/app.py` file; all application logic and router consolidation are handled in `src/main.py`.
 
 ### Key Changes:
 
-- Middleware configuration has been aligned between both files
-- Authentication middleware has been added to `src/main.py`
+- Middleware configuration and authentication are now handled in `src/main.py`
 - All routers have been consolidated in `src/main.py`
-- Deployment configurations have been updated to use `src/main.py`
+- Deployment configurations use `src/main.py` as the entry point
 
-In a future update, `src/app.py` will be removed entirely once testing confirms full stability.
+_Note: Any references to `src/app.py` are now obsolete and can be disregarded._

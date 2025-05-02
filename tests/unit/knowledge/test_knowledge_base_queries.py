@@ -7,19 +7,26 @@ from src.knowledge.knowledge_base import KnowledgeBase
 from src.knowledge.database import DatabaseManager
 
 # Sample data similar to what DatabaseManager might return
+import json
 SAMPLE_ATTRACTION_DATA = [
-    {"id": "att_1", "name_en": "Pyramids", "city_id": "cai", "type": "historical"},
-    {"id": "att_2", "name_en": "Khan el-Khalili", "city_id": "cai", "type": "shopping"}
+    {"id": "att_1", "name": json.dumps({"en": "Pyramids", "ar": "الأهرامات"}), "city_id": "cai", "type": "historical"},
+    {"id": "att_2", "name": json.dumps({"en": "Khan el-Khalili", "ar": "خان الخليلي"}), "city_id": "cai", "type": "shopping"}
 ]
 
 SAMPLE_HOTEL_DATA = {
-    "id": "hot_1", "name_en": "Nile Hotel", "city_id": "cai", "rating": 5
+    "id": "hot_1", 
+    "name": json.dumps({"en": "Nile Hotel", "ar": "فندق النيل"}), 
+    "name_en": "Nile Hotel",  # Add explicit name_en field for the test
+    "city_id": "cai", 
+    "rating": 5
 }
 
 @pytest.fixture
 def mock_db_manager():
     """Fixture for a mocked DatabaseManager."""
     mock = MagicMock(spec=DatabaseManager)
+    # Add db_type attribute that's accessed in KnowledgeBase.__init__
+    mock.db_type = "POSTGRES"
     # Default return values for common methods
     mock.search_attractions.return_value = []
     mock.search_hotels.return_value = []
@@ -78,7 +85,9 @@ def test_get_attraction_by_id_found(knowledge_base, mock_db_manager):
 
     assert result is not None
     assert result["id"] == attraction_id
-    assert result["name_en"] == "Pyramids"
+    import json
+    name = json.loads(result["name"])
+    assert name["en"] == "Pyramids"
     mock_db_manager.get_attraction.assert_called_once_with(attraction_id)
 
 def test_get_attraction_by_id_not_found(knowledge_base, mock_db_manager):
@@ -164,7 +173,7 @@ def test_lookup_location_found(knowledge_base, mock_db_manager):
     result = knowledge_base.lookup_location(location_name, language)
 
     assert result is not None
-    assert result["name"] == "Cairo"
+    assert result["name"]["en"] == "Cairo"  # Updated to check name.en instead of name
     assert "location" in result
     assert "latitude" in result["location"] 
     assert "longitude" in result["location"]
@@ -187,4 +196,4 @@ def test_lookup_location_not_found(knowledge_base, mock_db_manager):
 
 # Add tests for other search/get methods (e.g., restaurants, transportation)
 # Add tests for error handling if KnowledgeBase catches exceptions from db_manager
-# Add tests with different filter combinations, limits, offsets 
+# Add tests with different filter combinations, limits, offsets

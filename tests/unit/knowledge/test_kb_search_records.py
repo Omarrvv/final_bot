@@ -11,10 +11,10 @@ def mock_db_manager():
     """Create a mock DatabaseManager with search methods."""
     db_manager = MagicMock()
     # Set up success returns for all search methods
-    db_manager.search_attractions.return_value = [{"id": "attraction1", "name_en": "Test Attraction"}]
-    db_manager.search_hotels.return_value = [{"id": "hotel1", "name_en": "Test Hotel"}]
-    db_manager.search_restaurants.return_value = [{"id": "restaurant1", "name_en": "Test Restaurant"}]
-    db_manager.search_cities.return_value = [{"id": "city1", "name_en": "Test City"}]
+    db_manager.search_attractions.return_value = [{"id": "attraction1", "name": {"en": "Test Attraction", "ar": "معلم تجريبي"}}]
+    db_manager.search_hotels.return_value = [{"id": "hotel1", "name": {"en": "Test Hotel", "ar": "فندق تجريبي"}}]
+    db_manager.search_restaurants.return_value = [{"id": "restaurant1", "name": {"en": "Test Restaurant", "ar": "مطعم تجريبي"}}]
+    db_manager.search_cities.return_value = [{"id": "city1", "name": {"en": "Test City", "ar": "مدينة تجريبية"}}]
     
     return db_manager
 
@@ -42,7 +42,7 @@ def test_search_records_attractions(knowledge_base, mock_db_manager):
     )
     
     # Verify results are returned correctly
-    assert results == [{"id": "attraction1", "name_en": "Test Attraction"}]
+    assert results == [{"id": "attraction1", "name": {"en": "Test Attraction", "ar": "معلم تجريبي"}}]
 
 
 def test_search_records_accommodations(knowledge_base, mock_db_manager):
@@ -62,7 +62,7 @@ def test_search_records_accommodations(knowledge_base, mock_db_manager):
     )
     
     # Verify results are returned correctly
-    assert results == [{"id": "hotel1", "name_en": "Test Hotel"}]
+    assert results == [{"id": "hotel1", "name": {"en": "Test Hotel", "ar": "فندق تجريبي"}}]
 
 
 def test_search_records_restaurants(knowledge_base, mock_db_manager):
@@ -82,7 +82,7 @@ def test_search_records_restaurants(knowledge_base, mock_db_manager):
     )
     
     # Verify results are returned correctly
-    assert results == [{"id": "restaurant1", "name_en": "Test Restaurant"}]
+    assert results == [{"id": "restaurant1", "name": {"en": "Test Restaurant", "ar": "مطعم تجريبي"}}]
 
 
 def test_search_records_cities(knowledge_base, mock_db_manager):
@@ -103,7 +103,7 @@ def test_search_records_cities(knowledge_base, mock_db_manager):
     )
     
     # Verify results are returned correctly
-    assert results == [{"id": "city1", "name_en": "Test City"}]
+    assert results == [{"id": "city1", "name": {"en": "Test City", "ar": "مدينة تجريبية"}}]
 
 
 def test_search_records_cities_method_not_exists(knowledge_base, mock_db_manager):

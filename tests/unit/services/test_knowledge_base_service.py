@@ -2,17 +2,18 @@ import pytest
 from unittest.mock import MagicMock, patch
 
 # Adjust import path as necessary
-from src.services.knowledge_base import KnowledgeBase # Class from service file
+from src.services.knowledge_base_adapter import KnowledgeBase # Class from service file
 from src.knowledge.database import DatabaseManager
 
 # Sample data similar to what DatabaseManager might return
+import json
 SAMPLE_ATTRACTION_DATA = [
-    {"id": "att_1", "name_en": "Pyramids", "city_id": "cai", "type": "historical"},
-    {"id": "att_2", "name_en": "Khan el-Khalili", "city_id": "cai", "type": "shopping"}
+    {"id": "att_1", "name": json.dumps({"en": "Pyramids", "ar": "الأهرامات"}), "city_id": "cai", "type": "historical"},
+    {"id": "att_2", "name": json.dumps({"en": "Khan el-Khalili", "ar": "خان الخليلي"}), "city_id": "cai", "type": "shopping"}
 ]
 
 SAMPLE_HOTEL_DATA = {
-    "id": "hot_1", "name_en": "Nile Hotel", "city_id": "cai", "rating": 5
+    "id": "hot_1", "name": json.dumps({"en": "Nile Hotel", "ar": "فندق النيل"}), "city_id": "cai", "rating": 5
 }
 
 @pytest.fixture
@@ -70,7 +71,9 @@ def test_get_attraction_found(kb_service, mock_db_manager):
 
     assert result is not None
     assert result["id"] == attraction_id
-    assert result["name_en"] == "Pyramids"
+    import json
+    name = json.loads(result["name"])
+    assert name["en"] == "Pyramids"
     mock_db_manager.get_attraction_by_id.assert_called_once_with(attraction_id)
 
 def test_get_attraction_not_found(kb_service, mock_db_manager):

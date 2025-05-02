@@ -16,7 +16,7 @@ class FeatureFlags(BaseSettings):
     # Core architecture flags
     use_new_kb: bool = Field(default=False, description="Use the new Knowledge Base implementation", env="USE_NEW_KB")
     use_new_api: bool = Field(default=False, description="Use FastAPI instead of Flask", env="USE_NEW_API")
-    use_postgres: bool = Field(default=False, description="Use PostgreSQL instead of SQLite", env="USE_POSTGRES")
+    use_postgres: bool = Field(default=True, description="Use PostgreSQL instead of SQLite", env="USE_POSTGRES")
     
     # Advanced features flags
     use_new_nlu: bool = Field(default=False, description="Use the advanced NLU engine", env="USE_NEW_NLU")
@@ -45,19 +45,50 @@ class Settings(BaseSettings):
     log_level: str = Field(default="INFO")
     
     # Database
-    database_uri: str = Field(default="sqlite:///./data/egypt_chatbot.db")
+    database_uri: str = Field(
+        default="postgresql://user:password@localhost:5432/egypt_chatbot",
+        description="PostgreSQL database connection URI",
+        env="POSTGRES_URI"
+    )
     vector_db_uri: str = Field(default="./data/vector_db")
     content_path: str = Field(default="./data")
     
     # Session storage
-    session_storage_uri: str = Field(default="file:///./data/sessions")
-    redis_url: str = Field(default="redis://localhost:6379/0")
+    session_storage_uri: str = Field(
+        default="file:///./data/sessions",
+        description="URI for session storage. Will use Redis if USE_REDIS is true"
+    )
+    redis_url: str = Field(
+        default="redis://localhost:6379/0",
+        env="REDIS_URL"
+    )
+    redis_host: str = Field(default="localhost", env="REDIS_HOST")
+    redis_port: int = Field(default=6379, env="REDIS_PORT")
+    redis_db: int = Field(default=0, env="REDIS_DB")
+    redis_password: Optional[str] = Field(default=None, env="REDIS_PASSWORD")
     
     # API configuration
     api_host: str = Field(default="0.0.0.0")
     api_port: int = Field(default=5000)
     frontend_url: Optional[str] = Field(default=None)
-    allowed_origins: str = Field(default="http://localhost:3000")
+    allowed_origins: str = Field(default="http://localhost:3000,http://localhost:5050")
+    _allowed_origins_list: List[str] = []
+
+    @field_validator("allowed_origins")
+    def parse_allowed_origins(cls, v: str) -> str:
+        """Store raw string value and return it."""
+        return v
+        
+    @property
+    def cors_origins(self) -> List[str]:
+        """Get allowed origins as a list."""
+        if not self._allowed_origins_list:
+            self._allowed_origins_list = [
+                origin.strip() 
+                for origin in self.allowed_origins.split(",") 
+                if origin.strip()
+            ]
+        return self._allowed_origins_list
     
     # Security
     jwt_secret: str = Field(default="generate_a_strong_secret_key_here")
@@ -92,48 +123,6 @@ class Settings(BaseSettings):
         
         # Parse log level
         self.log_level = self.log_level.upper()
-        
-        # Initialize feature flags explicitly with direct environment variable checks
-        # feature_flags_dict = {}
-        # feature_flags_dict["use_new_kb"] = os.getenv("USE_NEW_KB", "false").lower() == "true"
-        # feature_flags_dict["use_new_api"] = os.getenv("USE_NEW_API", "false").lower() == "true"
-        # feature_flags_dict["use_postgres"] = os.getenv("USE_POSTGRES", "false").lower() == "true"
-        # feature_flags_dict["use_new_nlu"] = os.getenv("USE_NEW_NLU", "false").lower() == "true"
-        # feature_flags_dict["use_new_dialog"] = os.getenv("USE_NEW_DIALOG", "false").lower() == "true"
-        # feature_flags_dict["use_rag"] = os.getenv("USE_RAG", "false").lower() == "true"
-        # feature_flags_dict["use_redis"] = os.getenv("USE_REDIS", "false").lower() == "true"
-        # feature_flags_dict["use_service_hub"] = os.getenv("USE_SERVICE_HUB", "false").lower() == "true"
-        # 
-        # # Log the actual environment values we're using for feature flags
-        # logger.info("Feature flag values directly from environment variables:")
-        # for key, value in feature_flags_dict.items():
-        #     logger.info(f"  {key.upper()} (from env): {value}")
-        # 
-        # # Create FeatureFlags instance with the dictionary values
-        # self.feature_flags = FeatureFlags(**feature_flags_dict)
-        # Rely on Pydantic's default env var loading for feature_flags
-        pass # No explicit feature flag init needed here if loaded via pydantic
-    
-    @field_validator("allowed_origins")
-    def validate_allowed_origins(cls, v, info):
-        """Validate allowed origins and add frontend_url if set."""
-        if not v:
-            v = ["http://localhost:3000"]
-        
-        # Handle string input (comma-separated)
-        if isinstance(v, str):
-            v = [origin.strip() for origin in v.split(",")]
-        
-        # Add frontend_url to allowed_origins if set and not already present
-        frontend_url = os.getenv("FRONTEND_URL")
-        if frontend_url and frontend_url not in v and frontend_url != "*":
-            v.append(frontend_url)
-            
-        # Check for insecure wildcard with credentials
-        if "*" in v:
-            logger.warning("SECURITY RISK: Using wildcard (*) for CORS allowed_origins with credentials is unsafe and violates the CORS spec")
-            
-        return v
     
     def as_dict(self) -> Dict[str, Any]:
         """Convert settings to a dictionary, handling SecretStr fields."""
@@ -163,5 +152,24 @@ class Settings(BaseSettings):
         # Log feature flags separately
         self.feature_flags.log_status()
     
+    @model_validator(mode='after')
+    def validate_storage_config(self):
+        """Update storage URIs based on feature flags."""
+        # Log database setup
+        logger.info(f"Using PostgreSQL database URI: {self.database_uri}")
+            
+        # Handle session storage URI
+        if self.feature_flags.use_redis:
+            # Construct Redis URL if individual components are provided
+            if all([self.redis_host, self.redis_port]):
+                auth = f":{self.redis_password}@" if self.redis_password else ""
+                self.redis_url = f"redis://{auth}{self.redis_host}:{self.redis_port}/{self.redis_db}"
+            self.session_storage_uri = self.redis_url
+            logger.info("Redis enabled for session storage")
+        else:
+            logger.info("Using file-based session storage")
+            
+        return self
+    
 # Create a global instance
-settings = Settings() 
+settings = Settings()

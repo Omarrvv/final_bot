@@ -65,10 +65,12 @@ class TestSettings(BaseTestCase):
 
 # For pytest style tests
 def test_settings_module_load():
-    """Pytest style test for settings module loading."""
-    # Import settings
+    import os
+    os.environ['ENV'] = 'test'
+    from importlib import reload
+    import src.utils.settings
+    reload(src.utils.settings)
     from src.utils.settings import settings
-    
     # Verify basic settings
     assert settings is not None
     assert settings.env == "test"

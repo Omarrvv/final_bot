@@ -4,7 +4,7 @@ Chat-related API endpoints for FastAPI.
 import logging
 from typing import Optional, Dict, Any, List
 from fastapi import APIRouter, Request, Depends, HTTPException, Body
-from fastapi_limiter.depends import RateLimiter
+
 import os
 
 from ...models.api_models import ChatMessageRequest, ChatbotResponse, SuggestionsResponse
@@ -39,18 +39,9 @@ def get_chatbot():
         raise HTTPException(status_code=500, detail="Chatbot service not available")
 
 # Conditional rate limiter based on environment
-def get_rate_limiter():
-    """
-    Get rate limiter dependency or skip based on environment.
-    """
-    # Skip rate limiting in test environment
-    if os.getenv("TESTING") == "true" or os.getenv("USE_REDIS", "").lower() == "false":
-        return []
-    return [Depends(RateLimiter(times=10, seconds=60))]
 
-@router.post("/chat", response_model=ChatbotResponse, 
-             dependencies=get_rate_limiter(),
-             tags=["Chat"])
+
+@router.post("/chat", response_model=ChatbotResponse, tags=["Chat"])
 async def chat_endpoint(
     message_request: ChatMessageRequest,
     request: Request,

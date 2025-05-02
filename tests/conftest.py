@@ -12,7 +12,8 @@ from fastapi.testclient import TestClient
 import secrets
 import jwt
 from datetime import datetime, timedelta, timezone
-import sqlite3
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 # Import DatabaseManager for fixture
 from src.knowledge.database import DatabaseManager
@@ -111,8 +112,7 @@ def app():
 
 @pytest.fixture
 def client(app): 
-    """Provides a FastAPI TestClient instance that handles lifespan."""
-    # TestClient handles startup/shutdown (lifespan) automatically
+    """Provides a FastAPI TestClient instance."""
     with TestClient(app) as test_client:
         yield test_client
 
@@ -132,7 +132,7 @@ def minimal_app():
 async def minimal_client(minimal_app):
     """Async client for the minimal FastAPI app."""
     from httpx import AsyncClient
-    async with AsyncClient(app=minimal_app, base_url="http://test") as client:
+    async with AsyncClient(base_url="http://test") as client:
         yield client
 
 @pytest.fixture
@@ -171,112 +171,154 @@ def authenticated_client(app, test_auth_token, mock_session_validate):
 @pytest.fixture
 def initialized_db_manager():
     """Fixture that provides a DatabaseManager with properly initialized tables."""
-    # Use in-memory database for tests
-    db_uri = "sqlite:///:memory:"
+    # Use PostgreSQL for tests
+    db_uri = os.environ.get("POSTGRES_URI") or "postgresql://postgres:postgres@localhost:5432/egypt_chatbot_test"
     db_manager = DatabaseManager(database_uri=db_uri)
     
-    # Create tables
-    db_manager._create_sqlite_tables()
-    
-    # Insert test data for attractions
-    cursor = db_manager.connection.cursor()
-    
-    # Insert a test attraction
-    test_attraction = {
-        "id": "test_attraction_1",
-        "name_en": "Test Attraction",
-        "name_ar": "معلم اختبار",
-        "type": "historical",
-        "city": "Cairo",
-        "region": "Cairo",
-        "latitude": 30.0444,
-        "longitude": 31.2357,
-        "description_en": "A test attraction description",
-        "description_ar": "وصف لمعلم اختبار",
-        "data": json.dumps({"details": "Test details"}),
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "updated_at": datetime.now(timezone.utc).isoformat()
-    }
-    
-    cursor.execute('''
-        INSERT INTO attractions (
-            id, name_en, name_ar, type, city, region, latitude, longitude,
-            description_en, description_ar, data, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (
-        test_attraction["id"], test_attraction["name_en"], test_attraction["name_ar"],
-        test_attraction["type"], test_attraction["city"], test_attraction["region"],
-        test_attraction["latitude"], test_attraction["longitude"],
-        test_attraction["description_en"], test_attraction["description_ar"],
-        test_attraction["data"], test_attraction["created_at"], test_attraction["updated_at"]
-    ))
-    
-    # Insert a test restaurant
-    test_restaurant = {
-        "id": "test_restaurant_1",
-        "name_en": "Test Restaurant",
-        "name_ar": "مطعم اختبار",
-        "type": "restaurant",
-        "cuisine": "Egyptian",
-        "city": "Cairo",
-        "region": "Cairo",
-        "latitude": 30.0444,
-        "longitude": 31.2357,
-        "description_en": "A test restaurant description",
-        "description_ar": "وصف لمطعم اختبار",
-        "data": json.dumps({"price_range": "moderate"}),
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "updated_at": datetime.now(timezone.utc).isoformat()
-    }
-    
-    cursor.execute('''
-        INSERT INTO restaurants (
-            id, name_en, name_ar, cuisine, city, region, latitude, longitude,
-            description_en, description_ar, data, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (
-        test_restaurant["id"], test_restaurant["name_en"], test_restaurant["name_ar"],
-        test_restaurant["cuisine"], test_restaurant["city"], test_restaurant["region"],
-        test_restaurant["latitude"], test_restaurant["longitude"],
-        test_restaurant["description_en"], test_restaurant["description_ar"],
-        test_restaurant["data"], test_restaurant["created_at"], test_restaurant["updated_at"]
-    ))
-    
-    # Insert a test hotel/accommodation
-    test_hotel = {
-        "id": "test_hotel_1",
-        "name_en": "Test Hotel",
-        "name_ar": "فندق اختبار",
-        "type": "hotel",
-        "star_rating": 4,
-        "city": "Cairo",
-        "region": "Cairo",
-        "latitude": 30.0444,
-        "longitude": 31.2357,
-        "description_en": "A test hotel description",
-        "description_ar": "وصف لفندق اختبار",
-        "data": json.dumps({"amenities": ["wifi", "pool"]}),
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "updated_at": datetime.now(timezone.utc).isoformat()
-    }
-    
-    cursor.execute('''
-        INSERT INTO accommodations (
-            id, name_en, name_ar, type, city, region, latitude, longitude,
-            description_en, description_ar, data, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (
-        test_hotel["id"], test_hotel["name_en"], test_hotel["name_ar"],
-        test_hotel["type"], test_hotel["city"], test_hotel["region"],
-        test_hotel["latitude"], test_hotel["longitude"],
-        test_hotel["description_en"], test_hotel["description_ar"],
-        test_hotel["data"], test_hotel["created_at"], test_hotel["updated_at"]
-    ))
-    
-    # Commit changes
-    db_manager.connection.commit()
-    
-    return db_manager
+    # Insert test data into PostgreSQL tables
+    try:
+        # Get connection from the pool
+        conn = db_manager._get_pg_connection()
+        with conn:
+            with conn.cursor() as cursor:
+                # Clean up any existing test data to avoid conflicts
+                cursor.execute("DELETE FROM restaurants WHERE id = %s", ("test_restaurant_1",))
+                cursor.execute("DELETE FROM accommodations WHERE id = %s", ("test_hotel_1",))
+                cursor.execute("DELETE FROM attractions WHERE id = %s", ("test_attraction_1",))
+                cursor.execute("DELETE FROM cities WHERE id = %s", ("test_city_1",))
+                
+                # Insert test restaurant
+                test_restaurant = {
+                    "id": "test_restaurant_1",
+                    "name_en": "Test Restaurant",
+                    "name_ar": "مطعم اختبار",
+                    "cuisine": "Egyptian",
+                    "city": "Cairo",
+                    "region": "Cairo",
+                    "latitude": 30.0444,
+                    "longitude": 31.2357,
+                    "description_en": "A test restaurant description",
+                    "description_ar": "وصف لمطعم اختبار",
+                    "data": json.dumps({"price_range": "moderate"}),
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }
+                
+                cursor.execute("""
+                    INSERT INTO restaurants (
+                        id, name_en, name_ar, cuisine, city, region, latitude, longitude,
+                        description_en, description_ar, data, created_at, updated_at
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    test_restaurant["id"], test_restaurant["name_en"], test_restaurant["name_ar"],
+                    test_restaurant["cuisine"], test_restaurant["city"], test_restaurant["region"],
+                    test_restaurant["latitude"], test_restaurant["longitude"],
+                    test_restaurant["description_en"], test_restaurant["description_ar"],
+                    test_restaurant["data"], test_restaurant["created_at"], test_restaurant["updated_at"]
+                ))
+                
+                # Insert test hotel/accommodation
+                test_hotel = {
+                    "id": "test_hotel_1",
+                    "name_en": "Test Hotel",
+                    "name_ar": "فندق اختبار",
+                    "type": "hotel",
+                    "stars": 4,
+                    "city": "Cairo",
+                    "region": "Cairo",
+                    "latitude": 30.0444,
+                    "longitude": 31.2357,
+                    "description_en": "A test hotel description",
+                    "description_ar": "وصف لفندق اختبار",
+                    "data": json.dumps({"amenities": ["wifi", "pool"]}),
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }
+                
+                cursor.execute("""
+                    INSERT INTO accommodations (
+                        id, name_en, name_ar, type, city, region, latitude, longitude,
+                        description_en, description_ar, data, created_at, updated_at
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    test_hotel["id"], test_hotel["name_en"], test_hotel["name_ar"],
+                    test_hotel["type"], test_hotel["city"], test_hotel["region"],
+                    test_hotel["latitude"], test_hotel["longitude"],
+                    test_hotel["description_en"], test_hotel["description_ar"],
+                    test_hotel["data"], test_hotel["created_at"], test_hotel["updated_at"]
+                ))
+                
+                # Insert test attraction
+                test_attraction = {
+                    "id": "test_attraction_1",
+                    "name_en": "Test Attraction",
+                    "name_ar": "معلم اختبار",
+                    "type": "monument",
+                    "city": "Cairo",
+                    "region": "Cairo",
+                    "latitude": 30.0444,
+                    "longitude": 31.2357,
+                    "description_en": "A test attraction description",
+                    "description_ar": "وصف لمعلم اختبار",
+                    "data": json.dumps({"entry_fee": "100 EGP", "rating": 4.8}),
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }
+                
+                cursor.execute("""
+                    INSERT INTO attractions (
+                        id, name_en, name_ar, type, city, region, latitude, longitude,
+                        description_en, description_ar, data, created_at, updated_at
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    test_attraction["id"], test_attraction["name_en"], test_attraction["name_ar"],
+                    test_attraction["type"], test_attraction["city"], test_attraction["region"],
+                    test_attraction["latitude"], test_attraction["longitude"],
+                    test_attraction["description_en"], test_attraction["description_ar"],
+                    test_attraction["data"], test_attraction["created_at"], test_attraction["updated_at"]
+                ))
+                
+                # Insert test city
+                test_city = {
+                    "id": "test_city_1",
+                    "name_en": "Test City",
+                    "name_ar": "مدينة اختبار",
+                    "region": "Test Region",
+                    "latitude": 30.0444,
+                    "longitude": 31.2357,
+                    "data": json.dumps({"population": 1000000, "attractions": ["test_attraction_1"]}),
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }
+                
+                cursor.execute("""
+                    INSERT INTO cities (
+                        id, name_en, name_ar, region, latitude, longitude,
+                        data, created_at, updated_at
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    test_city["id"], test_city["name_en"], test_city["name_ar"],
+                    test_city["region"], test_city["latitude"], test_city["longitude"],
+                    test_city["data"], test_city["created_at"], test_city["updated_at"]
+                ))
+                
+                # Update geospatial data
+                if db_manager._check_postgis_enabled():
+                    for table in ["cities", "attractions", "restaurants", "accommodations"]:
+                        cursor.execute(f"""
+                            UPDATE {table} SET geom = ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)
+                            WHERE geom IS NULL AND latitude IS NOT NULL AND longitude IS NOT NULL
+                        """)
+                
+                conn.commit()
+        
+        # Return connection to pool
+        db_manager._return_pg_connection(conn)
+        
+        yield db_manager
+    finally:
+        # Ensure connection is closed properly
+        db_manager.close()
 
 @pytest.fixture
 def test_knowledge_base(initialized_db_manager):

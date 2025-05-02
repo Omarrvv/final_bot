@@ -12,11 +12,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
 import time
-from starlette.routing import Match 
-# Rate Limiting Imports
-import redis.asyncio as redis
-from fastapi_limiter import FastAPILimiter
-from fastapi_limiter.depends import RateLimiter
+from starlette.routing import Match
 from typing import Optional, AsyncGenerator, List, Dict, Any, Union
 from contextlib import asynccontextmanager
 from pydantic import BaseModel, Field
@@ -63,7 +59,7 @@ from src.api.auth import router as auth_router
 from src.api.protected import router as protected_router
 from src.utils.exceptions import ChatbotError
 # Import database router
-from src.routes.database import router as database_router
+from src.routes.db_routes import router as database_router
 
 # --- Define Project Root Path ---
 # Get the absolute path of the directory containing this file (src/)
@@ -129,7 +125,10 @@ session_service: Optional[SessionService] = None  # For auth middleware
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    """Handles application startup and shutdown events."""
+    """
+    Handles application startup and shutdown events.
+    """
+    print("[DEBUG] LIFESPAN STARTED!")
     global chatbot_instance, session_service
     logger.info("Application startup: Initializing components...")
     
@@ -173,39 +172,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.error(f"Failed to set up session service Redis connection: {e}", exc_info=True)
         logger.warning("Session management will use mock Redis client")
 
-    # Initialize Rate Limiter
-    logger.info("Application startup: Initializing Rate Limiter...")
-    # Enhanced testing detection - check for TESTING env var or USE_REDIS=false
-    is_testing = os.getenv("TESTING") == "true" or os.getenv("USE_REDIS", "").lower() == "false"
-    is_docker = os.path.exists("/.dockerenv")
-    
-    # Determine Redis URI based on environment
-    redis_uri = "redis://redis:6379/1" if is_docker else "redis://localhost:6379/1"
-    if settings.redis_url:
-        redis_uri = settings.redis_url
-    
-    if is_testing:
-        logger.warning("Testing environment detected (TESTING=true or USE_REDIS=false). Skipping Rate Limiter initialization.")
-    else:
-        try:
-            # Try to connect to Redis with a shorter timeout
-            logger.info(f"Attempting to connect to Redis at {redis_uri}")
-            redis_connection = await redis.from_url(
-                redis_uri,
-                encoding="utf-8",
-                decode_responses=True,
-                socket_timeout=2,  # Shorter timeout to avoid hanging tests
-                socket_connect_timeout=2  # Shorter connection timeout
-            )
-            await FastAPILimiter.init(redis_connection)
-            logger.info("Rate Limiter initialized successfully.")
-        except ImportError as e:
-            logger.error(f"Redis library not installed: {e}")
-            logger.warning("Rate limiting disabled. Run: pip install redis")
-        except Exception as e:
-            logger.error(f"Failed to initialize rate limiter: {e}", exc_info=True)
-            logger.warning("Rate limiting disabled due to initialization error.")
-    
+
     yield # Application runs here
     
     # Shutdown: Clean up resources
@@ -219,18 +186,17 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         except Exception as e:
             logger.error(f"Error closing SessionService Redis connection: {e}", exc_info=True)
     
-    # Close Redis connection if it exists
-    if 'redis_connection' in locals():
-        await redis_connection.close()
-        logger.info("Rate Limiter Redis connection closed.")
-    
     # Close DB connections
     if chatbot_instance and hasattr(chatbot_instance, 'db_manager'):
-        try:
-            chatbot_instance.db_manager.close()
-            logger.info("Database connections closed.")
-        except Exception as e:
-            logger.error(f"Error closing database connections: {e}", exc_info=True)
+        db_manager = chatbot_instance.db_manager
+        if hasattr(db_manager, 'close'):
+            try:
+                db_manager.close()
+                logger.info("Database connections closed.")
+            except Exception as e:
+                logger.error(f"Error closing database manager: {e}")
+        else:
+            logger.info("No close() method found on db_manager; skipping DB shutdown.")
     
     logger.info("Application shutdown complete.")
 
@@ -273,34 +239,44 @@ except Exception as e:
     logger.warning("CORS protection will be disabled. This is a security risk.")
 
 # --- Add Auth Middleware ---
-# We need to initialize a temporary session service for middleware addition
-# The actual Redis connection will happen in the lifespan context
-try:
-    from src.middleware.auth import add_auth_middleware
-    from src.services.session import SessionService
-    from unittest.mock import MagicMock
-    
-    # Create a temporary mock session service for middleware setup
-    # The real connection will be established in the lifespan
-    temp_session_service = SessionService(MagicMock())
-    
-    # Add auth middleware with the temporary service
-    add_auth_middleware(
-        app=app,
-        session_service=temp_session_service,
-        public_paths=["/api/chat", "/api/health", "/api/suggestions", "/api/languages", "/api/reset", "/api/feedback"]
-    )
-    logger.info("Authentication middleware added")
-except Exception as e:
-    logger.error(f"Failed to add auth middleware: {e}", exc_info=True)
-    logger.warning("Authentication will be disabled")
+import os
+is_testing = os.getenv("TESTING", "").lower() == "true" or os.getenv("AUTH_TESTING_MODE", "").lower() == "true"
+if is_testing:
+    logger.warning("Skipping authentication middleware in test mode")
+else:
+    try:
+        from src.middleware.auth import add_auth_middleware
+        from src.services.session import SessionService
+        from unittest.mock import MagicMock
+
+        # Create a temporary mock session service for middleware setup
+        temp_session_service = SessionService(MagicMock())
+
+        # Define public paths for auth bypass
+        public_paths = [
+            "/api/chat", "/api/health", "/api/suggestions",
+            "/api/languages", "/api/reset", "/api/feedback",
+            "/api/v1/auth/login", "/api/v1/auth/logout"
+        ]
+
+        add_auth_middleware(
+            app=app,
+            session_service=temp_session_service,
+            public_paths=public_paths,
+            testing_mode=False
+        )
+        logger.info("Authentication middleware added")
+    except Exception as e:
+        logger.error(f"Failed to add auth middleware: {e}", exc_info=True)
+        logger.warning("Authentication will be disabled")
 
 # --- Add CSRF Middleware ---
 try:
     exclude_urls = [
         "/docs", "/redoc", "/openapi.json", "/api/health",
         "/api/csrf-token", "/api/chat", "/api/reset", 
-        "/api/suggestions", "/api/languages", "/api/feedback"
+        "/api/suggestions", "/api/languages", "/api/feedback",
+        "/api/v1/auth/login", "/api/v1/auth/logout"  # Add auth endpoints
     ]
     
     add_csrf_middleware(
@@ -364,9 +340,10 @@ else:
     logger.warning(f"Static folder not found at: {static_folder_path}")
     logger.warning("Static file serving disabled")
 
+print(f"[DEBUG] APP ID: {id(app)}, MODULE: {app.__module__}")
 # Entry point for direct execution
 if __name__ == "__main__":
     port = int(os.getenv("API_PORT", "5050"))
     host = os.getenv("API_HOST", "0.0.0.0")
     logger.info(f"Starting uvicorn server on {host}:{port}")
-    uvicorn.run(app, host=host, port=port) 
+    uvicorn.run(app, host=host, port=port)
