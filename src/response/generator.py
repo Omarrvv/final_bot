@@ -404,6 +404,15 @@ class ResponseGenerator:
         }
     
     def _get_template(self, template_name: str, language: str) -> str:
+        # Debug: print types and values
+        logger.debug(f"_get_template called with template_name={template_name} (type={type(template_name)}), language={language} (type={type(language)})")
+        # Ensure keys are strings
+        if not isinstance(template_name, str):
+            logger.warning(f"template_name is not a string: {template_name} (type={type(template_name)})")
+            template_name = str(template_name)
+        if not isinstance(language, str):
+            logger.warning(f"language is not a string: {language} (type={type(language)})")
+            language = str(language)
         """Get a template text for the specified template name and language."""
         # Convert numeric response types to strings if needed
         if isinstance(template_name, (int, float)):

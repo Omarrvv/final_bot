@@ -7,6 +7,8 @@ import re
 import json
 from typing import Dict, List, Any, Optional, Tuple
 import numpy as np
+import time
+import hashlib
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +40,7 @@ class RAGPipeline:
         self.max_chunks = self.config.get("max_chunks", 5)
         self.min_similarity = self.config.get("min_similarity", 0.6)
         self.context_window = self.config.get("context_window", 2000)
+        self.cache_enabled = self.config.get("cache_enabled", True)
     
     def generate_response(self, query: str, session_id: str, language: str = "en") -> Dict[str, Any]:
         """
@@ -213,8 +216,6 @@ class RAGPipeline:
         else:
             # No specific attraction mentioned, use search
             return self._search_attractions(query, intent, entities, language)
-    
-    # [Additional methods omitted for brevity]
     
     def _process_general_query(self, query: str, intent: str, context: Dict, 
                            language: str) -> Dict[str, Any]:
@@ -430,3 +431,180 @@ class RAGPipeline:
             return f"عذراً، لم أتمكن من العثور على معالم سياحية في {location}. هل تريد البحث في مكان آخر؟"
         else:
             return f"I couldn't find any attractions in {location}. Would you like to search for attractions in another area?"
+    
+    def retrieve_content(self, query: str, limit: int = 5, use_hybrid: bool = True, 
+                         content_types: List[str] = None, rerank: bool = True,
+                         search_threshold: float = 0.65) -> List[Dict]:
+        """
+        Enhanced retrieval function that leverages hybrid search and optional reranking
+        
+        Args:
+            query: The user query to search for
+            limit: Maximum number of results to return
+            use_hybrid: Whether to use hybrid search (vector + keyword) or just vector search
+            content_types: List of content types to search (e.g., ['restaurants', 'hotels'])
+            rerank: Whether to rerank results after retrieval
+            search_threshold: Minimum similarity score threshold
+            
+        Returns:
+            List of relevant content items
+        """
+        start_time = time.time()
+        
+        # Get embedding for the query
+        query_embedding = self.get_query_embedding(query)
+        
+        if not content_types:
+            content_types = ['attractions', 'restaurants', 'hotels', 'cities', 'tours', 'practical_info']
+            
+        all_results = []
+        
+        # Set cache key
+        cache_key = f"rag_{hashlib.md5(query.encode()).hexdigest()}_{'_'.join(content_types)}"
+        
+        # Try to get from cache first
+        if self.cache_enabled:
+            cached_results = self.get_from_cache(cache_key)
+            if cached_results:
+                logger.info(f"Retrieved results for '{query}' from cache")
+                return cached_results
+        
+        for content_type in content_types:
+            try:
+                # Determine search method based on content type and use_hybrid flag
+                if use_hybrid:
+                    # Use hybrid search combining vector and keyword search
+                    method_name = f"hybrid_search_{content_type}"
+                    search_method = getattr(self.db_manager, method_name, None)
+                    
+                    if search_method:
+                        results = search_method(
+                            query=query,
+                            embedding=query_embedding,
+                            limit=limit,
+                            threshold=search_threshold
+                        )
+                    else:
+                        # Fallback to basic vector search if hybrid not implemented
+                        logger.warning(f"Hybrid search not implemented for {content_type}, falling back to vector search")
+                        method_name = f"vector_search_{content_type}"
+                        search_method = getattr(self.db_manager, method_name, None)
+                        if search_method:
+                            results = search_method(
+                                embedding=query_embedding, 
+                                limit=limit,
+                                threshold=search_threshold
+                            )
+                        else:
+                            logger.warning(f"Vector search not implemented for {content_type}")
+                            continue
+                else:
+                    # Use pure vector search
+                    method_name = f"vector_search_{content_type}"
+                    search_method = getattr(self.db_manager, method_name, None)
+                    if search_method:
+                        results = search_method(
+                            embedding=query_embedding, 
+                            limit=limit,
+                            threshold=search_threshold
+                        )
+                    else:
+                        logger.warning(f"Vector search not implemented for {content_type}")
+                        continue
+                
+                # Tag results with their source
+                for result in results:
+                    result['source'] = content_type
+                    result['source_type'] = 'database'
+                
+                all_results.extend(results)
+                
+            except Exception as e:
+                logger.error(f"Error retrieving {content_type} content: {str(e)}")
+        
+        # Rerank results if requested
+        if rerank and all_results and len(all_results) > 1:
+            all_results = self.rerank_results(query, all_results)
+        
+        # Sort by similarity score (higher is better)
+        all_results = sorted(all_results, key=lambda x: x.get('similarity', 0), reverse=True)
+        
+        # Limit total results
+        all_results = all_results[:limit]
+        
+        # Save to cache if enabled
+        if self.cache_enabled:
+            self.save_to_cache(cache_key, all_results)
+        
+        duration = time.time() - start_time
+        logger.info(f"RAG retrieval completed in {duration:.2f}s with {len(all_results)} results")
+        
+        return all_results
+    
+    def rerank_results(self, query: str, results: List[Dict]) -> List[Dict]:
+        """
+        Reranks results based on multiple factors including:
+        - Query-text relevance
+        - Geographic proximity (if applicable)
+        - User preferences (if available)
+        - Content freshness
+        
+        Args:
+            query: Original user query
+            results: List of search results to rerank
+            
+        Returns:
+            Reranked results list
+        """
+        try:
+            # Extract query terms for text matching
+            query_terms = set(self._preprocess_text(query))
+            
+            for result in results:
+                # Start with original similarity score (0-1)
+                base_score = result.get('similarity', 0)
+                
+                # Check for text match boost using title and description
+                text_match_score = 0
+                title = result.get('title', '')
+                description = result.get('description', '')
+                
+                if title or description:
+                    # Calculate term overlap with query
+                    title_terms = set(self._preprocess_text(title))
+                    desc_terms = set(self._preprocess_text(description))
+                    all_terms = title_terms.union(desc_terms)
+                    
+                    # Calculate overlap ratio (Jaccard similarity)
+                    if query_terms and all_terms:
+                        overlap = len(query_terms.intersection(all_terms))
+                        text_match_score = overlap / len(query_terms) * 0.15  # Max 15% boost
+                
+                # Final reranked score (base + text match boost)
+                result['original_similarity'] = base_score
+                result['similarity'] = min(1.0, base_score + text_match_score)
+                result['reranked'] = True
+            
+            return results
+            
+        except Exception as e:
+            logger.error(f"Error during result reranking: {str(e)}")
+            # Return original results if reranking fails
+            return results
+    
+    def _preprocess_text(self, text: str) -> List[str]:
+        """Simple preprocessing for text matching"""
+        if not text:
+            return []
+        
+        # Convert to lowercase and remove punctuation
+        text = text.lower()
+        text = re.sub(r'[^\w\s]', ' ', text)
+        
+        # Split into words and remove stopwords
+        words = text.split()
+        stopwords = {'the', 'a', 'an', 'and', 'or', 'but', 'is', 'are', 'in', 
+                     'to', 'for', 'of', 'with', 'by', 'at', 'from'}
+        words = [w for w in words if w not in stopwords]
+        
+        return words

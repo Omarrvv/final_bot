@@ -6,7 +6,7 @@ This module provides API routes for accessing the tourism knowledge base.
 from typing import Dict, List, Optional, Any
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
-from src.services.knowledge_base import KnowledgeBase
+from src.services.knowledge_base_adapter import KnowledgeBase
 from src.utils.dependencies import get_optional_user
 from src.models.user import User
 from src.utils.logger import get_logger

@@ -19,6 +19,20 @@ logger = get_logger(__name__)
 
 
 class PostgresqlDatabaseManager:
+    def close(self):
+        """Close the PostgreSQL connection or pool."""
+        try:
+            if hasattr(self, 'pg_pool') and self.pg_pool:
+                self.pg_pool.closeall()
+                self.pg_pool = None
+                logger.info("Closed PostgreSQL connection pool.")
+            if hasattr(self, 'connection') and self.connection:
+                self.connection.close()
+                self.connection = None
+                logger.info("Closed PostgreSQL direct connection.")
+        except Exception as e:
+            logger.error(f"Error closing PostgreSQL connection: {e}")
+
     """
     Database manager for PostgreSQL access.
     
@@ -158,7 +172,11 @@ class PostgresqlDatabaseManager:
         Returns:
             Attraction data as a dictionary, or None if not found
         """
-        query = "SELECT * FROM attractions WHERE id = %s"
+        logger.info(f"POSTGRES DB Manager: get_attraction_by_id called for ID: {attraction_id}")
+        # Log the SQL query it's about to run
+        query = "SELECT * FROM attractions WHERE id = %s" # Replicate the query string used
+        logger.info(f"POSTGRES DB Manager: Executing SQL: {query} with params ({attraction_id},)")
+        
         params = (attraction_id,)
         
         results = self.execute_query(query, params)
@@ -894,4 +912,19 @@ class PostgresqlDatabaseManager:
             return results
         except Exception as e:
             logger.error(f"Error performing hybrid search: {str(e)}")
-            return [] 
+            return []
+    
+    def test_connection(self) -> bool:
+        """Test database connection and verify it's working properly."""
+        try:
+            if not self.connection:
+                self.connect()
+
+            with self.connection.cursor() as cursor:
+                cursor.execute("SELECT 1 as test")
+                result = cursor.fetchone()
+                return result[0] == 1
+
+        except Exception as e:
+            logger.error(f"Connection test failed: {str(e)}")
+            return False

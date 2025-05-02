@@ -5,7 +5,7 @@ import logging
 import os
 from typing import List, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi_limiter.depends import RateLimiter
+
 
 from ...models.api_models import (
     LanguagesResponse,
@@ -13,14 +13,13 @@ from ...models.api_models import (
     FeedbackResponse
 )
 from ...utils.exceptions import ChatbotError
-from ..routes.chat import get_chatbot, get_rate_limiter
+from ..routes.chat import get_chatbot
 
 # Create router
 router = APIRouter(tags=["Misc"])
 logger = logging.getLogger(__name__)
 
-@router.get("/languages", response_model=LanguagesResponse,
-            dependencies=get_rate_limiter())
+@router.get("/languages", response_model=LanguagesResponse)
 async def get_languages(
     request: Request,
     chatbot=Depends(get_chatbot)
@@ -38,8 +37,7 @@ async def get_languages(
         logger.error(f"Error getting languages: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to retrieve languages")
 
-@router.post("/feedback", response_model=FeedbackResponse,
-             dependencies=get_rate_limiter())
+@router.post("/feedback", response_model=FeedbackResponse)
 async def submit_feedback(
     feedback: FeedbackRequest,
     request: Request,

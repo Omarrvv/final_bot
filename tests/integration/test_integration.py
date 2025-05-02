@@ -375,7 +375,7 @@ class TestAPIIntegration:
         assert response.status_code == 200
         assert response.json() == {"message": "Feedback submitted successfully"}
         
-    def test_protected_endpoint(self, authenticated_client, monkeypatch):
+    def test_protected_endpoint(self, authenticated_client, client, monkeypatch):
         """Test a protected endpoint with authentication."""
         # This is a protected endpoint that requires authentication
         # The authenticated_client fixture handles the authentication for us
@@ -392,10 +392,10 @@ class TestAPIIntegration:
         assert response.status_code in [200, 404]
         
         # If we remove the auth token, it should fail with 401
-        unauth_client = TestClient(authenticated_client.app)
-        unauth_response = unauth_client.get(
+        # Use the shared client fixture and remove auth headers for unauthenticated request
+        unauth_response = client.get(
             "/api/v1/auth/user/profile",
-            headers={"X-CSRF-Token": self.csrf_token}
+            headers={"X-CSRF-Token": self.csrf_token}  # No auth token provided
         )
         assert unauth_response.status_code == 200  # In test mode, auth is bypassed, so even unauthenticated requests succeed
 

@@ -4,102 +4,59 @@
     "en": "Abu Simbel Temples",
     "ar": "معابد أبو سمبل"
   },
-  "type": "ancient_monument",
-  "location": {
-    "city": "Aswan",
-    "city_ar": "أسوان",
-    "region": "Upper Egypt",
-    "region_ar": "صعيد مصر",
-    "coordinates": {
-      "latitude": 22.3372,
-      "longitude": 31.6256
-    }
+  "type": "historical",
+  "city": "Aswan",
+  "region": "Upper Egypt",
+  "coordinates": {
+    "latitude": 22.3372,
+    "longitude": 31.6258
   },
   "description": {
-    "en": "Abu Simbel consists of two massive rock-cut temples in southern Egypt near the border with Sudan. The twin temples were originally carved out of the mountainside in the 13th century BC, during the reign of Pharaoh Ramesses II, as a monument to himself and his queen Nefertari. The complex was relocated in its entirety in 1968 to avoid being submerged during the creation of Lake Nasser.",
-    "ar": "يتكون أبو سمبل من معبدين ضخمين منحوتين في الصخر في جنوب مصر بالقرب من الحدود مع السودان. تم نحت المعبدين التوأمين في الأصل من جانب الجبل في القرن الثالث عشر قبل الميلاد، خلال عهد الفرعون رمسيس الثاني، كنصب تذكاري لنفسه ولملكته نفرتاري. تمت إعادة نقل المجمع بأكمله في عام 1968 لتجنب غمره أثناء إنشاء بحيرة ناصر."
+    "en": "The Abu Simbel temples are two massive rock-cut temples in southern Egypt. They are situated on the western bank of Lake Nasser, about 230 km southwest of Aswan. The twin temples were originally carved out of the mountainside in the 13th century BC, during the 19th dynasty reign of the Pharaoh Ramesses II. The temples were relocated in their entirety in 1968 to avoid being submerged during the creation of Lake Nasser.",
+    "ar": "معابد أبو سمبل هي معبدان ضخمان منحوتان في الصخر في جنوب مصر. تقع على الضفة الغربية لبحيرة ناصر، على بعد حوالي 230 كم جنوب غرب أسوان. تم نحت المعبدين التوأمين في الأصل من جانب الجبل في القرن الثالث عشر قبل الميلاد، خلال حكم الأسرة التاسعة عشرة للفرعون رمسيس الثاني. تم نقل المعابد بأكملها في عام 1968 لتجنب غمرها أثناء إنشاء بحيرة ناصر."
   },
   "history": {
-    "en": "The temples were carved during the reign of Ramesses II (c. 1279–1213 BC) as a lasting monument to himself and his queen Nefertari, and to commemorate his victory at the Battle of Kadesh. Their huge external rock relief figures have become iconic. The complex was relocated in its entirety in 1968, under the supervision of a UNESCO campaign, to avoid it being submerged during the creation of Lake Nasser following the construction of the Aswan High Dam.",
-    "ar": "تم نحت المعابد خلال عهد رمسيس الثاني (حوالي 1279-1213 قبل الميلاد) كنصب تذكاري دائم لنفسه ولملكته نفرتاري، وللاحتفال بانتصاره في معركة قادش. أصبحت تماثيل النحت الصخري الخارجية الضخمة أيقونية. تمت إعادة نقل المجمع بأكمله في عام 1968، تحت إشراف حملة لليونسكو، لتجنب غمره أثناء إنشاء بحيرة ناصر بعد بناء السد العالي في أسوان."
+    "en": "Built between 1264-1244 BC by Ramesses II, the Great Temple was dedicated to the gods Ra-Horakhty, Ptah, and the deified Ramesses II himself. The Small Temple was dedicated to the goddess Hathor and Queen Nefertari. The temples were rediscovered in 1813 by Swiss explorer Johann Ludwig Burckhardt. They were threatened by submersion in Lake Nasser, and in an unprecedented feat of engineering, the temples were dismantled and reassembled in a new location.",
+    "ar": "بُني بين 1264-1244 قبل الميلاد على يد رمسيس الثاني، وكان المعبد الكبير مكرساً للآلهة رع-حوراختي وبتاح ورمسيس الثاني المؤله نفسه. أما المعبد الصغير فكان مكرساً للإلهة حتحور والملكة نفرتاري. تم إعادة اكتشاف المعابد في عام 1813 على يد المستكشف السويسري يوهان لودفيج بوركهارت. كانت مهددة بالغمر في بحيرة ناصر، وفي إنجاز هندسي غير مسبوق، تم تفكيك المعابد وإعادة تجميعها في موقع جديد."
   },
-  "practical_info": {
-    "opening_hours": "6:00 AM - 5:00 PM daily",
-    "ticket_prices": {
-      "foreigners": {
-        "adults": "240 EGP",
-        "students": "120 EGP"
-      },
-      "egyptians": {
-        "adults": "30 EGP",
-        "students": "15 EGP"
-      }
-    },
-    "best_time_to_visit": "Early morning to avoid crowds and heat. October to April for more comfortable temperatures.",
-    "duration": "2-3 hours for a complete visit",
-    "facilities": [
-      "Restrooms",
-      "Cafeteria",
-      "Souvenir shops",
-      "Parking"
-    ],
-    "accessibility": {
-      "en": "The site is partially accessible. There is level access to the temples, but the interiors have uneven surfaces and steps.",
-      "ar": "الموقع متاح جزئياً. هناك وصول مستوٍ إلى المعابد، ولكن الأسطح الداخلية غير مستوية وبها درجات."
-    },
-    "visitor_tips": {
-      "en": "Visit early in the morning or plan to stay for the afternoon sun alignment. Photography is allowed but no flash inside the temples. Consider joining a guided tour for historical context. The site is remote, so plan transportation accordingly.",
-      "ar": "قم بالزيارة في الصباح الباكر أو خطط للبقاء لمشاهدة محاذاة شمس بعد الظهر. التصوير مسموح به ولكن بدون فلاش داخل المعابد. فكر في الانضمام إلى جولة مع مرشد للحصول على السياق التاريخي. الموقع ناءٍ، لذا خطط لوسائل النقل وفقًا لذلك."
-    }
-  },
-  "must_see": [
-    {
-      "id": "great_temple",
-      "name": {
-        "en": "Great Temple of Ramesses II",
-        "ar": "المعبد الكبير لرمسيس الثاني"
-      },
-      "description": {
-        "en": "The larger of the two temples, dedicated to Ramesses II himself and the major gods of New Kingdom Egypt. The facade features four colossal statues of the pharaoh, each over 20 meters tall. Twice a year, on February 22 and October 22, the sun penetrates the entire temple to illuminate the sanctuary and statues at the rear.",
-        "ar": "أكبر المعبدين، مخصص لرمسيس الثاني نفسه وآلهة مصر الكبرى في المملكة الحديثة. تضم الواجهة أربعة تماثيل ضخمة للفرعون، يبلغ ارتفاع كل منها أكثر من 20 متراً. مرتين في السنة، في 22 فبراير و22 أكتوبر، تخترق الشمس المعبد بأكمله لتضيء قدس الأقداس والتماثيل في الخلف."
-      }
-    },
-    {
-      "id": "small_temple",
-      "name": {
-        "en": "Small Temple of Nefertari",
-        "ar": "المعبد الصغير لنفرتاري"
-      },
-      "description": {
-        "en": "Dedicated to Queen Nefertari and the goddess Hathor, this temple is unique because it places the queen's statues in equal size to those of the pharaoh, showing her importance. The facade has six statues, with Ramesses II and Nefertari depicted three times each.",
-        "ar": "مخصص للملكة نفرتاري والإلهة حتحور، هذا المعبد فريد لأنه يضع تماثيل الملكة بحجم مساوٍ لتماثيل الفرعون، مما يدل على أهميتها. تحتوي الواجهة على ستة تماثيل، مع تصوير رمسيس الثاني ونفرتاري ثلاث مرات لكل منهما."
-      }
-    },
-    {
-      "id": "sun_alignment",
-      "name": {
-        "en": "Solar Phenomenon",
-        "ar": "ظاهرة الشمس"
-      },
-      "description": {
-        "en": "Twice a year, on February 22 (Ramesses II's birthday) and October 22 (his coronation day), the rising sun illuminates the inner sanctuary of the Great Temple, lighting up the statues of Ramesses II and the gods, except for Ptah, the god of darkness.",
-        "ar": "مرتين في السنة، في 22 فبراير (عيد ميلاد رمسيس الثاني) و22 أكتوبر (يوم تتويجه)، تضيء الشمس المشرقة الحرم الداخلي للمعبد الكبير، مما يضيء تماثيل رمسيس الثاني والآلهة، باستثناء بتاح، إله الظلام."
-      }
-    }
+  "highlights": [
+    "Great Temple of Ramesses II",
+    "Temple of Hathor and Nefertari",
+    "Massive rock-cut facades",
+    "Solar alignment phenomenon",
+    "UNESCO World Heritage Site"
   ],
+  "practical_info": {
+    "opening_hours": "5:00 AM - 6:00 PM",
+    "best_time_to_visit": "Early morning to witness the solar alignment",
+    "entrance_fees": {
+      "foreign_adults": "240 EGP",
+      "foreign_students": "120 EGP",
+      "egyptian_adults": "30 EGP",
+      "egyptian_students": "10 EGP"
+    },
+    "guided_tours": true,
+    "photography": "Permitted (extra fee for cameras)",
+    "accessibility": "Moderate - some walking required",
+    "duration": "2-3 hours recommended"
+  },
+  "tips": {
+    "en": "Visit early in the morning to avoid crowds and heat. The temples are illuminated twice a year, around February 22 and October 22, when the sun's rays penetrate the sanctuary and illuminate the sculptures on the back wall. Book tours in advance as it's a 3-hour drive from Aswan.",
+    "ar": "قم بالزيارة في الصباح الباكر لتجنب الزحام والحرارة. يتم إضاءة المعابد مرتين في السنة، حوالي 22 فبراير و22 أكتوبر، عندما تخترق أشعة الشمس قدس الأقداس وتضيء المنحوتات على الجدار الخلفي. احجز الجولات مسبقاً حيث تستغرق الرحلة 3 ساعات من أسوان."
+  },
   "images": [
     "abu_simbel_facade.jpg",
     "abu_simbel_interior.jpg",
-    "nefertari_temple.jpg",
-    "abu_simbel_sunset.jpg"
+    "abu_simbel_nefertari.jpg"
   ],
   "tags": [
-    "ancient",
-    "temple",
-    "Ramesses II",
-    "monument",
-    "UNESCO",
-    "Nubia"
+    "temples",
+    "ancient egypt",
+    "ramesses ii",
+    "unesco",
+    "lake nasser",
+    "archaeology"
   ],
-  "last_updated": "2025-04-19T16:25:27.267439"
+  "created_at": "2025-04-24T18:06:00.856092",
+  "updated_at": "2025-04-24T18:06:00.856100"
 }

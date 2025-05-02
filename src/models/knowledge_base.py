@@ -44,8 +44,8 @@ class PracticalInfoCategory(str, Enum):
 class BaseKnowledgeItem(BaseModel):
     """Base model for all knowledge base items."""
     id: str = Field(..., description="Unique identifier")
-    name: str = Field(..., description="Name of the item")
-    description: str = Field(..., description="Detailed description")
+    name: Dict[str, str] = Field(..., description="Multilingual name, e.g. {'en': 'Pyramids', 'ar': 'الأهرامات'}")
+    description: Dict[str, str] = Field(..., description="Multilingual description")
     keywords: List[str] = Field(default_factory=list, description="Keywords for search")
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
@@ -54,7 +54,7 @@ class BaseKnowledgeItem(BaseModel):
 class Attraction(BaseKnowledgeItem):
     """Model for attractions."""
     city_id: str = Field(..., description="ID of the city where the attraction is located")
-    type: AttractionsType = Field(..., description="Type of attraction")
+    type_id: Optional[str] = Field(None, description="Type of attraction (FK to attraction_types)")
     location: Dict[str, float] = Field(..., description="Geographic coordinates (latitude, longitude)")
     images: List[str] = Field(default_factory=list, description="URLs to images")
     entrance_fee: Optional[float] = Field(None, description="Entrance fee if applicable")
@@ -65,7 +65,7 @@ class Attraction(BaseKnowledgeItem):
 
 class City(BaseKnowledgeItem):
     """Model for cities."""
-    region: str = Field(..., description="Region or governorate")
+    region_id: Optional[str] = Field(None, description="Region or governorate (FK to regions)")
     population: Optional[int] = Field(None, description="Population estimate")
     location: Dict[str, float] = Field(..., description="Geographic coordinates (latitude, longitude)")
     images: List[str] = Field(default_factory=list, description="URLs to images")
@@ -76,6 +76,7 @@ class City(BaseKnowledgeItem):
 class Hotel(BaseKnowledgeItem):
     """Model for hotels."""
     city_id: str = Field(..., description="ID of the city where the hotel is located")
+    type_id: Optional[str] = Field(None, description="Accommodation type (FK to accommodation_types)")
     stars: int = Field(..., ge=1, le=5, description="Hotel rating (1-5 stars)")
     location: Dict[str, float] = Field(..., description="Geographic coordinates (latitude, longitude)")
     address: str = Field(..., description="Physical address")
@@ -88,7 +89,7 @@ class Hotel(BaseKnowledgeItem):
 class Restaurant(BaseKnowledgeItem):
     """Model for restaurants."""
     city_id: str = Field(..., description="ID of the city where the restaurant is located")
-    cuisine: List[CuisineType] = Field(..., description="Types of cuisine offered")
+    cuisine_id: Optional[str] = Field(None, description="Cuisine type (FK to cuisines)")
     location: Dict[str, float] = Field(..., description="Geographic coordinates (latitude, longitude)")
     address: str = Field(..., description="Physical address")
     price_range: Optional[str] = Field(None, description="Price range indicator")

@@ -38,17 +38,20 @@ class SessionManager:
         # Session lock for thread safety
         self.session_lock = threading.Lock()
         
+        # Check if we're in testing mode
+        self.testing_mode = os.environ.get("TESTING", "false").lower() == "true"
+        
         # Initialize session storage backend if URI provided
         self.storage_backend = None
-        if storage_uri:
+        if storage_uri and not self.testing_mode:
             self._initialize_storage_backend()
         
-        # Start session cleanup thread ONLY if not using Redis
-        if not isinstance(self.storage_backend, redis.Redis):
+        # Start session cleanup thread ONLY if not using Redis and not in testing
+        if not self.testing_mode and not isinstance(self.storage_backend, redis.Redis):
             self.cleanup_thread = threading.Thread(target=self._cleanup_expired_sessions, daemon=True)
             self.cleanup_thread.start()
         
-        logger.info("Session manager initialized successfully")
+        logger.info(f"Session manager initialized successfully (testing mode: {self.testing_mode})")
     
     def _initialize_storage_backend(self):
         """Initialize the session storage backend based on URI."""

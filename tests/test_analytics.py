@@ -10,7 +10,7 @@ from tests.test_framework import test_client # Import the fixture directly
 from src.main import app # Import the app for dependency overrides
 
 # Import the DatabaseManager for type hinting mocks
-from src.utils.database import DatabaseManager
+from src.knowledge.database import DatabaseManager
 # Import the actual auth dependencies we need to override
 import src.utils.auth as auth_utils
 import src.api.analytics_api as analytics_api_module
@@ -156,4 +156,4 @@ class TestAnalyticsAPI:
 def teardown_module(module):
     """ Remove dependency overrides after tests complete."""
     app.dependency_overrides.pop(auth_utils.get_current_admin_user, None)
-    app.dependency_overrides.pop(auth_utils.get_current_active_user, None) 
+    app.dependency_overrides.pop(auth_utils.get_current_active_user, None)
