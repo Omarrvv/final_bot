@@ -28,11 +28,11 @@ def pytest_sessionstart(session):
     """
     global _TEMP_TEST_DIR
     _TEMP_TEST_DIR = setup_test_environment()
-    
+
     # Save the test directory path to a temp file for reference
     with open(".test_dir_path", "w") as f:
         f.write(_TEMP_TEST_DIR)
-    
+
     print(f"\nTest environment set up in: {_TEMP_TEST_DIR}\n")
 
 def pytest_sessionfinish(session, exitstatus):
@@ -44,11 +44,11 @@ def pytest_sessionfinish(session, exitstatus):
     if _TEMP_TEST_DIR:
         cleanup_test_environment(_TEMP_TEST_DIR)
         _TEMP_TEST_DIR = None
-        
+
         # Remove the temp file
         if os.path.exists(".test_dir_path"):
             os.unlink(".test_dir_path")
-    
+
     print("\nTest environment cleaned up.\n")
 
 @pytest.fixture
@@ -80,7 +80,7 @@ def mock_env_vars():
     }
     return env_vars
 
-# --- Mock Redis for all tests --- 
+# --- Mock Redis for all tests ---
 @pytest.fixture(scope="session", autouse=True)
 def mock_redis():
     """
@@ -90,18 +90,18 @@ def mock_redis():
     mock_redis_client = AsyncMock()
     mock_redis_client.ping.return_value = True
     mock_redis_client.close.return_value = None
-    
+
     # Create a from_url mock that returns our mock client
     async def mock_from_url(*args, **kwargs):
         return mock_redis_client
-    
+
     # Patch redis.asyncio.from_url
     with patch('redis.asyncio.from_url', mock_from_url):
         # Patch FastAPILimiter.init to be a no-op
         with patch('fastapi_limiter.FastAPILimiter.init', AsyncMock(return_value=None)):
             yield mock_redis_client
 
-# --- Add FastAPI App and Async Client Fixtures --- 
+# --- Add FastAPI App and Async Client Fixtures ---
 
 @pytest.fixture
 def app():
@@ -111,7 +111,7 @@ def app():
     return fastapi_app
 
 @pytest.fixture
-def client(app): 
+def client(app):
     """Provides a FastAPI TestClient instance."""
     with TestClient(app) as test_client:
         yield test_client
@@ -128,7 +128,9 @@ def minimal_app():
         return {"ping": "pong"}
     return app
 
-@pytest.fixture
+import pytest_asyncio
+
+@pytest_asyncio.fixture
 async def minimal_client(minimal_app):
     """Async client for the minimal FastAPI app."""
     from httpx import AsyncClient
@@ -153,7 +155,7 @@ def mock_session_validate():
             "role": "user",
             "created_at": datetime.now(timezone.utc).isoformat()
         }
-    
+
     # Patch the session validation
     with patch("src.services.session.SessionService.validate_session", mock_validate):
         yield
@@ -168,17 +170,35 @@ def authenticated_client(app, test_auth_token, mock_session_validate):
         test_client.headers["Authorization"] = f"Bearer {test_auth_token}"
         yield test_client
 
-@pytest.fixture
-def initialized_db_manager():
+@pytest_asyncio.fixture
+async def initialized_db_manager():
     """Fixture that provides a DatabaseManager with properly initialized tables."""
     # Use PostgreSQL for tests
     db_uri = os.environ.get("POSTGRES_URI") or "postgresql://postgres:postgres@localhost:5432/egypt_chatbot_test"
+
+    # Create a new database manager instance
     db_manager = DatabaseManager(database_uri=db_uri)
-    
-    # Insert test data into PostgreSQL tables
+
+    # Ensure tables are created with the correct schema
+    # This will use the schema defined in setup_test_env.py
     try:
         # Get connection from the pool
         conn = db_manager._get_pg_connection()
+
+        # First verify that the tables exist with the expected schema
+        with conn:
+            with conn.cursor() as cursor:
+                # Check if tables exist
+                tables = ["users", "cities", "attractions", "restaurants", "accommodations", "regions"]
+                for table in tables:
+                    cursor.execute(f"SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = '{table}')")
+                    if not cursor.fetchone()[0]:
+                        # If table doesn't exist, we need to initialize the schema
+                        from tests.setup_test_env import initialize_postgres_test_schema
+                        initialize_postgres_test_schema()
+                        break
+
+        # Now insert test data
         with conn:
             with conn.cursor() as cursor:
                 # Clean up any existing test data to avoid conflicts
@@ -186,7 +206,7 @@ def initialized_db_manager():
                 cursor.execute("DELETE FROM accommodations WHERE id = %s", ("test_hotel_1",))
                 cursor.execute("DELETE FROM attractions WHERE id = %s", ("test_attraction_1",))
                 cursor.execute("DELETE FROM cities WHERE id = %s", ("test_city_1",))
-                
+
                 # Insert test restaurant
                 test_restaurant = {
                     "id": "test_restaurant_1",
@@ -203,7 +223,7 @@ def initialized_db_manager():
                     "created_at": datetime.now(timezone.utc).isoformat(),
                     "updated_at": datetime.now(timezone.utc).isoformat()
                 }
-                
+
                 cursor.execute("""
                     INSERT INTO restaurants (
                         id, name_en, name_ar, cuisine, city, region, latitude, longitude,
@@ -216,7 +236,7 @@ def initialized_db_manager():
                     test_restaurant["description_en"], test_restaurant["description_ar"],
                     test_restaurant["data"], test_restaurant["created_at"], test_restaurant["updated_at"]
                 ))
-                
+
                 # Insert test hotel/accommodation
                 test_hotel = {
                     "id": "test_hotel_1",
@@ -234,7 +254,7 @@ def initialized_db_manager():
                     "created_at": datetime.now(timezone.utc).isoformat(),
                     "updated_at": datetime.now(timezone.utc).isoformat()
                 }
-                
+
                 cursor.execute("""
                     INSERT INTO accommodations (
                         id, name_en, name_ar, type, city, region, latitude, longitude,
@@ -247,7 +267,7 @@ def initialized_db_manager():
                     test_hotel["description_en"], test_hotel["description_ar"],
                     test_hotel["data"], test_hotel["created_at"], test_hotel["updated_at"]
                 ))
-                
+
                 # Insert test attraction
                 test_attraction = {
                     "id": "test_attraction_1",
@@ -264,7 +284,7 @@ def initialized_db_manager():
                     "created_at": datetime.now(timezone.utc).isoformat(),
                     "updated_at": datetime.now(timezone.utc).isoformat()
                 }
-                
+
                 cursor.execute("""
                     INSERT INTO attractions (
                         id, name_en, name_ar, type, city, region, latitude, longitude,
@@ -277,7 +297,7 @@ def initialized_db_manager():
                     test_attraction["description_en"], test_attraction["description_ar"],
                     test_attraction["data"], test_attraction["created_at"], test_attraction["updated_at"]
                 ))
-                
+
                 # Insert test city
                 test_city = {
                     "id": "test_city_1",
@@ -290,7 +310,7 @@ def initialized_db_manager():
                     "created_at": datetime.now(timezone.utc).isoformat(),
                     "updated_at": datetime.now(timezone.utc).isoformat()
                 }
-                
+
                 cursor.execute("""
                     INSERT INTO cities (
                         id, name_en, name_ar, region, latitude, longitude,
@@ -301,7 +321,7 @@ def initialized_db_manager():
                     test_city["region"], test_city["latitude"], test_city["longitude"],
                     test_city["data"], test_city["created_at"], test_city["updated_at"]
                 ))
-                
+
                 # Update geospatial data
                 if db_manager._check_postgis_enabled():
                     for table in ["cities", "attractions", "restaurants", "accommodations"]:
@@ -309,19 +329,23 @@ def initialized_db_manager():
                             UPDATE {table} SET geom = ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)
                             WHERE geom IS NULL AND latitude IS NOT NULL AND longitude IS NOT NULL
                         """)
-                
+
                 conn.commit()
-        
+
         # Return connection to pool
         db_manager._return_pg_connection(conn)
-        
+
         yield db_manager
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Error in initialized_db_manager fixture: {str(e)}")
+        raise
     finally:
         # Ensure connection is closed properly
-        db_manager.close()
+        await db_manager.close() if hasattr(db_manager.close, '__await__') else db_manager.close()
 
-@pytest.fixture
-def test_knowledge_base(initialized_db_manager):
+@pytest_asyncio.fixture
+async def test_knowledge_base(initialized_db_manager):
     """Fixture that provides a KnowledgeBase with test data."""
     from src.knowledge.knowledge_base import KnowledgeBase
     kb = KnowledgeBase(db_manager=initialized_db_manager)

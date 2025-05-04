@@ -36,7 +36,10 @@ logs/
 *.sqlite3
 
 # Environment variables and secrets
-
+.env
+.env.local
+.env.development
+.env.production
 .secrets
 
 # Binary files

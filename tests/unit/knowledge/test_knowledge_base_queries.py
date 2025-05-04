@@ -14,10 +14,10 @@ SAMPLE_ATTRACTION_DATA = [
 ]
 
 SAMPLE_HOTEL_DATA = {
-    "id": "hot_1", 
-    "name": json.dumps({"en": "Nile Hotel", "ar": "فندق النيل"}), 
+    "id": "hot_1",
+    "name": json.dumps({"en": "Nile Hotel", "ar": "فندق النيل"}),
     "name_en": "Nile Hotel",  # Add explicit name_en field for the test
-    "city_id": "cai", 
+    "city_id": "cai",
     "rating": 5
 }
 
@@ -53,7 +53,7 @@ def test_search_attractions_success(knowledge_base, mock_db_manager):
     filters = {"city_id": "cai", "type": "historical"}
     language = "en"
     limit = 10
-    
+
     # Configure the mock to return attraction data
     mock_db_manager.search_attractions.return_value = SAMPLE_ATTRACTION_DATA[:1] # Return only pyramids
 
@@ -120,7 +120,7 @@ def test_search_hotels_success(knowledge_base, mock_db_manager):
     query = {"city_id": "cai"}
     limit = 10
     language = "en"
-    
+
     # Configure the mock to return data
     mock_db_manager.search_accommodations.return_value = [SAMPLE_HOTEL_DATA]
 
@@ -129,7 +129,7 @@ def test_search_hotels_success(knowledge_base, mock_db_manager):
 
     assert len(results) == 1
     assert results[0]["id"] == "hot_1"
-    mock_db_manager.search_accommodations.assert_called_once()
+    mock_db_manager.search_accommodations.assert_called_once_with(filters=query, limit=limit)
 
 # --- Test Practical Info --- #
 
@@ -138,10 +138,10 @@ def test_get_practical_info_success(knowledge_base, mock_db_manager):
     # Method signature is: get_practical_info(self, category: str, language: str = "en")
     category = "visa"
     language = "en"
-    
+
     # Configure the mock to return data
     mock_db_manager.search_attractions.return_value = [{
-        "name_en": "Visa Information", 
+        "name_en": "Visa Information",
         "description_en": "Visa info...",
         "data": {"details": "Visa details", "tips": "Visa tips"}
     }]
@@ -150,9 +150,9 @@ def test_get_practical_info_success(knowledge_base, mock_db_manager):
     result = knowledge_base.get_practical_info(category, language)
 
     assert result is not None
-    assert result["title"] == "Visa Information" 
+    assert result["title"] == "Visa Information"
     assert "description" in result
-    mock_db_manager.search_attractions.assert_called_once()
+    mock_db_manager.search_attractions.assert_called_once_with(filters={"type": category}, limit=1)
 
 # --- Test Lookup Location --- #
 
@@ -160,22 +160,22 @@ def test_lookup_location_found(knowledge_base, mock_db_manager):
     """Test looking up a location successfully."""
     location_name = "Cairo"
     language = "en"
-    
+
     # Mock what the lookup_location method actually uses
     mock_db_manager.enhanced_search.return_value = [{
         "name_en": "Cairo",
-        "city": "Cairo", 
+        "city": "Cairo",
         "region": "Cairo",
         "latitude": 30.0444,
         "longitude": 31.2357
     }]
-    
+
     result = knowledge_base.lookup_location(location_name, language)
 
     assert result is not None
     assert result["name"]["en"] == "Cairo"  # Updated to check name.en instead of name
     assert "location" in result
-    assert "latitude" in result["location"] 
+    assert "latitude" in result["location"]
     assert "longitude" in result["location"]
     mock_db_manager.enhanced_search.assert_called_once()
 
@@ -184,14 +184,17 @@ def test_lookup_location_not_found(knowledge_base, mock_db_manager):
     """Test looking up a location that doesn't exist."""
     location_name = "Atlantis"
     language = "en"
-    
-    # Configure mock to return no results
+
+    # Configure mock to return no results for both enhanced_search and get_city
     mock_db_manager.enhanced_search.return_value = []
+    mock_db_manager.get_city.return_value = None
 
     result = knowledge_base.lookup_location(location_name, language)
 
     assert result is None
-    mock_db_manager.enhanced_search.assert_called_once()
+    # Our implementation now calls enhanced_search twice (once for cities, once for attractions)
+    assert mock_db_manager.enhanced_search.call_count >= 1
+    assert mock_db_manager.get_city.called
 
 
 # Add tests for other search/get methods (e.g., restaurants, transportation)

@@ -11,7 +11,7 @@ services:
       - ./logs:/app/logs
       - ./configs:/app/configs
     env_file:
-      - .env
+      - .env.docker
     environment:
       - PYTHONUNBUFFERED=1
       - APP_MODULE=src.main:app

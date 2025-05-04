@@ -24,7 +24,7 @@ spec:
           image: ${DOCKER_REGISTRY}/egypt-tourism-chatbot:${IMAGE_TAG:-latest}
           imagePullPolicy: Always
           ports:
-            - containerPort: 5000
+            - containerPort: 5050
           resources:
             requests:
               cpu: "100m"
@@ -33,12 +33,8 @@ spec:
               cpu: "500m"
               memory: "512Mi"
           env:
-            - name: FLASK_APP
-              value: "src/frontend/app.py"
-            - name: FLASK_ENV
-              value: "production"
-            - name: PORT
-              value: "5000"
+            - name: API_PORT
+              value: "5050"
             - name: DATABASE_URI
               valueFrom:
                 secretKeyRef:
@@ -74,13 +70,13 @@ spec:
           readinessProbe:
             httpGet:
               path: /api/health
-              port: 5000
+              port: 5050
             initialDelaySeconds: 10
             periodSeconds: 5
           livenessProbe:
             httpGet:
               path: /api/health
-              port: 5000
+              port: 5050
             initialDelaySeconds: 30
             periodSeconds: 15
       volumes:
@@ -97,7 +93,7 @@ spec:
     app: egypt-tourism-chatbot
   ports:
     - port: 80
-      targetPort: 5000
+      targetPort: 5050
   type: ClusterIP
 ---
 apiVersion: v1

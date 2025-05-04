@@ -9,5 +9,7 @@ spec:
       containers:
         - name: chatbot
           env:
-            - name: FLASK_ENV
+            - name: ENV
               value: "development"
+            - name: DEBUG
+              value: "true"

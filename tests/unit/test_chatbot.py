@@ -64,7 +64,7 @@ def mock_knowledge_base():
 @pytest.fixture
 def mock_response_generator():
     generator = MagicMock(spec=ResponseGenerator)
-    generator.generate_response.return_value = "Hello there! How can I help?"
+    generator.generate_response_by_type.return_value = "Hello there! How can I help?"
     return generator
 
 @pytest.fixture
@@ -77,8 +77,11 @@ def mock_service_hub():
 @pytest.fixture
 def mock_db_manager():
     """Fixture for a mocked DatabaseManager."""
-    db = MagicMock(spec=DatabaseManager)
-    db.log_analytics_event.return_value = True
+    db = MagicMock()  # Remove spec to allow adding custom methods
+    # Add db_type attribute that's needed by KnowledgeBase
+    db.db_type = "postgres"
+    # Add log_analytics_event method that's used by Chatbot
+    db.log_analytics_event = MagicMock(return_value=True)
     return db
 
 @pytest.fixture
@@ -121,12 +124,12 @@ async def test_process_message_new_session(chatbot_instance, mock_session_manage
     mock_session_manager.create_session.return_value = new_session_id
     # Simulate session manager returning the new session after creation
     session_data = {
-        "session_id": new_session_id, 
-        "messages": [], 
+        "session_id": new_session_id,
+        "messages": [],
         "state": "welcomed",  # Note state format matches what's expected
-        "last_accessed": 0, 
-        "created_at": 0, 
-        "user_id": None, 
+        "last_accessed": 0,
+        "created_at": 0,
+        "user_id": None,
         "metadata": {},
         "language": language
     }
@@ -141,13 +144,13 @@ async def test_process_message_new_session(chatbot_instance, mock_session_manage
     mock_session_manager.create_session.assert_called_once()
     mock_session_manager.add_message_to_session.assert_called()
     mock_nlu_engine.process.assert_called_once_with(
-        user_message, 
-        session_id=new_session_id, 
-        language=language, 
+        user_message,
+        session_id=new_session_id,
+        language=language,
         context=session_data
     )
     mock_dialog_manager.next_action.assert_called_once()
-    mock_response_generator.generate_response.assert_called_once()
+    mock_response_generator.generate_response_by_type.assert_called_once()
     mock_session_manager.update_session.assert_called()
 
 @pytest.mark.asyncio
@@ -166,8 +169,8 @@ async def test_process_message_existing_session(chatbot_instance, mock_session_m
     mock_session_manager.get_session.assert_called_once_with(session_id)
     mock_session_manager.create_session.assert_not_called()
     mock_nlu_engine.process.assert_called_once_with(
-        user_message, 
-        session_id=session_id, 
+        user_message,
+        session_id=session_id,
         language=language,
         context=mock_session_manager.get_session.return_value # Assuming context is the session data
     )
@@ -207,28 +210,28 @@ async def test_process_message_dialog_action_kb_query(chatbot_instance, mock_dia
     user_message = "Find historical sites in Luxor"
     session_id = "session-kb-query"
     language = "en"
-    
+
     # Set up session data
     session_data = {
-        "session_id": session_id, 
-        "messages": [], 
-        "state": "asking_for_location", 
-        "last_accessed": 0, 
-        "created_at": 0, 
-        "user_id": None, 
+        "session_id": session_id,
+        "messages": [],
+        "state": "asking_for_location",
+        "last_accessed": 0,
+        "created_at": 0,
+        "user_id": None,
         "metadata": {},
         "language": language
     }
     mock_session_manager.get_session.return_value = session_data
-    
+
     # NLU result leading to KB query
     nlu_result = {
-        "intent": {"name": "find_attraction"}, 
-        "entities": [{"type": "city", "value": "Luxor"}, {"type":"category", "value":"historical"}], 
+        "intent": {"name": "find_attraction"},
+        "entities": [{"type": "city", "value": "Luxor"}, {"type":"category", "value":"historical"}],
         "language": language
     }
     mock_nlu_engine.process.return_value = nlu_result
-    
+
     # Dialog action requesting KB query
     mock_dialog_manager.next_action.return_value = {
         "action_type": "knowledge_query",
@@ -236,40 +239,40 @@ async def test_process_message_dialog_action_kb_query(chatbot_instance, mock_dia
         "response_type": "attraction_list",
         "new_state": "showing_attractions"
     }
-    
+
     # Simulate KB finding results
     kb_results = [{"id": "karnak", "name_en": "Karnak Temple"}]
     mock_knowledge_base.search_attractions.return_value = kb_results
-    
+
     # Simulate response generator using KB results
-    mock_response_generator.generate_response.return_value = "Found: Karnak Temple"
+    mock_response_generator.generate_response_by_type.return_value = "Found: Karnak Temple"
 
     result = await chatbot_instance.process_message(user_message, session_id=session_id, language=language)
 
     # Verify session was retrieved
     mock_session_manager.get_session.assert_called_once_with(session_id)
-    
+
     # Verify NLU was called with correct parameters
     mock_nlu_engine.process.assert_called_once_with(
-        user_message, 
-        session_id=session_id, 
-        language=language, 
+        user_message,
+        session_id=session_id,
+        language=language,
         context=session_data
     )
-    
+
     # Verify dialog manager was called with NLU results
     mock_dialog_manager.next_action.assert_called_once()
-    
+
     # Check that KB was called with params from dialog manager
     mock_knowledge_base.search_attractions.assert_called_once_with(filters={"city_id": "luxor", "type": "historical"})
-    
+
     # Check that response generator received KB results
-    mock_response_generator.generate_response.assert_called_once_with(
+    mock_response_generator.generate_response_by_type.assert_called_once_with(
         response_type="attraction_list",
         language=language,
         params=kb_results # Or however the KB results are passed
     )
-    
+
     # Check final response
     assert result["response"] == "Found: Karnak Temple"
 
@@ -321,4 +324,4 @@ async def test_reset_session_create_new(chatbot_instance, mock_session_manager):
 # Add tests for get_suggestions, get_supported_languages
 # Add tests for different dialog flows (e.g., needing more slots, clarification)
 # Add tests for RAG pipeline integration if applicable
-# Add tests for error handling in different components (Dialog Manager, KB, Response Generator) 
+# Add tests for error handling in different components (Dialog Manager, KB, Response Generator)

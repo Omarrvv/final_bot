@@ -24,7 +24,8 @@ from starlette.authentication import (
 from starlette.responses import JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from src.services.session import SessionService
+from src.session.redis_manager import RedisSessionManager
+from src.session.memory_manager import MemorySessionManager
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -39,19 +40,19 @@ class User(BaseUser):
 
     def __str__(self) -> str:
         return f"User(id={self.user_id}, username={self.username}, role={self.role})"
-        
+
     @property
     def display_name(self) -> str:
         return self.username
-        
+
     @property
     def identity(self) -> str:
         return self.user_id
-        
+
     @property
     def is_authenticated(self) -> bool:
         return self._is_authenticated
-        
+
     @is_authenticated.setter
     def is_authenticated(self, value: bool):
         self._is_authenticated = value
@@ -61,21 +62,29 @@ class UnauthenticatedUserImpl(UnauthenticatedUser):
     @property
     def display_name(self) -> str:
         return "Guest"
-        
+
     @property
     def identity(self) -> str:
         return ""
 
 
 class SessionAuthBackend:
-    def __init__(self, session_service, public_paths: List[str] = None, testing_mode: bool = None):
-        self.session_service = session_service
+    def __init__(self, session_manager = None, public_paths: List[str] = None, testing_mode: bool = None):
+        """
+        Initialize the session authentication backend.
+
+        Args:
+            session_manager: Session manager instance (RedisSessionManager or MemorySessionManager)
+            public_paths: List of public paths that don't require authentication
+            testing_mode: Whether to enable testing mode
+        """
+        self.session_manager = session_manager
         self.public_paths = [re.compile(f"^{path}$", re.IGNORECASE) for path in (public_paths or ["/public", "/api/public"])]
-        
+
         # Safely check testing mode
         testing_env = os.getenv("TESTING", "")
         self.testing_mode = testing_mode or (testing_env and testing_env.lower() == "true")
-        
+
         self.security = HTTPBearer(auto_error=False)
         self.rate_limits: Dict[str, List[datetime]] = {}
         self.rate_limit_window = timedelta(minutes=1)
@@ -87,10 +96,10 @@ class SessionAuthBackend:
     async def authenticate(self, request: Request) -> Tuple[AuthCredentials, BaseUser]:
         """
         Authenticate the request.
-        
+
         Args:
             request: The request to authenticate
-            
+
         Returns:
             Tuple of AuthCredentials and User
         """
@@ -107,7 +116,7 @@ class SessionAuthBackend:
                     role="user"
                 )
                 return AuthCredentials(["authenticated"]), user
-                
+
             # Check if path is public
             path = request.url.path.lower().rstrip('/') if request.url.path else ""
             if any(pattern.match(path) for pattern in self.public_paths):
@@ -151,7 +160,7 @@ class SessionAuthBackend:
                     username="testuser",
                     role="user"
                 )
-                
+
             # Check rate limiting
             if not self._check_rate_limit(token):
                 raise HTTPException(
@@ -159,8 +168,16 @@ class SessionAuthBackend:
                     detail="Rate limit exceeded"
                 )
 
-            # Validate session
-            session_data = await self.session_service.validate_session(token)
+            # Validate session using session manager
+            if self.session_manager:
+                session_data = self.session_manager.validate_session(token)
+            else:
+                logger.error("No session manager available")
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Session service unavailable"
+                )
+
             if not session_data:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
@@ -174,18 +191,38 @@ class SessionAuthBackend:
                     detail="Invalid session data format"
                 )
 
-            required_fields = ["user_id", "username"]
-            if not all(field in session_data for field in required_fields):
+            # For anonymous sessions, create a user with the session ID
+            if session_data.get("type") == "anonymous":
+                session_id = session_data.get("session_id", "unknown")
+                return User(
+                    user_id=f"anon_{session_id}",
+                    username="Anonymous",
+                    role="anonymous"
+                )
+
+            # For regular sessions, check for required fields
+            # If user_id is present, use it; otherwise, use session_id as anonymous user
+            if "user_id" in session_data and session_data["user_id"]:
+                # Use username if available, otherwise default to "User"
+                username = session_data.get("username", "User")
+                return User(
+                    user_id=session_data["user_id"],
+                    username=username,
+                    role=session_data.get("role", "user")
+                )
+            elif "session_id" in session_data:
+                # Treat as anonymous user
+                session_id = session_data.get("session_id")
+                return User(
+                    user_id=f"anon_{session_id}",
+                    username="Anonymous",
+                    role="anonymous"
+                )
+            else:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Missing required session data fields"
                 )
-
-            return User(
-                user_id=session_data["user_id"],
-                username=session_data["username"],
-                role=session_data.get("role", "user")
-            )
 
         except HTTPException:
             raise
@@ -198,21 +235,21 @@ class SessionAuthBackend:
 
     def _check_rate_limit(self, token: str) -> bool:
         now = datetime.now()
-        
+
         # Clean up expired entries
         self.rate_limits = {
             t: times for t, times in self.rate_limits.items()
             if any(time > now - self.rate_limit_window for time in times)
         }
-        
+
         # Get request times for this token
         times = self.rate_limits.get(token, [])
         times = [time for time in times if time > now - self.rate_limit_window]
-        
+
         # Check if limit exceeded
         if len(times) >= self.rate_limit_max_requests:
             return False
-            
+
         # Update times
         times.append(now)
         self.rate_limits[token] = times
@@ -247,24 +284,37 @@ class AuthMiddleware:
         )
 
 
-def add_auth_middleware(app, session_service, public_paths: List[str] = None, testing_mode: bool = False):
+def add_auth_middleware(app, session_manager=None, public_paths: List[str] = None, testing_mode: bool = False):
+    """
+    Add authentication middleware to the FastAPI app.
+
+    Args:
+        app: FastAPI app
+        session_manager: Session manager instance (RedisSessionManager or MemorySessionManager)
+        public_paths: List of public paths that don't require authentication
+        testing_mode: Whether to enable testing mode
+
+    Returns:
+        FastAPI app with middleware added
+    """
     # Check environment variable for testing mode
     testing_env = os.getenv("TESTING", "")
     testing_mode = testing_mode or (testing_env and testing_env.lower() == "true")
-    
+
     # Add more public paths for testing if needed
     if testing_mode and public_paths is None:
         public_paths = ["/public", "/api/public", "/api/health"]
-    
+
+    # Create auth backend with session manager
     auth_backend = SessionAuthBackend(
-        session_service=session_service,
+        session_manager=session_manager,
         public_paths=public_paths,
         testing_mode=testing_mode
     )
-    
+
     # Use middleware decorator
     app.middleware("http")(AuthMiddleware(auth_backend))
-    
+
     logger.info(f"Added auth middleware with testing_mode={testing_mode}")
-    
-    return app 
+
+    return app

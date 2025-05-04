@@ -1,10 +1,10 @@
-import axios from 'axios';
+import axios from "axios";
 
 // Create an axios instance with default settings
 const apiClient = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || '',
+  baseURL: process.env.REACT_APP_API_URL || "",
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
   withCredentials: true, // Important for CSRF protection
 });
@@ -30,12 +30,12 @@ const ChatbotService = {
       });
 
       const response = await apiClient.post(
-        '/api/reset',
+        "/api/reset",
         {}, // Empty body
         {
           headers: csrfData.csrf_token
             ? {
-                'X-CSRF-Token': csrfData.csrf_token,
+                "X-CSRF-Token": csrfData.csrf_token,
               }
             : {},
         }
@@ -43,7 +43,7 @@ const ChatbotService = {
 
       return response.data;
     } catch {
-      return { session_id: null, error: 'Error resetting session' };
+      return { session_id: null, error: "Error resetting session" };
     }
   },
 
@@ -53,7 +53,7 @@ const ChatbotService = {
    */
   getCsrfToken: async () => {
     try {
-      const response = await apiClient.get('/api/csrf-token');
+      const response = await apiClient.get("/api/csrf-token");
       return response.data;
     } catch {
       return { csrf_token: null }; // Return a dummy token
@@ -67,14 +67,14 @@ const ChatbotService = {
    * @param {string} language - Language code (e.g., 'en', 'ar')
    * @returns {Promise<Object>} Chatbot response
    */
-  sendMessage: async (message, sessionId, language = 'en') => {
+  sendMessage: async (message, sessionId, language = "en") => {
     try {
       const csrfData = await ChatbotService.getCsrfToken().catch(() => {
         return { csrf_token: null }; // Provide fallback token
       });
 
       const response = await apiClient.post(
-        '/api/chat',
+        "/api/chat",
         {
           message,
           session_id: sessionId,
@@ -83,7 +83,7 @@ const ChatbotService = {
         {
           headers: csrfData.csrf_token
             ? {
-                'X-CSRF-Token': csrfData.csrf_token,
+                "X-CSRF-Token": csrfData.csrf_token,
               }
             : {},
         }
@@ -94,18 +94,19 @@ const ChatbotService = {
         message:
           response.data.message ||
           response.data.text ||
-          'No response from chatbot',
+          "No response from chatbot",
         session_id: response.data.session_id || sessionId,
         message_id: response.data.message_id || `msg_${Date.now()}`,
         suggestions: response.data.suggestions || [],
-        success: response.data.status !== 'error',
+        success: response.data.status !== "error",
         timestamp: new Date().toISOString(),
       };
 
       return normalizedResponse;
     } catch {
       return {
-        message: 'I apologize, but I experienced an error. Please try again later.',
+        message:
+          "I apologize, but I experienced an error. Please try again later.",
         success: false,
         session_id: sessionId,
         message_id: `error_${Date.now()}`,
@@ -125,7 +126,7 @@ const ChatbotService = {
       const csrfData = await ChatbotService.getCsrfToken();
 
       const response = await apiClient.post(
-        '/api/feedback',
+        "/api/feedback",
         {
           message_id: messageId,
           rating,
@@ -133,7 +134,7 @@ const ChatbotService = {
         {
           headers: csrfData.csrf_token
             ? {
-                'X-CSRF-Token': csrfData.csrf_token,
+                "X-CSRF-Token": csrfData.csrf_token,
               }
             : {},
         }
@@ -141,7 +142,7 @@ const ChatbotService = {
 
       return response.data;
     } catch {
-      return { success: false, error: 'Failed to submit feedback' };
+      return { success: false, error: "Failed to submit feedback" };
     }
   },
 
@@ -151,14 +152,14 @@ const ChatbotService = {
    */
   getLanguages: async () => {
     try {
-      const response = await apiClient.get('/api/languages');
+      const response = await apiClient.get("/api/languages");
       return response.data;
     } catch {
       // Return default languages if API fails
       return {
         languages: [
-          { code: 'en', name: 'English', flag: 'us', direction: 'ltr' },
-          { code: 'ar', name: 'العربية', flag: 'eg', direction: 'rtl' },
+          { code: "en", name: "English", flag: "us", direction: "ltr" },
+          { code: "ar", name: "العربية", flag: "eg", direction: "rtl" },
         ],
       };
     }
@@ -170,7 +171,7 @@ const ChatbotService = {
    * @param {string} language - Language code
    * @returns {Promise<Object>} Suggestions data
    */
-  getSuggestions: async (sessionId, language = 'en') => {
+  getSuggestions: async (sessionId, language = "en") => {
     try {
       const url = sessionId
         ? `/api/suggestions?session_id=${sessionId}&language=${language}`

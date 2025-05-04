@@ -3,12 +3,18 @@ import json
 from unittest.mock import MagicMock, patch
 import redis # Import the actual library to mock its exceptions
 from unittest.mock import AsyncMock # Import AsyncMock
+import pytest_asyncio
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Adjust import path as necessary
 from src.services.redis_client import RedisClient
 
-@pytest.fixture
-def mock_redis_lib():
+@pytest_asyncio.fixture
+async def mock_redis_lib():
     """Fixture for a mocked underlying redis library client (async version)."""
     # Use AsyncMock for async methods
     mock = MagicMock()
@@ -21,9 +27,8 @@ def mock_redis_lib():
     # Add other commands as needed
     return mock
 
-# Use pytest.mark.asyncio for async fixtures
-@pytest.mark.asyncio
-@pytest.fixture
+# Use pytest_asyncio.fixture for async fixtures
+@pytest_asyncio.fixture
 async def redis_client_instance(mock_redis_lib):
     """Fixture for RedisClient instance with mocked underlying library.
 
@@ -47,8 +52,10 @@ async def redis_client_instance(mock_redis_lib):
             mock_redis_lib.close.assert_called_once()
 
         except ImportError as e:
+            logger.error(f"Skipping RedisClient tests due to import error: {e}")
             pytest.skip(f"Skipping RedisClient tests due to import error: {e}")
         except Exception as e:
+            logger.error(f"Skipping RedisClient tests due to init/connect error: {e}")
             pytest.skip(f"Skipping RedisClient tests due to init/connect error: {e}")
 
 # --- RedisClient Tests ---
@@ -64,17 +71,17 @@ async def test_redis_client_instantiation_and_connect_success(redis_client_insta
 async def test_redis_client_connect_ping_fails(mock_redis_lib):
     """Test connect method when the ping fails."""
     mock_redis_lib.ping = AsyncMock(side_effect=redis.exceptions.ConnectionError("Ping failed"))
-    
+
     # Patch the redis connection methods and make sure to patch async_timeout
     with patch('redis.asyncio.from_url', return_value=mock_redis_lib), \
          patch('redis.asyncio.Redis', return_value=mock_redis_lib), \
          patch('redis.asyncio.connection.asyncio.open_connection') as mock_open_connection:
-        
+
         # Make open_connection raise ConnectionError directly to avoid timeout complexity
         mock_open_connection.side_effect = ConnectionError("Connection failed")
-        
+
         client = RedisClient(host="dummy", port=6379, db=0)
-        
+
         # Expect connect to raise a ConnectionError or RedisError
         with pytest.raises((ConnectionError, redis.exceptions.RedisError)):
             await client.connect()
@@ -200,4 +207,4 @@ async def test_command_redis_error(redis_client_instance):
 # - Connection closing logic if implemented (e.g., a close() method)
 # - Handling of different data types if serialization is complex
 # - More specific error handling scenarios
-# - Test the URI connection logic within the connect method 
+# - Test the URI connection logic within the connect method

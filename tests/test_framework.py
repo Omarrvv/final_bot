@@ -43,12 +43,12 @@ except ImportError as e:
 
 class BaseTestCase(unittest.TestCase):
     """Base test case for all tests."""
-    
+
     def setUp(self):
         """Set up test environment."""
         # Create temporary directory for test data
         self.temp_dir = tempfile.mkdtemp()
-        
+
         # Set up environment variables for testing
         os.environ["CONTENT_PATH"] = os.path.join(self.temp_dir, "data")
         # Use PostgreSQL test database instead of SQLite
@@ -56,29 +56,29 @@ class BaseTestCase(unittest.TestCase):
         os.environ["SESSION_STORAGE_URI"] = f"file:///{os.path.join(self.temp_dir, 'sessions')}"
         os.environ["FLASK_ENV"] = "testing"
         os.environ["TESTING"] = "true"
-        
+
         # Create necessary directories
         os.makedirs(os.path.join(self.temp_dir, "data", "attractions"), exist_ok=True)
         os.makedirs(os.path.join(self.temp_dir, "data", "accommodations"), exist_ok=True)
         os.makedirs(os.path.join(self.temp_dir, "data", "restaurants"), exist_ok=True)
         os.makedirs(os.path.join(self.temp_dir, "configs"), exist_ok=True)
-        
+
         # Create test configurations
         self._create_test_configs()
-        
+
         # Create test data
         self._create_test_data()
-    
+
     def tearDown(self):
         """Clean up after tests."""
         # Remove temporary directory
         shutil.rmtree(self.temp_dir)
-        
+
         # Reset environment variables
         for key in ["CONTENT_PATH", "POSTGRES_URI", "SESSION_STORAGE_URI", "FLASK_ENV", "TESTING"]:
             if key in os.environ:
                 del os.environ[key]
-    
+
     def _create_test_configs(self):
         """Create test configuration files."""
         # Models config
@@ -98,15 +98,15 @@ class BaseTestCase(unittest.TestCase):
                 "intents_file": os.path.join(self.temp_dir, "configs", "intents.json")
             }
         }
-        
+
         with open(os.path.join(self.temp_dir, "configs", "models.json"), "w") as f:
             json.dump(models_config, f)
-        
+
         # Intents config
         intents_config = {
             "greeting": {
                 "examples": [
-                    "hello", "hi", "hey", "good morning", "good afternoon", 
+                    "hello", "hi", "hey", "good morning", "good afternoon",
                     "greetings", "السلام عليكم", "مرحبا", "صباح الخير"
                 ],
                 "responses": ["greeting"]
@@ -129,10 +129,10 @@ class BaseTestCase(unittest.TestCase):
                 "entities": ["attraction", "location"]
             }
         }
-        
+
         with open(os.path.join(self.temp_dir, "configs", "intents.json"), "w") as f:
             json.dump(intents_config, f)
-        
+
         # Dialog flows config
         dialog_flows = {
             "greeting": {
@@ -163,10 +163,10 @@ class BaseTestCase(unittest.TestCase):
                 }
             }
         }
-        
+
         with open(os.path.join(self.temp_dir, "configs", "dialog_flows.json"), "w") as f:
             json.dump(dialog_flows, f)
-        
+
         # Services config
         services_config = {
             "mock_service": {
@@ -177,10 +177,10 @@ class BaseTestCase(unittest.TestCase):
                 }
             }
         }
-        
+
         with open(os.path.join(self.temp_dir, "configs", "services.json"), "w") as f:
             json.dump(services_config, f)
-    
+
     def _create_test_data(self):
         """Create test data files."""
         # Create test attraction
@@ -215,18 +215,18 @@ class BaseTestCase(unittest.TestCase):
             "keywords": ["test", "attraction", "اختبار"],
             "updated_at": "2023-01-01T00:00:00Z"
         }
-        
+
         with open(os.path.join(self.temp_dir, "data", "attractions", "test_attraction.json"), "w") as f:
             json.dump(test_attraction, f)
 
 
 class MockNLUEngine:
     """Mock NLU engine for testing."""
-    
+
     def __init__(self, intent: str = "greeting", confidence: float = 0.9, entities: Dict = None):
         """
         Initialize mock NLU engine.
-        
+
         Args:
             intent (str): Intent to return
             confidence (float): Confidence score
@@ -235,17 +235,17 @@ class MockNLUEngine:
         self.intent = intent
         self.confidence = confidence
         self.entities = entities or {}
-    
+
     def process(self, text: str, session_id: str, language: str = None, context: Dict = None) -> Dict:
         """
         Process a message.
-        
+
         Args:
             text (str): Message text
             session_id (str): Session ID
             language (str, optional): Language code
             context (dict, optional): Conversation context
-            
+
         Returns:
             dict: NLU result
         """
@@ -262,11 +262,11 @@ class MockNLUEngine:
 
 class MockKnowledgeBase:
     """Mock knowledge base for testing."""
-    
+
     def __init__(self, attractions: Dict = None, accommodations: Dict = None, restaurants: Dict = None):
         """
         Initialize mock knowledge base.
-        
+
         Args:
             attractions (dict, optional): Mock attraction data
             accommodations (dict, optional): Mock accommodation data
@@ -274,19 +274,19 @@ class MockKnowledgeBase:
         """
         self.attractions = attractions or {
             "test_attraction": {
-                "id": "test_attraction", 
-                "name": {"en": "Test Attraction"}, 
-                "type": "test", 
+                "id": "test_attraction",
+                "name": {"en": "Test Attraction"},
+                "type": "test",
                 "location": {"city": "Test City", "region": "Test Region"}
             }
         }
         self.accommodations = accommodations or {}
         self.restaurants = restaurants or {}
-    
+
     def get_attraction_by_id(self, attraction_id: str) -> Optional[Dict]:
         """Get attraction by ID."""
         return self.attractions.get(attraction_id)
-    
+
     def lookup_attraction(self, name: str, language: str, location: str = None) -> Optional[Dict]:
         """Lookup attraction by name."""
         # Simple mock lookup
@@ -294,7 +294,7 @@ class MockKnowledgeBase:
             if attraction["name"].get(language) == name:
                 return attraction
         return None
-    
+
     def search_attractions(self, query: str = "", filters: Dict = None, language: str = "en", limit: int = 10) -> List[Dict]:
         """Search attractions."""
         # Return a list of attractions based on simple matching or filters
@@ -304,7 +304,7 @@ class MockKnowledgeBase:
         # Implement basic search if needed for tests, otherwise return empty
         return []
 
-    # --- ADD MISSING MOCK METHODS --- 
+    # --- ADD MISSING MOCK METHODS ---
     def lookup_location(self, name: str, language: str) -> Optional[Dict]:
         """Mock location lookup."""
         # Basic mock - return a simple structure if name matches common cities
@@ -326,10 +326,10 @@ class MockKnowledgeBase:
     # e.g., get_restaurant_by_id, get_hotel_by_id, etc.
     def get_restaurant_by_id(self, restaurant_id: str) -> Optional[Dict]:
         return self.restaurants.get(restaurant_id)
-        
+
     def get_hotel_by_id(self, hotel_id: str) -> Optional[Dict]:
         return self.accommodations.get(hotel_id)
-        
+
     def get_practical_info(self, item_id: str, item_type: str, language: str = "en") -> Optional[Dict]:
         # Simple mock - needs expansion if tests rely on specific practical info
         if item_type == "attraction" and item_id in self.attractions:
@@ -339,11 +339,11 @@ class MockKnowledgeBase:
 
 class MockDialogManager:
     """Mock dialog manager for testing."""
-    
+
     def __init__(self, action: Dict = None):
         """
         Initialize mock dialog manager.
-        
+
         Args:
             action (dict, optional): Action to return
         """
@@ -353,7 +353,7 @@ class MockDialogManager:
             "dialog_state": "information_gathering",
             "suggestions": ["attractions", "hotels", "restaurants"]
         }
-    
+
     def next_action(self, nlu_result: Dict, context: Dict) -> Dict:
         """Get next dialog action."""
         return self.action
@@ -361,11 +361,11 @@ class MockDialogManager:
 
 class MockResponseGenerator:
     """Mock response generator for testing."""
-    
+
     def __init__(self, response: Dict = None):
         """
         Initialize mock response generator.
-        
+
         Args:
             response (dict, optional): Response to return
         """
@@ -375,29 +375,43 @@ class MockResponseGenerator:
             "language": "en",
             "suggestions": ["attractions", "hotels", "restaurants"]
         }
-    
-    def generate_response(self, dialog_action: Dict, nlu_result: Dict, context: Dict) -> Dict:
-        """Generate response."""
+
+    def generate_response_from_action(self, dialog_action: Dict, nlu_result: Dict, context: Dict) -> Dict:
+        """Generate response from dialog action."""
         return self.response
+
+    def generate_response_by_type(self, response_type: str, language: str, params: Dict = None) -> str:
+        """Generate response by type."""
+        return self.response.get("text", "This is a test response.")
+
+    # For backward compatibility
+    def generate_response(self, *args, **kwargs):
+        """Legacy method for backward compatibility."""
+        if len(args) >= 3:
+            # If called with 3 positional args, assume it's generate_response_from_action
+            return self.generate_response_from_action(*args, **kwargs)
+        else:
+            # Otherwise assume it's generate_response_by_type
+            return self.generate_response_by_type(*args, **kwargs)
 
 
 class MockServiceHub:
     """Mock service hub for testing."""
-    
+
     def __init__(self, service_results: Dict = None):
         """
         Initialize mock service hub.
-        
+
         Args:
             service_results (dict, optional): Service results to return
         """
         self.service_results = service_results or {}
-    
+
     def execute_service(self, service: str, method: str, params: Dict = None) -> Dict:
         """Execute service."""
         key = f"{service}_{method}"
         return self.service_results.get(key, {"result": "mock_result"})
-    
+
     def get_service(self, service: str) -> Optional[Any]:
         """Get service by name."""
         return None
@@ -405,16 +419,16 @@ class MockServiceHub:
 
 class MockSessionManager:
     """Mock session manager for testing."""
-    
+
     def __init__(self, sessions: Dict = None):
         """
         Initialize mock session manager.
-        
+
         Args:
             sessions (dict, optional): Session data
         """
         self.sessions = sessions or {}
-    
+
     def create_session(self) -> str:
         """Create new session."""
         session_id = str(uuid.uuid4())
@@ -428,53 +442,53 @@ class MockSessionManager:
             }
         }
         return session_id
-    
+
     def get_session(self, session_id: str) -> Optional[Dict]:
         """Get session by ID."""
         return self.sessions.get(session_id)
-    
+
     def get_context(self, session_id: str) -> Dict:
         """Get session context."""
         session = self.get_session(session_id)
         if session:
             return session.get("context", {})
         return {}
-    
+
     def set_context(self, session_id: str, context: Dict) -> bool:
         """Set session context."""
         if session_id in self.sessions:
             self.sessions[session_id]["context"] = context
             return True
         return False
-    
+
     def update_context(self, session_id: str, nlu_result: Dict) -> Dict:
         """Update context based on NLU result."""
         context = self.get_context(session_id)
-        
+
         # Update with NLU result
         if "intent" in nlu_result:
             context["last_intent"] = nlu_result["intent"]
-        
+
         if "entities" in nlu_result:
             if "entities" not in context:
                 context["entities"] = {}
-            
+
             for entity_type, entity_values in nlu_result["entities"].items():
                 context["entities"][entity_type] = entity_values
-        
+
         # Set updated context
         self.set_context(session_id, context)
-        
+
         return context
 
 
 class ChatbotTestMixin:
     """Mixin for chatbot tests with common utilities."""
-    
+
     def create_test_chatbot(self, **kwargs):
         """
         Create a test chatbot instance with optional mocked components.
-        
+
         Args:
             **kwargs: Component overrides
                 - nlu_engine: NLU engine instance
@@ -485,40 +499,40 @@ class ChatbotTestMixin:
                 - session_manager: Session manager instance
         """
         chatbot = Chatbot()
-        
+
         # Override components with mocks if provided
         for component, instance in kwargs.items():
             if hasattr(chatbot, component):
                 setattr(chatbot, component, instance)
-        
+
         return chatbot
-    
+
     def generate_test_message(self, text="Hello", intent="greeting", entities=None):
         """
         Generate a test message.
-        
+
         Args:
             text (str): Message text
             intent (str): Intent
             entities (dict, optional): Entities
-            
+
         Returns:
             tuple: (session_id, result)
         """
         entities = entities or {}
-        
+
         # Create test session
         session_id = str(uuid.uuid4())
-        
+
         # Create mock NLU engine
         nlu_engine = MockNLUEngine(intent=intent, entities=entities)
-        
+
         # Create mock dialog manager
         dialog_manager = MockDialogManager()
-        
+
         # Create mock response generator
         response_generator = MockResponseGenerator()
-        
+
         # Create mock session manager
         session_manager = MockSessionManager(sessions={
             session_id: {
@@ -531,7 +545,7 @@ class ChatbotTestMixin:
                 }
             }
         })
-        
+
         # Create test chatbot
         chatbot = self.create_test_chatbot(
             nlu_engine=nlu_engine,
@@ -539,20 +553,20 @@ class ChatbotTestMixin:
             response_generator=response_generator,
             session_manager=session_manager
         )
-        
+
         # Process message
         result = chatbot.process_message(text, session_id)
-        
+
         return session_id, result
 
 
-# --- Fixture Definition --- 
+# --- Fixture Definition ---
 @pytest.fixture(scope="module") # Use module scope for efficiency
 def test_client():
     """Pytest fixture for creating a FastAPI test client."""
     if fastapi_app is None:
         pytest.fail("FastAPI app could not be imported. Check errors above.")
-        
+
     # Create TestClient instance using the imported FastAPI app
     with TestClient(fastapi_app) as client:
         # Yield the client for use in tests
