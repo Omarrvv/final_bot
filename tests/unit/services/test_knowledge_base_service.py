@@ -31,6 +31,8 @@ def mock_db_manager(): # Renamed fixture as KB service uses DB manager
     mock.search_practical_info = MagicMock(return_value = [])
     # Add the missing search_records if it's a separate generic method
     mock.search_records = MagicMock(return_value=[])
+    # Add db_type attribute that's needed by KnowledgeBase
+    mock.db_type = "postgres"
     # Configure specific return values in individual tests
     return mock
 
@@ -178,4 +180,4 @@ def test_lookup_location_not_found(kb_service, mock_db_manager):
 # - Other service methods (e.g., for hotels, restaurants, practical info)
 # - Service methods that might combine multiple KB calls
 # - Error handling (e.g., what happens if KB raises an exception?)
-# - Input validation if the service layer adds any 
+# - Input validation if the service layer adds any

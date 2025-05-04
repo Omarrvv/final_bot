@@ -16,11 +16,11 @@ from src.knowledge.knowledge_base import KnowledgeBase
 def mock_db_manager():
     """Create a mock DatabaseManager for testing."""
     mock = MagicMock(spec=DatabaseManager)
-    
+
     # Set up basic connection check
     mock.connect.return_value = True
     mock.db_type = "postgresql"
-    
+
     # Set up empty default returns for search methods
     mock.search_attractions.return_value = []
     mock.search_restaurants.return_value = []
@@ -32,7 +32,7 @@ def mock_db_manager():
     mock.get_city.return_value = None
     mock.enhanced_search.return_value = []
     mock.find_nearby.return_value = []
-    
+
     return mock
 
 @pytest.fixture
@@ -123,7 +123,7 @@ def test_format_attraction_data(knowledge_base, mock_attraction_data):
     """Test that attraction data is properly formatted."""
     # Call the formatter
     result = knowledge_base._format_attraction_data(mock_attraction_data)
-    
+
     # Verify the structure of the returned data
     assert result["id"] == mock_attraction_data["id"]
     assert result["name"]["en"] == mock_attraction_data["name_en"]
@@ -143,7 +143,7 @@ def test_format_restaurant_data(knowledge_base, mock_restaurant_data):
     """Test that restaurant data is properly formatted."""
     # Call the formatter
     result = knowledge_base._format_restaurant_data(mock_restaurant_data)
-    
+
     # Verify the structure of the returned data
     assert result["id"] == mock_restaurant_data["id"]
     assert result["name"]["en"] == mock_restaurant_data["name_en"]
@@ -163,7 +163,7 @@ def test_format_accommodation_data(knowledge_base, mock_hotel_data):
     """Test that hotel/accommodation data is properly formatted."""
     # Call the formatter
     result = knowledge_base._format_accommodation_data(mock_hotel_data)
-    
+
     # Verify the structure of the returned data
     assert result["id"] == mock_hotel_data["id"]
     assert result["name"]["en"] == mock_hotel_data["name_en"]
@@ -184,7 +184,7 @@ def test_format_city_data(knowledge_base, mock_city_data):
     """Test that city data is properly formatted."""
     # Call the formatter
     result = knowledge_base._format_city_data(mock_city_data)
-    
+
     # Verify the structure of the returned data
     assert result["name"]["en"] == mock_city_data["name_en"]
     assert result["name"]["ar"] == mock_city_data["name_ar"]
@@ -199,15 +199,15 @@ def test_find_nearby_attractions(knowledge_base, mock_db_manager, mock_attractio
     """Test finding nearby attractions by coordinates."""
     # Set up mock to return sample attractions
     mock_db_manager.find_nearby.return_value = [mock_attraction_data]
-    
+
     # Call the method being tested
     results = knowledge_base.find_nearby_attractions(
-        latitude=30.0444, 
+        latitude=30.0444,
         longitude=31.2357,
         radius_km=5.0,
         limit=10
     )
-    
+
     # Verify the correct method was called with right params
     mock_db_manager.find_nearby.assert_called_once_with(
         table="attractions",
@@ -216,7 +216,7 @@ def test_find_nearby_attractions(knowledge_base, mock_db_manager, mock_attractio
         radius_km=5.0,
         limit=10
     )
-    
+
     # Verify results formatting
     assert len(results) == 1
     assert results[0]["id"] == mock_attraction_data["id"]
@@ -226,15 +226,15 @@ def test_find_nearby_restaurants(knowledge_base, mock_db_manager, mock_restauran
     """Test finding nearby restaurants by coordinates."""
     # Set up mock to return sample restaurants
     mock_db_manager.find_nearby.return_value = [mock_restaurant_data]
-    
+
     # Call the method being tested
     results = knowledge_base.find_nearby_restaurants(
-        latitude=30.0444, 
+        latitude=30.0444,
         longitude=31.2357,
         radius_km=2.0,
         limit=5
     )
-    
+
     # Verify the correct method was called with right params
     mock_db_manager.find_nearby.assert_called_once_with(
         table="restaurants",
@@ -243,7 +243,7 @@ def test_find_nearby_restaurants(knowledge_base, mock_db_manager, mock_restauran
         radius_km=2.0,
         limit=5
     )
-    
+
     # Verify results formatting
     assert len(results) == 1
     assert results[0]["id"] == mock_restaurant_data["id"]
@@ -253,15 +253,15 @@ def test_find_nearby_accommodations(knowledge_base, mock_db_manager, mock_hotel_
     """Test finding nearby accommodations by coordinates."""
     # Set up mock to return sample hotels
     mock_db_manager.find_nearby.return_value = [mock_hotel_data]
-    
+
     # Call the method being tested
     results = knowledge_base.find_nearby_accommodations(
-        latitude=30.0444, 
+        latitude=30.0444,
         longitude=31.2357,
         radius_km=3.0,
         limit=10
     )
-    
+
     # Verify the correct method was called with right params
     mock_db_manager.find_nearby.assert_called_once_with(
         table="accommodations",
@@ -270,7 +270,7 @@ def test_find_nearby_accommodations(knowledge_base, mock_db_manager, mock_hotel_
         radius_km=3.0,
         limit=10
     )
-    
+
     # Verify results formatting
     assert len(results) == 1
     assert results[0]["id"] == mock_hotel_data["id"]
@@ -281,18 +281,18 @@ def test_get_attractions_in_city(knowledge_base, mock_db_manager, mock_attractio
     # Set up mocks
     mock_db_manager.search_cities.return_value = [mock_city_data]
     mock_db_manager.search_attractions.return_value = [mock_attraction_data]
-    
+
     # Call the method being tested
     results = knowledge_base.get_attractions_in_city(city_name="Cairo", limit=10)
-    
+
     # Verify city search was called
     mock_db_manager.search_cities.assert_called_once()
-    
+
     # Verify attractions search was called with city filter
     mock_db_manager.search_attractions.assert_called_once()
     call_args = mock_db_manager.search_attractions.call_args[1]
-    assert call_args["query"]["city"] == "cairo"
-    
+    assert call_args["filters"]["city"] == "cairo"
+
     # Verify results formatting
     assert len(results) == 1
     assert results[0]["id"] == mock_attraction_data["id"]
@@ -303,23 +303,23 @@ def test_find_attractions_near_hotel(knowledge_base, mock_db_manager, mock_hotel
     # Set up mocks
     mock_db_manager.get_accommodation.return_value = mock_hotel_data
     mock_db_manager.find_nearby.return_value = [mock_attraction_data]
-    
+
     # Call the method being tested
     results = knowledge_base.find_attractions_near_hotel(
         hotel_id="mena_house",
         radius_km=2.0,
         limit=5
     )
-    
+
     # Verify hotel query was called
     mock_db_manager.get_accommodation.assert_called_once_with("mena_house")
-    
+
     # Verify nearby search was called with hotel coordinates
     mock_db_manager.find_nearby.assert_called_once()
     call_args = mock_db_manager.find_nearby.call_args[1]
     assert call_args["latitude"] == mock_hotel_data["latitude"]
     assert call_args["longitude"] == mock_hotel_data["longitude"]
-    
+
     # Verify results formatting
     assert len(results) == 1
     assert results[0]["id"] == mock_attraction_data["id"]
@@ -330,23 +330,23 @@ def test_find_restaurants_near_attraction(knowledge_base, mock_db_manager, mock_
     # Set up mocks
     mock_db_manager.get_attraction.return_value = mock_attraction_data
     mock_db_manager.find_nearby.return_value = [mock_restaurant_data]
-    
+
     # Call the method being tested
     results = knowledge_base.find_restaurants_near_attraction(
         attraction_id="pyramids_giza",
         radius_km=1.0,
         limit=10
     )
-    
+
     # Verify attraction query was called
     mock_db_manager.get_attraction.assert_called_once_with("pyramids_giza")
-    
+
     # Verify nearby search was called with attraction coordinates
     mock_db_manager.find_nearby.assert_called_once()
     call_args = mock_db_manager.find_nearby.call_args[1]
     assert call_args["latitude"] == mock_attraction_data["latitude"]
     assert call_args["longitude"] == mock_attraction_data["longitude"]
-    
+
     # Verify results formatting
     assert len(results) == 1
     assert results[0]["id"] == mock_restaurant_data["id"]
@@ -357,18 +357,18 @@ def test_get_restaurants_in_city(knowledge_base, mock_db_manager, mock_restauran
     # Set up mocks
     mock_db_manager.search_cities.return_value = [mock_city_data]
     mock_db_manager.search_restaurants.return_value = [mock_restaurant_data]
-    
+
     # Call the method being tested
     results = knowledge_base.get_restaurants_in_city(city_name="Cairo", limit=10)
-    
+
     # Verify city search was called
     mock_db_manager.search_cities.assert_called_once()
-    
+
     # Verify restaurants search was called with city filter
     mock_db_manager.search_restaurants.assert_called_once()
     call_args = mock_db_manager.search_restaurants.call_args[1]
-    assert call_args["query"]["city"] == "cairo"
-    
+    assert call_args["filters"]["city"] == "cairo"
+
     # Verify results formatting
     assert len(results) == 1
     assert results[0]["id"] == mock_restaurant_data["id"]
@@ -379,18 +379,18 @@ def test_get_accommodations_in_city(knowledge_base, mock_db_manager, mock_hotel_
     # Set up mocks
     mock_db_manager.search_cities.return_value = [mock_city_data]
     mock_db_manager.search_accommodations.return_value = [mock_hotel_data]
-    
+
     # Call the method being tested
     results = knowledge_base.get_accommodations_in_city(city_name="Cairo", limit=10)
-    
+
     # Verify city search was called
     mock_db_manager.search_cities.assert_called_once()
-    
+
     # Verify accommodations search was called with city filter
     mock_db_manager.search_accommodations.assert_called_once()
     call_args = mock_db_manager.search_accommodations.call_args[1]
-    assert call_args["query"]["city"] == "cairo"
-    
+    assert call_args["filters"]["city"] == "cairo"
+
     # Verify results formatting
     assert len(results) == 1
     assert results[0]["id"] == mock_hotel_data["id"]
@@ -404,14 +404,14 @@ def test_entity_mapping_with_missing_data(knowledge_base):
     assert formatted_attr["id"] == "test_attr"
     assert formatted_attr["name"]["en"] == "Test Attraction"
     assert formatted_attr["name"]["ar"] == ""
-    
+
     # Test restaurant formatter with minimal data
     minimal_restaurant = {"id": "test_rest", "name_en": "Test Restaurant"}
     formatted_rest = knowledge_base._format_restaurant_data(minimal_restaurant)
     assert formatted_rest["id"] == "test_rest"
     assert formatted_rest["name"]["en"] == "Test Restaurant"
     assert formatted_rest["name"]["ar"] == ""
-    
+
     # Test hotel formatter with minimal data
     minimal_hotel = {"id": "test_hotel", "name_en": "Test Hotel"}
     formatted_hotel = knowledge_base._format_accommodation_data(minimal_hotel)
@@ -423,21 +423,21 @@ def test_error_handling_in_relationship_navigation(knowledge_base, mock_db_manag
     """Test error handling in relationship navigation methods."""
     # Set up mock to raise exception
     mock_db_manager.find_nearby.side_effect = Exception("Database error")
-    
+
     # Test error handling in find_nearby_attractions
     results = knowledge_base.find_nearby_attractions(latitude=0, longitude=0)
     assert results == []
-    
+
     # Test error handling in find_attractions_near_hotel
     mock_db_manager.get_accommodation.return_value = {"id": "test", "latitude": 0, "longitude": 0}
     results = knowledge_base.find_attractions_near_hotel(hotel_id="test")
     assert results == []
-    
+
     # Test error handling with invalid coordinates
     mock_db_manager.get_accommodation.return_value = {"id": "test", "latitude": 0, "longitude": 0}
     results = knowledge_base.find_attractions_near_hotel(hotel_id="test")
     assert results == []
-    
+
     # Test error handling with missing entity
     mock_db_manager.get_attraction.return_value = None
     results = knowledge_base.find_restaurants_near_attraction(attraction_id="nonexistent")

@@ -20,27 +20,98 @@ from fastapi.security import OAuth2PasswordBearer
 
 logger = logging.getLogger(__name__)
 
-# --- JWT Configuration --- 
+# --- Password Hashing Utilities ---
+def hash_password(password: str) -> tuple:
+    """
+    Hash a password using bcrypt.
+
+    Args:
+        password: The password to hash (string)
+
+    Returns:
+        tuple: (hashed_password_hex, salt_hex)
+    """
+    # Always ensure password is bytes
+    if not isinstance(password, str):
+        raise TypeError("Password must be a string")
+
+    password_bytes = password.encode('utf-8')
+
+    # Generate salt
+    salt = bcrypt.gensalt()
+
+    # Hash the password
+    hashed_password = bcrypt.hashpw(password_bytes, salt)
+
+    # Return hex strings for database compatibility
+    return hashed_password.hex(), salt.hex()
+
+def verify_password(password: str, stored_hash: str) -> bool:
+    """
+    Verify a password against a stored hash.
+
+    Args:
+        password: The password to verify (string)
+        stored_hash: The stored hash in hex format
+
+    Returns:
+        bool: True if password matches, False otherwise
+    """
+    try:
+        # Validate input types
+        if not isinstance(password, str):
+            raise TypeError("Password must be a string")
+        if not isinstance(stored_hash, str):
+            raise TypeError("Stored hash must be a string")
+
+        # Convert password to bytes
+        password_bytes = password.encode('utf-8')
+
+        # Convert stored hex value back to bytes
+        stored_hash_bytes = bytes.fromhex(stored_hash)
+
+        # Use bcrypt to check password
+        return bcrypt.checkpw(password_bytes, stored_hash_bytes)
+    except TypeError as e:
+        logger.error(f"Password verification type error: {str(e)}")
+        return False
+    except ValueError as e:
+        logger.error(f"Password verification value error: {str(e)}")
+        return False
+    except Exception as e:
+        logger.error(f"Password verification error: {str(e)}")
+        return False
+
+# --- JWT Configuration ---
 JWT_SECRET = os.getenv("JWT_SECRET")
 if not JWT_SECRET:
     # Use a default secret for development environments ONLY
     logger.warning("JWT_SECRET environment variable not set! Using default secret for development only.")
     JWT_SECRET = "dev-jwt-secret-not-for-production"
-        
+
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_SECONDS = 24 * 60 * 60  # 24 hours
 
-# --- FastAPI OAuth2 Scheme --- 
+# --- FastAPI OAuth2 Scheme ---
 # The tokenUrl should point to your login endpoint (which we haven't created yet)
 # Using a placeholder for now.
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login") # Placeholder URL
 
-# --- Token Generation/Validation (Framework Agnostic) --- 
+# --- Token Generation/Validation (Framework Agnostic) ---
 def generate_token(user_id: str, extra_claims: Dict = None) -> str:
-    """Generate a JWT token for a user."""
+    """
+    Generate a JWT token for a user.
+
+    Args:
+        user_id: The user ID to include in the token
+        extra_claims: Additional claims to include in the token
+
+    Returns:
+        str: The generated JWT token
+    """
     if extra_claims is None:
         extra_claims = {}
-    
+
     expire = datetime.now(timezone.utc) + timedelta(seconds=JWT_EXPIRATION_SECONDS)
     payload = {
         "sub": user_id, # Standard claim for subject (user ID)
@@ -48,7 +119,45 @@ def generate_token(user_id: str, extra_claims: Dict = None) -> str:
         "exp": expire, # Standard claim for expiration
     }
     payload.update(extra_claims) # Add custom claims like role, username
-    
+
+    token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+    return token
+
+def generate_anonymous_token(session_id: str = None, refresh_nonce: str = None) -> str:
+    """
+    Generate a JWT token for an anonymous session.
+
+    Args:
+        session_id: Optional session ID to include in the token.
+                   If not provided, a new UUID will be generated.
+        refresh_nonce: Optional nonce to make refreshed tokens unique.
+
+    Returns:
+        str: The generated JWT token
+    """
+    import uuid
+
+    # Generate a session ID if not provided
+    if not session_id:
+        session_id = str(uuid.uuid4())
+
+    # Set expiration time
+    expire = datetime.now(timezone.utc) + timedelta(seconds=JWT_EXPIRATION_SECONDS)
+
+    # Create payload with minimal claims
+    payload = {
+        "sub": f"anon_{session_id}", # Prefix to identify as anonymous
+        "session_id": session_id,
+        "iat": datetime.now(timezone.utc),
+        "exp": expire,
+        "type": "anonymous" # Identify token type
+    }
+
+    # Add refresh nonce if provided to make refreshed tokens unique
+    if refresh_nonce:
+        payload["nonce"] = refresh_nonce
+
+    # Generate token
     token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
     return token
 
@@ -56,8 +165,8 @@ def validate_token(token: str) -> Dict:
     """Validate a JWT token and return its payload."""
     try:
         payload = jwt.decode(
-            token, 
-            JWT_SECRET, 
+            token,
+            JWT_SECRET,
             algorithms=[JWT_ALGORITHM]
         )
         return payload
@@ -81,7 +190,7 @@ def validate_token(token: str) -> Dict:
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-# --- FastAPI Dependency Functions for Authentication --- 
+# --- FastAPI Dependency Functions for Authentication ---
 async def get_current_user_payload(token: str = Depends(oauth2_scheme)) -> Dict:
     """
     FastAPI dependency function to validate token and return payload.
@@ -94,7 +203,7 @@ async def get_current_active_user(payload: dict = Depends(get_current_user_paylo
     Placeholder dependency to get the current user based on token payload.
     In a real app, this would fetch user details from the database.
     For now, it just returns the payload which contains user info like id, role.
-    
+
     TODO: Replace with actual user fetching logic using db_manager if needed.
     """
     # Example: Fetch user from DB (assuming db_manager is available via Depends or context)
@@ -104,15 +213,15 @@ async def get_current_active_user(payload: dict = Depends(get_current_user_paylo
     # if not user:
     #     raise HTTPException(status_code=404, detail="User not found")
     # return user # Or a Pydantic User model
-    
+
     # For now, just return the payload as it contains the essential claims
     # Ensure the payload includes necessary info like user_id and role
     user_id = payload.get("sub")
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid token payload (missing sub)")
-        
+
     # You might want to wrap the payload in a Pydantic model here for consistency
-    return payload 
+    return payload
 
 async def get_current_admin_user(current_user: dict = Depends(get_current_active_user)) -> dict:
     """
@@ -122,131 +231,216 @@ async def get_current_admin_user(current_user: dict = Depends(get_current_active
     user_role = current_user.get("role")
     if user_role != "admin":
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, 
+            status_code=status.HTTP_403_FORBIDDEN,
             detail="Operation not permitted: Requires admin privileges"
         )
     return current_user
 
-# --- Authentication Class (Needs Adaptation if used directly by API) ---
-# The Auth class methods might need access to the db_manager. 
-# If these methods (register/login) are exposed via API endpoints,
-# those endpoints should get the db_manager via Depends or container.get.
-class Auth:
+# --- Lightweight Session Authentication ---
+class SessionAuth:
     """
-    Authentication service for user management.
-    Handles user registration, login.
-    (Database interaction logic might need adjustment for async or dependency injection)
+    Lightweight session-based authentication service.
+    Handles anonymous sessions and token generation without requiring user accounts.
     """
-    def __init__(self):
-        """Initialize Auth service. Get dependencies later or via method injection."""
-        # Lazy load or inject db_manager when needed
-        self._db_manager = None
-        logger.info("Authentication service initialized (DB Manager will be retrieved on demand)")
+    def __init__(self, session_manager=None):
+        """
+        Initialize SessionAuth service.
+
+        Args:
+            session_manager: Optional session manager instance
+        """
+        self._session_manager = session_manager
+        logger.info("Lightweight SessionAuth service initialized")
 
     @property
-    def db_manager(self):
-        """Lazy load DatabaseManager.""" 
-        if not self._db_manager:
+    def session_manager(self):
+        """Lazy load SessionManager."""
+        if not self._session_manager:
             try:
-                # Assumes container is globally accessible or passed differently
-                from src.utils.container import container
-                self._db_manager = container.get("database_manager")
-                if not self._db_manager:
-                     raise RuntimeError("DatabaseManager not found in container")
+                # Try to import from auth.session
+                from src.auth.session import session_manager
+                self._session_manager = session_manager
+                if not self._session_manager:
+                    raise RuntimeError("SessionManager not found")
             except Exception as e:
-                 logger.error(f"Failed to get DatabaseManager for Auth class: {e}", exc_info=True)
-                 raise RuntimeError("Auth service cannot access database manager")
-        return self._db_manager
+                logger.error(f"Failed to get SessionManager: {e}", exc_info=True)
+                raise RuntimeError("SessionAuth service cannot access session manager")
+        return self._session_manager
 
-    def register_user(self, username: str, password: str, email: str, role: str = "user") -> Dict:
-        """Register a new user."""
+    def create_anonymous_session(self, metadata: Dict = None) -> Dict:
+        """
+        Create an anonymous session with optional metadata.
+
+        Args:
+            metadata: Optional dictionary of metadata to store with the session
+
+        Returns:
+            Dict: Session information including token and session_id
+        """
         import uuid
-        
-        # Check if username already exists using db_manager
-        existing_user = self.db_manager.get_user_by_username(username)
-        if existing_user:
-            raise HTTPException(status_code=400, detail="Username already exists")
-        # Check email later if needed
-        
-        # Generate salt and hash password
-        # Fix: Convert password to string if needed (bcrypt now expects str not bytes)
-        # We're passing the password directly as string
-        salt = bcrypt.gensalt().decode('utf-8')  # Convert bytes to string
-        hashed_password = bcrypt.hashpw(password, salt)
-        
-        # Create user record
-        user_id = str(uuid.uuid4())
-        user = {
-            "id": user_id,
-            "username": username,
-            "email": email,
-            "password_hash": hashed_password,
-            "salt": salt,
-            "role": role,
+
+        # Generate a unique session ID
+        session_id = str(uuid.uuid4())
+
+        # Initialize session data
+        session_data = metadata or {}
+        session_data.update({
             "created_at": datetime.now(timezone.utc).isoformat(),
-            "last_login": None,
-            "data": {} # Add empty data field if schema expects it
-        }
-        
-        # Store user via db_manager
-        success = self.db_manager.save_user(user)
-        if not success:
-             raise HTTPException(status_code=500, detail="Failed to save user to database")
-        
-        # Generate token with role claim
-        token = generate_token(
-            user_id=user_id,
-            extra_claims={
-                "username": username,
-                "role": role
-            }
-        )
-        
+            "last_accessed": datetime.now(timezone.utc).isoformat(),
+            "type": "anonymous"
+        })
+
+        # Create session in session manager if available
+        if hasattr(self, 'session_manager') and self.session_manager:
+            try:
+                self.session_manager.create_session(session_data)
+            except Exception as e:
+                logger.warning(f"Failed to create session in session manager: {e}")
+                # Continue anyway - we'll use the token-based approach
+
+        # Generate anonymous token
+        token = generate_anonymous_token(session_id)
+
         return {
             "success": True,
-            "user_id": user_id,
-            "token": token
+            "session_id": session_id,
+            "token": token,
+            "token_type": "bearer",
+            "expires_in": JWT_EXPIRATION_SECONDS
         }
-    
-    def login_user(self, username: str, password: str) -> Dict:
-        """Authenticate a user."""
-        # Get user from database
-        user = self.db_manager.get_user_by_username(username)
-        if not user:
-             raise HTTPException(status_code=401, detail="Invalid username or password")
-        
-        # Verify password
+
+    def validate_session(self, token: str) -> Dict:
+        """
+        Validate a session token.
+
+        Args:
+            token: The session token to validate
+
+        Returns:
+            Dict: Session data if valid, empty dict if invalid
+        """
         try:
-            stored_hash = user.get("password_hash")
-            stored_salt = user.get("salt")
-            
-            if not stored_hash or not stored_salt:
-                raise HTTPException(status_code=500, detail="User record is incomplete (missing hash/salt)")
-            
-            # Use bcrypt to check password - using string parameters
-            if not bcrypt.checkpw(password, stored_salt):
-                 raise HTTPException(status_code=401, detail="Invalid username or password")
-                
-            # Update last login time (optional, maybe do this after successful login)
-            # Consider updating last_login via db_manager.save_user if needed
-            
-            # Generate token with role claim
-            token = generate_token(
-                user_id=user["id"],
-                extra_claims={
-                    "username": user["username"],
-                    "role": user.get("role", "user")
-                }
-            )
-            
+            # Validate the token
+            payload = validate_token(token)
+
+            # Check if it's an anonymous token
+            if payload.get("type") != "anonymous":
+                logger.warning(f"Token is not an anonymous token: {payload.get('type')}")
+                return {}
+
+            # Get session ID from payload
+            session_id = payload.get("session_id")
+            if not session_id:
+                logger.warning("Token does not contain session_id")
+                return {}
+
+            # Get session data from session manager if available
+            if hasattr(self, 'session_manager') and self.session_manager:
+                try:
+                    session_data = self.session_manager.get_session(session_id)
+                    if session_data:
+                        return session_data
+                except Exception as e:
+                    logger.warning(f"Failed to get session from session manager: {e}")
+
+            # If session manager not available or session not found,
+            # return minimal session data from token
+            return {
+                "session_id": session_id,
+                "type": "anonymous",
+                "exp": payload.get("exp")
+            }
+
+        except Exception as e:
+            logger.error(f"Error validating session token: {e}", exc_info=True)
+            return {}
+
+    def refresh_session(self, token: str) -> Dict:
+        """
+        Refresh a session token.
+
+        Args:
+            token: The current session token
+
+        Returns:
+            Dict: New session information including token
+        """
+        try:
+            # Validate the current token
+            payload = validate_token(token)
+
+            # Check if it's an anonymous token
+            if payload.get("type") != "anonymous":
+                logger.warning(f"Token is not an anonymous token: {payload.get('type')}")
+                return {"success": False, "error": "Invalid token type"}
+
+            # Get session ID from payload
+            session_id = payload.get("session_id")
+            if not session_id:
+                logger.warning("Token does not contain session_id")
+                return {"success": False, "error": "Invalid token"}
+
+            # Generate a refresh nonce to ensure the new token is different
+            import uuid
+            refresh_nonce = str(uuid.uuid4())
+
+            # Generate a new token with the same session ID but different nonce
+            new_token = generate_anonymous_token(session_id, refresh_nonce)
+
+            # Update session in session manager if available
+            if hasattr(self, 'session_manager') and self.session_manager:
+                try:
+                    session_data = self.session_manager.get_session(session_id)
+                    if session_data:
+                        session_data["last_accessed"] = datetime.now(timezone.utc).isoformat()
+                        session_data["refresh_count"] = session_data.get("refresh_count", 0) + 1
+                        session_data["last_refresh"] = datetime.now(timezone.utc).isoformat()
+                        self.session_manager.update_session(session_id, session_data)
+                except Exception as e:
+                    logger.warning(f"Failed to update session in session manager: {e}")
+
             return {
                 "success": True,
-                "user_id": user["id"],
-                "token": token,
+                "session_id": session_id,
+                "token": new_token,
                 "token_type": "bearer",
                 "expires_in": JWT_EXPIRATION_SECONDS
             }
-            
+
         except Exception as e:
-            logger.error(f"Error verifying password during login: {e}", exc_info=True)
-            raise HTTPException(status_code=500, detail="Error during login process")
+            logger.error(f"Error refreshing session token: {e}", exc_info=True)
+            return {"success": False, "error": "Failed to refresh token"}
+
+    def end_session(self, token: str) -> bool:
+        """
+        End a session.
+
+        Args:
+            token: The session token to end
+
+        Returns:
+            bool: True if session was ended successfully, False otherwise
+        """
+        try:
+            # Validate the token
+            payload = validate_token(token)
+
+            # Get session ID from payload
+            session_id = payload.get("session_id")
+            if not session_id:
+                logger.warning("Token does not contain session_id")
+                return False
+
+            # Delete session from session manager if available
+            if hasattr(self, 'session_manager') and self.session_manager:
+                try:
+                    return self.session_manager.delete_session(session_id)
+                except Exception as e:
+                    logger.warning(f"Failed to delete session from session manager: {e}")
+
+            # If session manager not available, just return success
+            return True
+
+        except Exception as e:
+            logger.error(f"Error ending session: {e}", exc_info=True)
+            return False

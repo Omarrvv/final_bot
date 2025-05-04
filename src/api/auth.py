@@ -2,32 +2,33 @@
 Authentication API
 
 This module provides authentication endpoints for the FastAPI application.
+Uses lightweight session-based authentication without requiring user accounts.
 """
-from fastapi import APIRouter, Depends, Response, HTTPException, status
+from fastapi import APIRouter, Depends, Response, HTTPException, status, Request
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Dict, Any
 
-from src.services.session import SessionService
 from src.utils.logger import get_logger
-from src.utils.dependencies import get_session_service
+from src.utils.dependencies import get_session_auth
+from src.utils.auth import SessionAuth
 
 logger = get_logger(__name__)
 
 router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
 
 
-class LoginRequest(BaseModel):
-    """Login request schema."""
-    username: str
-    password: str
+class SessionRequest(BaseModel):
+    """Session request schema."""
+    metadata: Optional[Dict[str, Any]] = None
     remember_me: Optional[bool] = False
 
 
-class LoginResponse(BaseModel):
-    """Login response schema."""
-    user_id: str
-    username: str
+class SessionResponse(BaseModel):
+    """Session response schema."""
+    session_id: str
     token: str
+    token_type: str = "bearer"
+    expires_in: int
 
 
 class MessageResponse(BaseModel):
@@ -35,89 +36,215 @@ class MessageResponse(BaseModel):
     message: str
 
 
-@router.post("/login", response_model=LoginResponse)
-async def login(
-    request: LoginRequest,
+@router.post("/session", response_model=SessionResponse)
+async def create_session(
+    request: SessionRequest,
     response: Response,
-    session_service: SessionService = Depends(get_session_service),
+    session_auth: SessionAuth = Depends(get_session_auth),
 ):
     """
-    Authenticate a user and create a session.
-    
+    Create an anonymous session.
+
     Args:
-        request: Login request data
+        request: Session request data
         response: FastAPI response object
-        session_service: Session service for creating sessions
-        
+        session_auth: Session authentication service
+
     Returns:
-        Login response with user information and token
+        Session response with session ID and token
     """
-    # In a real application, you would validate credentials against a database
-    # This is a simple example that accepts any username/password combination
-    # Do not use this in production!
-    
-    # Simple validation for example purposes
-    if not request.username or not request.password:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Username and password are required",
-        )
-    
-    # Create a user object (in a real app, this would come from the database)
-    user_data = {
-        "user_id": f"user_{request.username}",
-        "username": request.username,
-        "roles": ["user"],
-    }
-    
-    # Set session TTL based on remember_me flag
-    ttl = 30 * 24 * 3600 if request.remember_me else None  # 30 days or default
-    
-    # Create a session - Handle mock session_service that might be used in tests
+    # Get metadata from request or use empty dict
+    metadata = request.metadata or {}
+
+    # Add user agent and IP address to metadata if available
     try:
-        token = await session_service.create_session(
-            user_data=user_data,
-            response=response,
-            ttl=ttl,
+        # These would be added by middleware in a real app
+        metadata["user_agent"] = "Web Browser"
+        metadata["ip_address"] = "127.0.0.1"
+    except Exception as e:
+        logger.warning(f"Failed to add request metadata: {str(e)}")
+
+    # Create an anonymous session
+    session_result = session_auth.create_anonymous_session(metadata)
+
+    if not session_result or not session_result.get("success"):
+        logger.error("Failed to create anonymous session")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create session",
         )
-    except (TypeError, AttributeError) as e:
-        logger.warning(f"Using mock token due to session service error: {str(e)}")
-        # Generate a mock token for testing purposes
-        token = f"mock_token_{user_data['user_id']}"
-    
-    logger.info(f"User logged in: {request.username}")
-    
-    # Return user information and token
-    return LoginResponse(
-        user_id=user_data["user_id"],
-        username=user_data["username"],
+
+    # Set session cookie
+    token = session_result.get("token")
+    if token and response:
+        # Set cookie TTL based on remember_me flag
+        max_age = 30 * 24 * 3600 if request.remember_me else 24 * 3600  # 30 days or 1 day
+
+        response.set_cookie(
+            key="session_token",
+            value=token,
+            httponly=True,
+            secure=False,  # Set to True in production with HTTPS
+            samesite="lax",
+            max_age=max_age,
+        )
+
+    logger.info(f"Created anonymous session: {session_result.get('session_id')}")
+
+    # Return session information
+    return SessionResponse(
+        session_id=session_result.get("session_id"),
         token=token,
+        token_type=session_result.get("token_type", "bearer"),
+        expires_in=session_result.get("expires_in", 24 * 3600),  # Default 24 hours
     )
 
 
-@router.post("/logout", response_model=MessageResponse)
-async def logout(
+@router.post("/end-session", response_model=MessageResponse)
+async def end_session(
     response: Response,
-    session_service: SessionService = Depends(get_session_service),
+    request: Request,
+    session_auth: SessionAuth = Depends(get_session_auth),
     token: Optional[str] = None,
 ):
     """
-    Log out a user by invalidating their session.
-    
+    End a session by invalidating the token.
+
     Args:
         response: FastAPI response object
-        session_service: Session service for invalidating sessions
+        request: FastAPI request object
+        session_auth: Session authentication service
         token: Optional session token (if not provided, use the cookie)
-        
+
     Returns:
         Success message
     """
     # Get the token from the cookie if not provided
     if not token:
-        token = response.cookies.get("session_token")
-    
-    # Invalidate the session
+        token = request.cookies.get("session_token")
+
+    # End the session
     if token:
-        await session_service.invalidate_session(token, response)
-    
-    return MessageResponse(message="Logged out successfully") 
+        success = session_auth.end_session(token)
+
+        # Clear the session cookie
+        response.delete_cookie(
+            key="session_token",
+            httponly=True,
+            secure=False,  # Set to True in production with HTTPS
+            samesite="lax",
+        )
+
+        if success:
+            logger.info("Session ended successfully")
+            return MessageResponse(message="Session ended successfully")
+
+    # Return success even if token wasn't found to avoid leaking information
+    logger.warning("No valid session token found for end-session request")
+    return MessageResponse(message="Session ended successfully")
+
+
+@router.post("/validate-session")
+async def validate_session(
+    request: Request,
+    session_auth: SessionAuth = Depends(get_session_auth),
+    token: Optional[str] = None,
+):
+    """
+    Validate a session token.
+
+    Args:
+        request: FastAPI request object
+        session_auth: Session authentication service
+        token: Optional session token (if not provided, use the cookie)
+
+    Returns:
+        Session data if valid, error if invalid
+    """
+    # Get the token from the cookie if not provided
+    if not token:
+        token = request.cookies.get("session_token")
+
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="No session token provided",
+        )
+
+    # Validate the session
+    session_data = session_auth.validate_session(token)
+
+    if not session_data:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid session token",
+        )
+
+    # Return session data
+    return {
+        "valid": True,
+        "session_id": session_data.get("session_id"),
+        "created_at": session_data.get("created_at"),
+        "last_accessed": session_data.get("last_accessed"),
+    }
+
+
+@router.post("/refresh-session", response_model=SessionResponse)
+async def refresh_session(
+    response: Response,
+    request: Request,
+    session_auth: SessionAuth = Depends(get_session_auth),
+    token: Optional[str] = None,
+):
+    """
+    Refresh a session token.
+
+    Args:
+        response: FastAPI response object
+        request: FastAPI request object
+        session_auth: Session authentication service
+        token: Optional session token (if not provided, use the cookie)
+
+    Returns:
+        New session token
+    """
+    # Get the token from the cookie if not provided
+    if not token:
+        token = request.cookies.get("session_token")
+
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="No session token provided",
+        )
+
+    # Refresh the session
+    refresh_result = session_auth.refresh_session(token)
+
+    if not refresh_result or not refresh_result.get("success"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Failed to refresh session",
+        )
+
+    # Set the new token in the cookie
+    new_token = refresh_result.get("token")
+    if new_token and response:
+        response.set_cookie(
+            key="session_token",
+            value=new_token,
+            httponly=True,
+            secure=False,  # Set to True in production with HTTPS
+            samesite="lax",
+            max_age=refresh_result.get("expires_in", 24 * 3600),
+        )
+
+    logger.info(f"Refreshed session: {refresh_result.get('session_id')}")
+
+    # Return the new token
+    return SessionResponse(
+        session_id=refresh_result.get("session_id"),
+        token=new_token,
+        token_type=refresh_result.get("token_type", "bearer"),
+        expires_in=refresh_result.get("expires_in", 24 * 3600),
+    )

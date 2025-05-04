@@ -1,14 +1,11 @@
 import pytest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 # Adjust import paths as necessary
 from src.knowledge.rag_pipeline import RAGPipeline
 from src.knowledge.knowledge_base import KnowledgeBase
 from src.knowledge.vector_db import VectorDB
-# Assuming an LLM service interface, e.g., from service_hub or a specific service
-# from src.services.anthropic_service import AnthropicService
-# For now, use MagicMock as a generic placeholder if the LLM service isn't defined
-LLMService = MagicMock
+from src.services.anthropic_service import AnthropicService
 
 @pytest.fixture
 def mock_kb():
@@ -29,9 +26,10 @@ def mock_vector_db():
 @pytest.fixture
 def mock_llm_service():
     """Mock LLM Service."""
-    mock = MagicMock(spec=LLMService)
-    # Define expected method
+    mock = MagicMock(spec=AnthropicService)
+    # Define expected methods
     mock.generate_response = MagicMock(return_value="LLM generated response.") # Default response
+    mock.execute_service = MagicMock(return_value={"text": "LLM generated response about pyramids"})
     return mock
 
 @pytest.fixture
@@ -66,36 +64,68 @@ def test_generate_response_exists(rag_pipeline):
     assert hasattr(rag_pipeline, 'generate_response')
     assert callable(rag_pipeline.generate_response)
 
-def test_generate_response_calls_dependencies(rag_pipeline, mock_kb, mock_vector_db, mock_llm_service):
+def test_generate_response_calls_dependencies(rag_pipeline, mock_llm_service):
     """Test that generate_response calls its core dependencies."""
-    pytest.skip("Skipping RAG pipeline test - will be implemented in Phase 5 of refactoring plan")
-    
     query = "Tell me about the pyramids"
     session_id = "session_123"
     language = "en"
 
-    # Simulate some vector search results
-    mock_vector_db.similarity_search.return_value = ["Vector context 1", "Vector context 2"]
-    # Simulate some KB lookup results (if applicable in the flow)
-    # mock_kb.lookup_location.return_value = {"id": "pyr", "type": "attraction"}
+    # Set up the mock embedding model
+    rag_pipeline.embedding_model = MagicMock()
+    rag_pipeline.embedding_model.encode.return_value = [[0.1] * 1536]  # Mock embedding
 
-    try:
-        response = rag_pipeline.generate_response(query, session_id, language)
-    except NotImplementedError:
-        pytest.skip("Skipping test: generate_response method not implemented.")
-    except TypeError as e:
-         pytest.skip(f"Skipping test: generate_response args mismatch? {e}")
-         return # Skip further assertions
+    # Set up the mock vector_db with search results
+    # The search method returns tuples of (item_id, similarity)
+    mock_search_results = [
+        ("chunk_1", 0.95),
+        ("chunk_2", 0.85)
+    ]
+
+    # Mock content chunks that will be returned by get_content_chunk
+    mock_content_chunks = [
+        {"content": "The Great Pyramid of Giza is the oldest and largest of the pyramids in the Giza pyramid complex.",
+         "title": "Great Pyramid",
+         "source": "attractions/pyramids.md"},
+        {"content": "The Pyramid of Khafre is the second-tallest and second-largest of the Ancient Egyptian Pyramids of Giza.",
+         "title": "Pyramid of Khafre",
+         "source": "attractions/pyramids.md"}
+    ]
+
+    # Mock the vector_db search method to return search results
+    rag_pipeline.vector_db.search = MagicMock(return_value=mock_search_results)
+
+    # Mock the knowledge_base.get_content_chunk method to return content chunks
+    rag_pipeline.knowledge_base.get_content_chunk = MagicMock(side_effect=lambda id:
+        mock_content_chunks[0] if id == "chunk_1" else mock_content_chunks[1])
+
+    # Set min_similarity to 0 to ensure results are used
+    rag_pipeline.min_similarity = 0.0
+
+    # Mock the LLM service execute_service method
+    mock_llm_service.execute_service.return_value = {"text": "LLM generated response about pyramids"}
+
+    # Call the method under test
+    response = rag_pipeline.generate_response(query, session_id, language)
 
     # Assertions
     assert response is not None
-    # Check if core methods of dependencies were called
-    mock_vector_db.similarity_search.assert_called_once()
-    # Add checks for kb calls if expected: mock_kb.some_method.assert_called()
-    mock_llm_service.generate_response.assert_called_once()
+    assert "session_id" in response
+    assert response["session_id"] == session_id
 
-    # Check if the final response looks like the LLM output (or includes it)
-    assert "LLM generated response" in response # Based on mock_llm_service setup
+    # Check that the embedding model was used
+    rag_pipeline.embedding_model.encode.assert_called_once()
+
+    # Check that the vector_db was called
+    rag_pipeline.vector_db.search.assert_called_once()
+
+    # Check that the LLM service was called
+    mock_llm_service.execute_service.assert_called_once()
+
+    # Verify the method parameters
+    _, kwargs = mock_llm_service.execute_service.call_args
+    assert kwargs["method"] == "generate"
+    assert "prompt" in kwargs["params"]
+    assert "pyramids" in kwargs["params"]["prompt"]
 
 # Add more tests as the RAG pipeline implementation progresses:
 # - Test query enhancement steps
@@ -116,4 +146,4 @@ def test_additional_test_2():
 
 def test_additional_test_3():
     # Implementation of test_additional_test_3
-    pass 
+    pass
