@@ -124,6 +124,10 @@ class Chatbot:
                     Provide BRIEF and CONCISE information - keep your response under 150 words.
                     Focus on the most essential facts only.
                     Use simple language and short sentences.
+                    Format your response in a conversational style, like a friendly chat message.
+                    DO NOT use Markdown formatting like headings (#) or bold text (**).
+                    DO NOT use bullet points or numbered lists with special characters.
+                    Just write in plain, conversational text with regular paragraphs.
                     Respond in {'Arabic' if language == 'ar' else 'English'}.
 
                     USER QUESTION:
@@ -268,6 +272,10 @@ class Chatbot:
                         Answer the following question about Egypt tourism.
                         Provide detailed information, including historical significance,
                         what visitors can see, and any practical tips if you know them.
+                        Format your response in a conversational style, like a friendly chat message.
+                        DO NOT use Markdown formatting like headings (#) or bold text (**).
+                        DO NOT use bullet points or numbered lists with special characters.
+                        Just write in plain, conversational text with regular paragraphs.
                         Respond in {'Arabic' if language == 'ar' else 'English'}.
 
                         USER QUESTION:
@@ -640,15 +648,16 @@ class Chatbot:
 
         if attraction_info:
             # Extract relevant information for the response
+            # Include the name in the description for a more conversational flow
             name = attraction_info.get("name", {}).get(language, attraction_name.title())
-            description = attraction_info.get("description", {}).get(language, "")
+            description = f"{name} - {attraction_info.get('description', {}).get(language, '')}"
 
             # Ensure we have at least some content
             if not description and attraction_name == "pyramids":
                 description = "The Pyramids of Giza are Egypt's most iconic monuments, built over 4,500 years ago as tombs for the pharaohs."
 
-            # Format the response
-            response_text = f"**{name}**\n\n{description}"
+            # Format the response in a conversational style without Markdown
+            response_text = f"{description}"
 
             # Add practical information if available
             practical_info = attraction_info.get("practical_info", {})
@@ -657,10 +666,10 @@ class Chatbot:
                 ticket_prices = practical_info.get("ticket_prices")
 
                 if opening_hours:
-                    response_text += f"\n\n**Opening Hours**: {opening_hours}"
+                    response_text += f"\n\nOpening Hours: {opening_hours}"
 
                 if ticket_prices:
-                    response_text += f"\n\n**Ticket Prices**: {ticket_prices}"
+                    response_text += f"\n\nTicket Prices: {ticket_prices}"
 
             return {
                 "text": response_text,
@@ -706,6 +715,10 @@ class Chatbot:
                         Provide BRIEF and CONCISE information - keep your response under 150 words.
                         Focus on the most essential facts only.
                         Use simple language and short sentences.
+                        Format your response in a conversational style, like a friendly chat message.
+                        DO NOT use Markdown formatting like headings (#) or bold text (**).
+                        DO NOT use bullet points or numbered lists with special characters.
+                        Just write in plain, conversational text with regular paragraphs.
                         Respond in {'Arabic' if language == 'ar' else 'English'}.
 
                         USER QUESTION:
@@ -933,6 +946,10 @@ class Chatbot:
                     Provide BRIEF and CONCISE information - keep your response under 150 words.
                     Focus on the most essential facts only.
                     Use simple language and short sentences.
+                    Format your response in a conversational style, like a friendly chat message.
+                    DO NOT use Markdown formatting like headings (#) or bold text (**).
+                    DO NOT use bullet points or numbered lists with special characters.
+                    Just write in plain, conversational text with regular paragraphs.
                     Respond in {'Arabic' if session.get("language") == "ar" else 'English'}.
 
                     USER QUESTION:
