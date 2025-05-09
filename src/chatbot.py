@@ -140,14 +140,24 @@ class Chatbot:
                         # Process message through NLU just to get intent and entities
                         nlu_result = await self._process_nlu(user_message, session_id, language)
 
+                        # Log the response text for debugging
+                        logger.info(f"Anthropic response text: {response_text[:100]}...")
+
+                        # Create a more detailed log to debug the response
+                        logger.info(f"FULL Anthropic response: {response_text}")
+
+                        # Clean up the response text to remove any unwanted characters
+                        response_text = response_text.strip()
+
+                        # Create a proper response object
                         response = {
                             "text": response_text,
-                            "response_type": "fallback",
+                            "response_type": "direct_response",
                             "suggestions": [],
                             "intent": nlu_result.get("intent"),
                             "entities": nlu_result.get("entities", {}),
                             "source": "anthropic_llm",
-                            "fallback": True,
+                            "fallback": False,
                             "session_id": session_id,
                             "language": language
                         }
@@ -271,6 +281,15 @@ class Chatbot:
                         )
 
                         if response_text:
+                            # Log the response text for debugging
+                            logger.info(f"Anthropic fallback response text: {response_text[:100]}...")
+
+                            # Create a more detailed log to debug the response
+                            logger.info(f"FULL Anthropic fallback response: {response_text}")
+
+                            # Clean up the response text to remove any unwanted characters
+                            response_text = response_text.strip()
+
                             response = {
                                 "text": response_text,
                                 "response_type": "fallback",
