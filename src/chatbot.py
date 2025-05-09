@@ -150,8 +150,8 @@ class Chatbot:
                         # Create a more detailed log to debug the response
                         logger.info(f"FULL Anthropic response: {response_text}")
 
-                        # Clean up the response text to remove any unwanted characters
-                        response_text = response_text.strip()
+                        # Clean up the response text to remove any unwanted characters and Markdown formatting
+                        response_text = self._clean_markdown_formatting(response_text)
 
                         # Create a proper response object
                         response = {
@@ -295,8 +295,8 @@ class Chatbot:
                             # Create a more detailed log to debug the response
                             logger.info(f"FULL Anthropic fallback response: {response_text}")
 
-                            # Clean up the response text to remove any unwanted characters
-                            response_text = response_text.strip()
+                            # Clean up the response text to remove any unwanted characters and Markdown formatting
+                            response_text = self._clean_markdown_formatting(response_text)
 
                             response = {
                                 "text": response_text,
@@ -731,6 +731,9 @@ class Chatbot:
                             max_tokens=300
                         )
 
+                        # Clean up the response text to remove any unwanted characters and Markdown formatting
+                        response_text = self._clean_markdown_formatting(response_text)
+
                         if response_text:
                             return {
                                 "text": response_text,
@@ -962,6 +965,9 @@ class Chatbot:
                         max_tokens=300
                     )
 
+                    # Clean up the response text to remove any unwanted characters and Markdown formatting
+                    response_text = self._clean_markdown_formatting(response_text)
+
                     if response_text:
                         return {
                             "text": response_text,
@@ -1008,6 +1014,50 @@ class Chatbot:
                 )
         except Exception as e:
             logger.error(f"Error adding message to session {session_id}: {str(e)}")
+
+    def _clean_markdown_formatting(self, text: str) -> str:
+        """
+        Clean Markdown formatting from text to make it more conversational.
+
+        Args:
+            text: Text to clean
+
+        Returns:
+            Cleaned text without Markdown formatting
+        """
+        if not text:
+            return ""
+
+        # Strip whitespace
+        text = text.strip()
+
+        # Remove Markdown headings (# Heading)
+        text = text.replace("\n#", "\n").replace("\n##", "\n").replace("\n###", "\n")
+        if text.startswith("# "):
+            text = text[2:]
+        elif text.startswith("## "):
+            text = text[3:]
+        elif text.startswith("### "):
+            text = text[4:]
+
+        # Remove bold formatting (**text**)
+        text = text.replace("**", "")
+
+        # Remove italic formatting (*text*)
+        text = text.replace("*", "")
+
+        # Replace bullet points with plain text
+        lines = text.split("\n")
+        for i in range(len(lines)):
+            if lines[i].strip().startswith("- "):
+                lines[i] = "• " + lines[i].strip()[2:]
+            elif lines[i].strip().startswith("* "):
+                lines[i] = "• " + lines[i].strip()[2:]
+
+        # Rejoin the text
+        text = "\n".join(lines)
+
+        return text
 
     def _detect_language(self, text: str) -> str:
         """
