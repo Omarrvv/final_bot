@@ -1,70 +1,189 @@
-# Python virtual environments
-egypt_bot/
-chatbot_env_311/
-venv/
-env/
-ENV/
-
-# Python bytecode
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-
-# Distribution / packaging
-dist/
 build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
 *.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.coverage
-.coverage.*
-.cache
-coverage.xml
-*.cover
+# Virtual Environments
+egypt_bot/
+chatbot_env_311/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 
-# Logs
-logs/
-*.log
-
-# Database files
-*.db
-*.sqlite
-*.sqlite3
-
-# Environment variables and secrets
+# Environment Variables
 .env
 .env.local
 .env.development
 .env.production
+.env.development.local
+.env.test.local
+.env.production.local
+.env.current
 .secrets
 
-# Binary files
-*.bin
-lid.176.bin
-dummy_path.bin
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
 
-# JS/React dependencies
-node_modules/
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+add_jsonb_indexes.log
+backup_restore_test.log
+database_backup.log
+database_restore.log
+db_migration.log
+embedding_generation_*.log
+foreign_keys_review.log
+generate_sessions_data.log
+jsonb_optimization.log
+performance_test.log
+regions_jsonb_migration.log
+test_api_endpoints.log
+test_tourism_queries.log
+tourism_data_fix_*.log
+tourism_data_verification_*.log
 
-# IDE specific files
-.idea/
-.vscode/
-*.sublime-project
-*.sublime-workspace
-.DS_Store
+# Coverage
+.coverage
+.pytest_cache/
+.coverage.*
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+htmlcov/
+.tox/
+.cache
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+postgresql/
+:memory:/
+
+# Backups
+*.sql
+*.bak
+*.backup
+*.dump
+backups/
+egypt_chatbot_backup_*.sql
+egypt_chatbot_schema*.sql
+
+# Large Data Files
+*.bin
+lid.176.bin
+dummy_path.bin
+test_vectors/
+
+# Migration Files (too many)
+migrations/
+
+# Temporary Files
+*.tmp
+*.temp
+
+# Model Files
+*.pkl
+*.model
+*.h5
+
+# React Build & Dependencies
+react-frontend/build/
+react-frontend/node_modules/
+node_modules/
+
+# Development Scripts (Root Level)
+add_*.py
+fix_*.py
+test_*.py
+run_*.py
+*_test_environment*.py
+backup_*.py
+restore_*.py
+switch_*.sh
+enhanced_*.py
+compare_environments.py
+diagnostic_test.py
+get_currency_info.py
+load_tourism_data.py
+search_practical_info.py
+
+# Analysis and temporary files
+current-analysis.md
+repair-plan.md
+database-plan.md
+postgres-focused.md
+test_environment.md
+
+# Performance and optimization files
+jsonb_recommendations.json
+optimized_jsonb_queries.sql
+performance_results.json
+currency_info.sql
+
+# Scripts directory (most of it)
+scripts/
+
+# Examples and documentation that's not essential
+examples/
+k8s/
+app/
+
+# Archive files and documentation
+docs/
+
+# Config for test environments
+config/
+
+# Large data files (keep only schemas and samples)
+data/cities/*.json
+data/hotels/*.json
+data/restaurants/*.json
+data/activities/*.json
+data/events/*.json
 
 # Local development configuration
 local_settings.py
 
 # MCP Browser Tools
-
-
-# PostgreSQL directory
-postgresql/
