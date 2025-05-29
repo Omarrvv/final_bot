@@ -1,5 +1,5 @@
 import React from "react";
-import EgyptTourismChatbot from "./components/EgyptTourismChatbot";
+import EgyptTourismChatbot from "./components/EgyptTourismChatbot.js";
 
 function App() {
   return (

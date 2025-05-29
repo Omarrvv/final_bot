@@ -32,7 +32,7 @@ logger = get_logger(__name__)
 
 
 class User(BaseUser):
-    def __init__(self, user_id: str, username: str, role: str = "user"):
+    def __init__(self, user_id: Union[int, str], username: str, role: str = "user"):
         self.user_id = user_id
         self.username = username
         self.role = role
@@ -47,7 +47,7 @@ class User(BaseUser):
 
     @property
     def identity(self) -> str:
-        return self.user_id
+        return str(self.user_id)
 
     @property
     def is_authenticated(self) -> bool:
@@ -205,8 +205,12 @@ class SessionAuthBackend:
             if "user_id" in session_data and session_data["user_id"]:
                 # Use username if available, otherwise default to "User"
                 username = session_data.get("username", "User")
+                user_id = session_data["user_id"]
+                # Convert user_id to integer if it's a string containing only digits
+                if isinstance(user_id, str) and user_id.isdigit():
+                    user_id = int(user_id)
                 return User(
-                    user_id=session_data["user_id"],
+                    user_id=user_id,
                     username=username,
                     role=session_data.get("role", "user")
                 )

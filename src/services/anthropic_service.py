@@ -21,7 +21,7 @@ class AnthropicService:
             logger.warning("No Anthropic API key provided")
         self.client = Anthropic(api_key=api_key)
 
-    def generate_response(self, prompt, max_tokens=1000, model="claude-3-7-sonnet-20250219"):
+    def generate_response(self, prompt, max_tokens=150, model="claude-3-7-sonnet-20250219"):
         """
         Generate a response using the Anthropic Claude API.
 
@@ -66,7 +66,7 @@ class AnthropicService:
 
         if method == "generate":
             prompt = params.get("prompt", "")
-            max_tokens = params.get("max_tokens", 1000)
+            max_tokens = params.get("max_tokens", 150)
             temperature = params.get("temperature", 0.7)
             model = params.get("model", "claude-3-7-sonnet-20250219")
 
@@ -113,11 +113,12 @@ class AnthropicService:
         Returns:
             Formatted prompt for Claude
         """
-        # Base system prompt
+        # Base system prompt - UPDATED FOR BREVITY
         system_prompt = """You are an expert guide on Egyptian tourism, history, and culture.
 Answer questions about Egypt's attractions, history, customs, and travel tips.
-Be informative yet concise, helpful, and engaging.
-Include specific details when relevant, like opening hours, best times to visit, or historical facts.
+KEEP YOUR RESPONSES EXTREMELY BRIEF - under 50 words maximum.
+Focus ONLY on the most essential facts.
+Use simple language and short sentences.
 If you don't know something specific, be honest about it."""
 
         # Language-specific instructions
@@ -171,7 +172,7 @@ If you don't know something specific, be honest about it."""
             # Generate response
             response = self.client.messages.create(
                 model=model,
-                max_tokens=1000,
+                max_tokens=150,
                 temperature=0.7,
                 messages=[
                     {"role": "user", "content": prompt}

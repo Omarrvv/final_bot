@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Egypt Tourism Chatbot</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f5f5f5;
+        color: #333;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      header {
+        background-color: #0033a0;
+        color: white;
+        padding: 20px;
+        text-align: center;
+        border-radius: 8px 8px 0 0;
+      }
+      header h1 {
+        margin: 0;
+        font-size: 24px;
+      }
+      .egypt-flag {
+        display: inline-block;
+        margin-right: 10px;
+      }
+      .chat-container {
+        background-color: white;
+        border-radius: 0 0 8px 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+      .messages {
+        height: 400px;
+        overflow-y: auto;
+        margin-bottom: 20px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+      }
+      .message {
+        margin-bottom: 15px;
+        padding: 10px;
+        border-radius: 8px;
+        max-width: 80%;
+        word-wrap: break-word;
+      }
+      .user-message {
+        background-color: #e1f5fe;
+        margin-left: auto;
+        text-align: right;
+      }
+      .bot-message {
+        background-color: #f5f5f5;
+        margin-right: auto;
+      }
+      .input-container {
+        display: flex;
+        gap: 10px;
+      }
+      #message-input {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 16px;
+      }
+      button {
+        background-color: #e4002b;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s;
+      }
+      button:hover {
+        background-color: #c8001e;
+      }
+      .suggestions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 20px;
+      }
+      .suggestion {
+        background-color: #f0f0f0;
+        padding: 8px 15px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.3s;
+      }
+      .suggestion:hover {
+        background-color: #e0e0e0;
+      }
+      .loading {
+        display: inline-block;
+        margin-left: 10px;
+      }
+      .loading span {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #888;
+        margin: 0 2px;
+        animation: loading 1.4s infinite ease-in-out both;
+      }
+      .loading span:nth-child(1) {
+        animation-delay: 0s;
+      }
+      .loading span:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .loading span:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+      @keyframes loading {
+        0%,
+        80%,
+        100% {
+          transform: scale(0);
+        }
+        40% {
+          transform: scale(1);
+        }
+      }
+      .hidden {
+        display: none;
+      }
+      .error {
+        color: #e4002b;
+        margin-top: 10px;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>🇪🇬 Egypt Tourism Chatbot</h1>
+      </header>
+      <div class="chat-container">
+        <div class="messages" id="messages">
+          <div class="message bot-message">
+            Hello! I'm your Egypt Tourism guide. How can I help you today?
+          </div>
+        </div>
+        <div class="input-container">
+          <input
+            type="text"
+            id="message-input"
+            placeholder="Ask me about Egypt tourism..."
+            autocomplete="off"
+          />
+          <button id="send-button">Send</button>
+        </div>
+        <div class="loading hidden" id="loading">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div class="error hidden" id="error"></div>
+        <div class="suggestions" id="suggestions">
+          <div class="suggestion">Tell me about the Pyramids of Giza</div>
+          <div class="suggestion">Best time to visit Egypt</div>
+          <div class="suggestion">Top attractions in Cairo</div>
+          <div class="suggestion">Egyptian cuisine</div>
+          <div class="suggestion">Hotels in Luxor</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const messagesContainer = document.getElementById("messages");
+        const messageInput = document.getElementById("message-input");
+        const sendButton = document.getElementById("send-button");
+        const loadingIndicator = document.getElementById("loading");
+        const errorElement = document.getElementById("error");
+        const suggestionsContainer = document.getElementById("suggestions");
+
+        let sessionId = null;
+
+        // Create a session when the page loads
+        createSession();
+
+        // Handle send button click
+        sendButton.addEventListener("click", sendMessage);
+
+        // Handle Enter key press
+        messageInput.addEventListener("keypress", function (e) {
+          if (e.key === "Enter") {
+            sendMessage();
+          }
+        });
+
+        // Handle suggestion clicks
+        suggestionsContainer.addEventListener("click", function (e) {
+          if (e.target.classList.contains("suggestion")) {
+            messageInput.value = e.target.textContent;
+            sendMessage();
+          }
+        });
+
+        // Create a new session
+        function createSession() {
+          // For the demo, we'll just use a random session ID
+          sessionId =
+            Math.random().toString(36).substring(2, 15) +
+            Math.random().toString(36).substring(2, 15);
+          console.log("Demo session created:", sessionId);
+
+          // Alternative: Try to create a session via API
+          /*
+                fetch('/api/sessions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to create session');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    sessionId = data.session_id;
+                    console.log('Session created:', sessionId);
+                })
+                .catch(error => {
+                    console.error('Error creating session:', error);
+                    showError('Failed to connect to the chatbot. Please refresh the page.');
+                });
+                */
+        }
+
+        // Send a message to the chatbot
+        function sendMessage() {
+          const message = messageInput.value.trim();
+          if (!message) return;
+
+          // Add user message to chat
+          addMessage(message, "user");
+
+          // Clear input
+          messageInput.value = "";
+
+          // Show loading indicator
+          loadingIndicator.classList.remove("hidden");
+
+          // Hide error if shown
+          errorElement.classList.add("hidden");
+
+          // Prepare the request body
+          const requestBody = {
+            message: message,
+            session_id: sessionId,
+            language: "en",
+          };
+
+          console.log("Sending chat request:", requestBody);
+
+          // Send message to API
+          fetch("/api/chat", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(requestBody),
+          })
+            .then((response) => {
+              console.log("Response status:", response.status);
+              if (!response.ok) {
+                throw new Error("Failed to get response: " + response.status);
+              }
+              return response.json();
+            })
+            .then((data) => {
+              console.log("Received response:", data);
+
+              // Hide loading indicator
+              loadingIndicator.classList.add("hidden");
+
+              // Add bot response to chat
+              if (data.text) {
+                addMessage(data.text, "bot");
+              } else if (data.response) {
+                addMessage(data.response, "bot");
+              } else if (data.message) {
+                addMessage(data.message, "bot");
+              } else {
+                addMessage(
+                  "I'm sorry, I couldn't find information about that. Please try asking something else about Egypt tourism.",
+                  "bot"
+                );
+              }
+            })
+            .catch((error) => {
+              console.error("Error sending message:", error);
+              loadingIndicator.classList.add("hidden");
+              showError("Failed to get a response. Please try again.");
+
+              // For demo purposes, add a fallback response
+              setTimeout(() => {
+                const fallbackResponses = {
+                  pyramids:
+                    "The Pyramids of Giza are one of Egypt's most iconic attractions. Built around 4,500 years ago, they include the Great Pyramid of Khufu, the Pyramid of Khafre, and the Pyramid of Menkaure. The Great Sphinx is also located nearby.",
+                  "best time":
+                    "The best time to visit Egypt is during the cooler months from October to April. The temperatures are more comfortable for sightseeing, especially in places like Luxor and Aswan. December and January are peak tourist season.",
+                  cairo:
+                    "Cairo is Egypt's capital and largest city. Key attractions include the Egyptian Museum, Khan el-Khalili bazaar, Al-Azhar Mosque, and the nearby Pyramids of Giza and Sphinx.",
+                  luxor:
+                    "Luxor is known as the world's greatest open-air museum, featuring the Karnak Temple Complex, Luxor Temple, Valley of the Kings, and Valley of the Queens.",
+                  nile: "A Nile River cruise is one of the most popular ways to see Egypt's ancient sites. Most cruises operate between Luxor and Aswan, with stops at temples like Edfu and Kom Ombo.",
+                  alexandria:
+                    "Alexandria is Egypt's second-largest city and a major Mediterranean seaport. Founded by Alexander the Great, it features attractions like the Bibliotheca Alexandrina, Qaitbay Citadel, and Montazah Palace.",
+                };
+
+                let foundResponse = false;
+                const lowerMessage = message.toLowerCase();
+
+                for (const [keyword, response] of Object.entries(
+                  fallbackResponses
+                )) {
+                  if (lowerMessage.includes(keyword)) {
+                    addMessage(response, "bot");
+                    foundResponse = true;
+                    break;
+                  }
+                }
+
+                if (!foundResponse) {
+                  addMessage(
+                    "I'm sorry, I couldn't connect to the database. For the demo, you can ask about the pyramids, best time to visit, Cairo, Luxor, the Nile, or Alexandria.",
+                    "bot"
+                  );
+                }
+
+                errorElement.classList.add("hidden");
+              }, 1000);
+            });
+        }
+
+        // Add a message to the chat
+        function addMessage(text, sender) {
+          const messageElement = document.createElement("div");
+          messageElement.classList.add("message");
+          messageElement.classList.add(
+            sender === "user" ? "user-message" : "bot-message"
+          );
+          messageElement.textContent = text;
+
+          messagesContainer.appendChild(messageElement);
+
+          // Scroll to bottom
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Show error message
+        function showError(message) {
+          errorElement.textContent = message;
+          errorElement.classList.remove("hidden");
+        }
+      });
+    </script>
+  </body>
+</html>
