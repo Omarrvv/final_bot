@@ -22,7 +22,7 @@ redis==5.2.1
 Requests==2.32.3
 scikit_learn==1.6.1
 sentry_sdk==2.26.1
-spacy==3.8.5
+spacy==3.8.7
 starlette==0.46.2
 torch==2.6.0
 transformers==4.51.3
