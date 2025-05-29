@@ -130,6 +130,9 @@ public/
 static/
 postgresql:/
 
+# Data Directory (large files, downloaded at runtime)
+data/
+
 # Large data files (keep only schemas and core configs)
 data/cities/*.json
 data/hotels/*.json
