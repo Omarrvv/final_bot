@@ -41,16 +41,12 @@ TABLE_DEFINITIONS = {
         "sql": """
             CREATE TABLE IF NOT EXISTS regions (
                 id TEXT PRIMARY KEY,
-                name_en TEXT NOT NULL,
-                name_ar TEXT,
-                description_en TEXT,
-                description_ar TEXT,
+                name JSONB NOT NULL,
+                description JSONB,
                 country TEXT,
                 latitude DOUBLE PRECISION,
                 longitude DOUBLE PRECISION,
                 data JSONB,
-                name JSONB,
-                description JSONB,
                 created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
                 user_id TEXT
@@ -77,7 +73,7 @@ TABLE_DEFINITIONS = {
         """,
         "dependencies": ["users"],
         "indexes": [
-            ("idx_regions_name", "name_en, name_ar"),
+            ("idx_regions_name_jsonb", "name", "gin"),
             ("idx_regions_country", "country")
         ]
     },
@@ -85,19 +81,15 @@ TABLE_DEFINITIONS = {
         "sql": """
             CREATE TABLE IF NOT EXISTS cities (
                 id TEXT PRIMARY KEY,
-                name_en TEXT NOT NULL,
-                name_ar TEXT,
-                description_en TEXT,
-                description_ar TEXT,
-                region TEXT,
+                name JSONB NOT NULL,
+                description JSONB,
                 latitude DOUBLE PRECISION,
                 longitude DOUBLE PRECISION,
                 data JSONB,
-                name JSONB,
-                description JSONB,
                 created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-                user_id TEXT
+                user_id TEXT,
+                region_id TEXT
             );
 
             -- Add foreign keys if they don't exist
@@ -111,14 +103,11 @@ TABLE_DEFINITIONS = {
                     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL;
                 END IF;
 
-                -- Add region_id column if it doesn't exist
+                -- Add foreign key for region_id if it doesn't exist
                 IF NOT EXISTS (
-                    SELECT 1 FROM information_schema.columns
-                    WHERE table_name = 'cities' AND column_name = 'region_id'
+                    SELECT 1 FROM pg_constraint
+                    WHERE conname = 'cities_region_id_fkey' AND conrelid = 'cities'::regclass
                 ) THEN
-                    ALTER TABLE cities ADD COLUMN region_id TEXT;
-
-                    -- Add foreign key for region_id
                     ALTER TABLE cities ADD CONSTRAINT cities_region_id_fkey
                     FOREIGN KEY (region_id) REFERENCES regions(id) ON DELETE SET NULL;
                 END IF;
@@ -133,26 +122,22 @@ TABLE_DEFINITIONS = {
         """,
         "dependencies": ["users", "regions"],
         "indexes": [
-            ("idx_cities_name", "name_en, name_ar"),
-            ("idx_cities_region", "region")
+            ("idx_cities_name_jsonb", "name", "gin"),
+            ("idx_cities_region_id", "region_id")
         ]
     },
     "attractions": {
         "sql": """
             CREATE TABLE IF NOT EXISTS attractions (
                 id TEXT PRIMARY KEY,
-                name_en TEXT NOT NULL,
-                name_ar TEXT,
-                description_en TEXT,
-                description_ar TEXT,
-                city TEXT,
-                region TEXT,
-                type TEXT,
+                name JSONB NOT NULL,
+                description JSONB,
+                type_id TEXT,
+                city_id TEXT,
+                region_id TEXT,
                 latitude DOUBLE PRECISION,
                 longitude DOUBLE PRECISION,
                 data JSONB,
-                name JSONB,
-                description JSONB,
                 created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
             );
@@ -182,28 +167,26 @@ TABLE_DEFINITIONS = {
         """,
         "dependencies": ["users"],
         "indexes": [
-            ("idx_attractions_name", "name_en, name_ar"),
-            ("idx_attractions_type", "type"),
-            ("idx_attractions_city", "city")
+            ("idx_attractions_name_jsonb", "name", "gin"),
+            ("idx_attractions_type_id", "type_id"),
+            ("idx_attractions_city_id", "city_id")
         ]
     },
     "restaurants": {
         "sql": """
             CREATE TABLE IF NOT EXISTS restaurants (
                 id TEXT PRIMARY KEY,
-                name_en TEXT NOT NULL,
-                name_ar TEXT,
-                description_en TEXT,
-                description_ar TEXT,
-                cuisine TEXT,
-                type TEXT,
-                city TEXT,
-                region TEXT,
+                name JSONB NOT NULL,
+                description JSONB,
+                cuisine_id TEXT,
+                type_id TEXT,
+                city_id TEXT,
+                region_id TEXT,
                 latitude DOUBLE PRECISION,
                 longitude DOUBLE PRECISION,
                 data JSONB,
-                name JSONB,
-                description JSONB,
+                price_range TEXT,
+                rating DOUBLE PRECISION,
                 created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
             );
@@ -233,28 +216,27 @@ TABLE_DEFINITIONS = {
         """,
         "dependencies": ["users"],
         "indexes": [
-            ("idx_restaurants_name", "name_en, name_ar"),
-            ("idx_restaurants_cuisine", "cuisine"),
-            ("idx_restaurants_city", "city")
+            ("idx_restaurants_name_jsonb", "name", "gin"),
+            ("idx_restaurants_cuisine_id", "cuisine_id"),
+            ("idx_restaurants_city_id", "city_id"),
+            ("idx_restaurants_price_range", "price_range")
         ]
     },
     "accommodations": {
         "sql": """
             CREATE TABLE IF NOT EXISTS accommodations (
                 id TEXT PRIMARY KEY,
-                name_en TEXT NOT NULL,
-                name_ar TEXT,
-                description_en TEXT,
-                description_ar TEXT,
-                type TEXT,
+                name JSONB NOT NULL,
+                description JSONB,
+                type_id TEXT,
                 stars INTEGER,
-                city TEXT,
-                region TEXT,
+                city_id TEXT,
+                region_id TEXT,
                 latitude DOUBLE PRECISION,
                 longitude DOUBLE PRECISION,
                 data JSONB,
-                name JSONB,
-                description JSONB,
+                price_min NUMERIC,
+                price_max NUMERIC,
                 created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
             );
@@ -284,9 +266,10 @@ TABLE_DEFINITIONS = {
         """,
         "dependencies": ["users"],
         "indexes": [
-            ("idx_accommodations_name", "name_en, name_ar"),
-            ("idx_accommodations_type", "type"),
-            ("idx_accommodations_city", "city")
+            ("idx_accommodations_name_jsonb", "name", "gin"),
+            ("idx_accommodations_type_id", "type_id"),
+            ("idx_accommodations_city_id", "city_id"),
+            ("idx_accommodations_price", "price_min, price_max")
         ]
     },
     "sessions": {
@@ -440,14 +423,23 @@ def create_postgres_tables(conn: psycopg2.extensions.connection, vector_dimensio
         with conn:  # This automatically handles commit/rollback
             with conn.cursor() as cursor:
                 # Create indexes
-                for index_name, index_columns in table_def.get("indexes", []):
+                for index_def in table_def.get("indexes", []):
                     try:
-                        cursor.execute(f"""
-                            CREATE INDEX IF NOT EXISTS {index_name} ON {table_name}({index_columns})
-                        """)
+                        if len(index_def) == 2:
+                            # Regular index: (name, columns)
+                            index_name, index_columns = index_def
+                            cursor.execute(f"""
+                                CREATE INDEX IF NOT EXISTS {index_name} ON {table_name}({index_columns})
+                            """)
+                        elif len(index_def) == 3:
+                            # Special index with method: (name, columns, method)
+                            index_name, index_columns, index_method = index_def
+                            cursor.execute(f"""
+                                CREATE INDEX IF NOT EXISTS {index_name} ON {table_name} USING {index_method} ({index_columns})
+                            """)
                         logger.info(f"Created or verified index: {index_name}")
                     except Exception as e:
-                        logger.warning(f"Error creating index {index_name}: {str(e)}")
+                        logger.warning(f"Error creating index {index_def[0]}: {str(e)}")
 
     # Add geometry columns if PostGIS is available
     with conn:

@@ -8,7 +8,7 @@ import bcrypt
 import logging
 import jwt
 from datetime import datetime, timedelta, timezone
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Union
 import functools
 
 # FastAPI specific imports
@@ -98,12 +98,12 @@ JWT_EXPIRATION_SECONDS = 24 * 60 * 60  # 24 hours
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login") # Placeholder URL
 
 # --- Token Generation/Validation (Framework Agnostic) ---
-def generate_token(user_id: str, extra_claims: Dict = None) -> str:
+def generate_token(user_id: Union[int, str], extra_claims: Dict = None) -> str:
     """
     Generate a JWT token for a user.
 
     Args:
-        user_id: The user ID to include in the token
+        user_id: The user ID to include in the token (integer or string)
         extra_claims: Additional claims to include in the token
 
     Returns:
@@ -114,7 +114,7 @@ def generate_token(user_id: str, extra_claims: Dict = None) -> str:
 
     expire = datetime.now(timezone.utc) + timedelta(seconds=JWT_EXPIRATION_SECONDS)
     payload = {
-        "sub": user_id, # Standard claim for subject (user ID)
+        "sub": str(user_id), # Standard claim for subject (user ID) - convert to string for JWT
         "iat": datetime.now(timezone.utc), # Standard claim for issued at
         "exp": expire, # Standard claim for expiration
     }

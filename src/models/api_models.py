@@ -10,7 +10,7 @@ class ChatMessageRequest(BaseModel):
     session_id: Optional[str] = Field(None, description="Optional existing session ID.")
     language: Optional[str] = Field('en', description="Language code for the request (e.g., 'en', 'ar').")
     # Add other fields if the frontend might send them, e.g., user_id
-    user_id: Optional[str] = Field(None, description="Optional user ID.")
+    user_id: Optional[int] = Field(None, description="Optional user ID (integer).")
 
 class Suggestion(BaseModel):
     """Model for a suggested action."""
@@ -27,10 +27,10 @@ class ChatbotResponse(BaseModel):
     # Include other potential fields based on Chatbot.process_message output
     debug_info: Optional[Dict[str, Any]] = Field(None, description="Optional debugging information.")
     # Example: Add fields if the chatbot returns structured data like lists of items
-    # items: Optional[List[Dict[str, Any]]] = None 
+    # items: Optional[List[Dict[str, Any]]] = None
 
 # Add other models as needed for different endpoints later
-# (e.g., SuggestionsResponse, ResetResponse, FeedbackRequest, etc.) 
+# (e.g., SuggestionsResponse, ResetResponse, FeedbackRequest, etc.)
 
 # --- Models for other endpoints ---
 
@@ -61,7 +61,7 @@ class FeedbackRequest(BaseModel):
     rating: int # Or float, or specific values
     comment: Optional[str] = None
     session_id: Optional[str] = None
-    user_id: Optional[str] = None
+    user_id: Optional[int] = None
 
 class FeedbackResponse(BaseModel):
     """Response model for the feedback endpoint."""

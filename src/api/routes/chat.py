@@ -13,6 +13,7 @@ from ...utils.exceptions import ChatbotError
 # Import dependencies
 from ...utils.factory import component_factory
 from ...chatbot import Chatbot
+from ...utils.llm_config import toggle_llm_first, get_config
 
 # Create router
 router = APIRouter(tags=["Chatbot"])
@@ -26,13 +27,13 @@ def get_chatbot():
     try:
         # Get chatbot from app state if available
         from starlette.concurrency import run_in_threadpool
-        
+
         # Create a new chatbot if needed
         chatbot = component_factory.create_chatbot()
-        
+
         if not chatbot:
             raise HTTPException(status_code=500, detail="Chatbot service not available")
-        
+
         return chatbot
     except Exception as e:
         logger.error(f"Error getting chatbot: {str(e)}", exc_info=True)
@@ -49,12 +50,12 @@ async def chat_endpoint(
 ):
     """
     Process a chat message and return a response.
-    
+
     Args:
         message_request: The chat message request containing the user message and session ID
         request: The FastAPI request object
         chatbot: The chatbot instance dependency
-        
+
     Returns:
         ChatbotResponse: The chatbot response containing text and session information
     """
@@ -67,22 +68,22 @@ async def chat_endpoint(
             "client_ip": request.client.host if request.client else None,
         }
         logger.info(f"Chat request: {log_data}")
-        
+
         # Process message with chatbot
         response = await chatbot.process_message(
             user_message=message_request.message,
             session_id=message_request.session_id,
             language=message_request.language
         )
-        
+
         # Return response
         return response
-        
+
     except ChatbotError as e:
         # Handle known chatbot errors
         logger.error(f"Chatbot error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-        
+
     except Exception as e:
         # Handle unexpected errors
         logger.error(f"Error processing chat message: {str(e)}", exc_info=True)
@@ -102,3 +103,48 @@ async def get_suggestions(
     except Exception as e:
         logger.error(f"Error getting suggestions: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to get suggestions")
+
+@router.post("/toggle-llm-first", tags=["Config"])
+async def toggle_llm_first_endpoint():
+    """
+    Toggle the LLM first setting.
+
+    This endpoint toggles whether the LLM should respond first (True) or
+    the database should be queried first (False).
+
+    Returns:
+        Dict containing the new setting value
+    """
+    try:
+        # Toggle the setting
+        new_value = toggle_llm_first()
+
+        # Return the new value
+        return {
+            "use_llm_first": new_value,
+            "message": f"LLM first setting toggled to: {new_value}"
+        }
+    except Exception as e:
+        logger.error(f"Error toggling LLM first setting: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to toggle LLM first setting")
+
+@router.get("/config", tags=["Config"])
+async def get_llm_config():
+    """
+    Get the current LLM configuration.
+
+    Returns:
+        Dict containing the current configuration
+    """
+    try:
+        # Get the current configuration
+        config = get_config()
+
+        # Return the configuration
+        return {
+            "config": config,
+            "message": "Current LLM configuration"
+        }
+    except Exception as e:
+        logger.error(f"Error getting LLM configuration: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to get LLM configuration")

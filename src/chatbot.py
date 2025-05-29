@@ -17,6 +17,7 @@ from src.utils.container import container
 from src.utils.exceptions import ChatbotError, ResourceNotFoundError, ServiceError, ConfigurationError
 from src.utils.factory import component_factory
 from src.knowledge.database import DatabaseManager # Import DatabaseManager - NEW
+from src.utils.llm_config import use_llm_first, toggle_llm_first, get_config # Import LLM configuration
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +79,10 @@ class Chatbot:
         start_time = time.time()
         logger.info(f"Processing message: '{user_message}'")
 
+        # Get the current LLM configuration
+        USE_LLM_FIRST = use_llm_first()
+        logger.info(f"Chatbot configured to use {'LLM' if USE_LLM_FIRST else 'database'} first (USE_LLM_FIRST = {USE_LLM_FIRST})")
+
         try:
             # Create a new session if none provided
             if not session_id:
@@ -100,100 +105,101 @@ class Chatbot:
                     # Save updated session
                     await self._save_session(session_id, session)
 
-            # ALWAYS use the Anthropic LLM for all queries
-            try:
-                # Get the Anthropic service from the container
-                from src.utils.container import container
-                anthropic_service = None
+            # Use the Anthropic LLM for all queries if USE_LLM_FIRST is True
+            if USE_LLM_FIRST:
+                try:
+                    # Get the Anthropic service from the container
+                    from src.utils.container import container
+                    anthropic_service = None
 
-                if container.has("anthropic_service"):
-                    anthropic_service = container.get("anthropic_service")
-                    logger.info(f"Got Anthropic service from container")
-                else:
-                    # Fallback to service hub
-                    anthropic_service = self.service_hub.get_service("anthropic_service")
-                    logger.info(f"Got Anthropic service from service hub")
+                    if container.has("anthropic_service"):
+                        anthropic_service = container.get("anthropic_service")
+                        logger.info(f"Got Anthropic service from container")
+                    else:
+                        # Fallback to service hub
+                        anthropic_service = self.service_hub.get_service("anthropic_service")
+                        logger.info(f"Got Anthropic service from service hub")
 
-                if anthropic_service:
-                    logger.info(f"Using Anthropic LLM for direct response")
+                    if anthropic_service:
+                        logger.info(f"Using Anthropic LLM for direct response")
 
-                    # Create a prompt for the LLM
-                    prompt = f"""
-                    You are an expert guide on Egyptian tourism, history, and culture.
-                    Answer the following question about Egypt tourism.
-                    Provide BRIEF and CONCISE information - keep your response under 150 words.
-                    Focus on the most essential facts only.
-                    Use simple language and short sentences.
-                    Format your response in a conversational style, like a friendly chat message.
-                    DO NOT use Markdown formatting like headings (#) or bold text (**).
-                    DO NOT use bullet points or numbered lists with special characters.
-                    Just write in plain, conversational text with regular paragraphs.
-                    Respond in {'Arabic' if language == 'ar' else 'English'}.
+                        # Create a prompt for the LLM
+                        prompt = f"""
+                        You are an expert guide on Egyptian tourism, history, and culture.
+                        Answer the following question about Egypt tourism.
+                        Provide BRIEF and CONCISE information - keep your response under 150 words.
+                        Focus on the most essential facts only.
+                        Use simple language and short sentences.
+                        Format your response in a conversational style, like a friendly chat message.
+                        DO NOT use Markdown formatting like headings (#) or bold text (**).
+                        DO NOT use bullet points or numbered lists with special characters.
+                        Just write in plain, conversational text with regular paragraphs.
+                        Respond in {'Arabic' if language == 'ar' else 'English'}.
 
-                    USER QUESTION:
-                    {user_message}
-                    """
+                        USER QUESTION:
+                        {user_message}
+                        """
 
-                    # Call the LLM service directly using generate_response method
-                    response_text = anthropic_service.generate_response(
-                        prompt=prompt,
-                        max_tokens=300
-                    )
+                        # Call the LLM service directly using generate_response method
+                        response_text = anthropic_service.generate_response(
+                            prompt=prompt,
+                            max_tokens=300
+                        )
 
-                    if response_text:
-                        # Process message through NLU just to get intent and entities
-                        nlu_result = await self._process_nlu(user_message, session_id, language)
+                        if response_text:
+                            # Process message through NLU just to get intent and entities
+                            nlu_result = await self._process_nlu(user_message, session_id, language)
 
-                        # Log the response text for debugging
-                        logger.info(f"Anthropic response text: {response_text[:100]}...")
+                            # Log the response text for debugging
+                            logger.info(f"Anthropic response text: {response_text[:100]}...")
 
-                        # Create a more detailed log to debug the response
-                        logger.info(f"FULL Anthropic response: {response_text}")
+                            # Create a more detailed log to debug the response
+                            logger.info(f"FULL Anthropic response: {response_text}")
 
-                        # Clean up the response text to remove any unwanted characters and Markdown formatting
-                        response_text = self._clean_markdown_formatting(response_text)
+                            # Clean up the response text to remove any unwanted characters and Markdown formatting
+                            response_text = self._clean_markdown_formatting(response_text)
 
-                        # Create a proper response object
-                        response = {
-                            "text": response_text,
-                            "response_type": "direct_response",
-                            "suggestions": [],
-                            "intent": nlu_result.get("intent"),
-                            "entities": nlu_result.get("entities", {}),
-                            "source": "anthropic_llm",
-                            "fallback": False,
-                            "session_id": session_id,
-                            "language": language
-                        }
+                            # Create a proper response object
+                            response = {
+                                "text": response_text,
+                                "response_type": "direct_response",
+                                "suggestions": [],
+                                "intent": nlu_result.get("intent"),
+                                "entities": nlu_result.get("entities", {}),
+                                "source": "anthropic_llm",
+                                "fallback": False,
+                                "session_id": session_id,
+                                "language": language
+                            }
 
-                        # Save session with updated state
-                        await self._save_session(session_id, session)
+                            # Save session with updated state
+                            await self._save_session(session_id, session)
 
-                        # Add message to session history
-                        try:
-                            await self._add_message_to_session(
-                                session_id=session_id,
-                                role="user",
-                                content=user_message
-                            )
+                            # Add message to session history
+                            try:
+                                await self._add_message_to_session(
+                                    session_id=session_id,
+                                    role="user",
+                                    content=user_message
+                                )
 
-                            await self._add_message_to_session(
-                                session_id=session_id,
-                                role="assistant",
-                                content=response.get("text", "")
-                            )
-                        except Exception as e:
-                            logger.error(f"Error adding message to session: {str(e)}")
+                                await self._add_message_to_session(
+                                    session_id=session_id,
+                                    role="assistant",
+                                    content=response.get("text", "")
+                                )
+                            except Exception as e:
+                                logger.error(f"Error adding message to session: {str(e)}")
 
-                        # Track performance
-                        processing_time = time.time() - start_time
-                        logger.info(f"Message processed in {processing_time:.2f}s")
+                            # Track performance
+                            processing_time = time.time() - start_time
+                            logger.info(f"Message processed in {processing_time:.2f}s using LLM directly")
 
-                        return response
+                            return response
 
-            except Exception as llm_err:
-                logger.error(f"Error using direct LLM in process_message: {str(llm_err)}")
-                # Continue with the regular flow if LLM fails
+                except Exception as llm_err:
+                    logger.error(f"Error using direct LLM in process_message: {str(llm_err)}")
+                    # Continue with the regular flow if LLM fails
 
             # Pre-check for special attraction queries like pyramids
             attraction_keywords = ["pyramid", "pyramids", "giza", "sphinx", "luxor", "karnak",
@@ -266,15 +272,16 @@ class Chatbot:
                     if anthropic_service:
                         logger.info(f"Using Anthropic LLM for general fallback response")
 
-                        # Create a prompt for the LLM
+                        # Create a prompt for the LLM - UPDATED FOR BREVITY
                         prompt = f"""
                         You are an expert guide on Egyptian tourism, history, and culture.
                         Answer the following question about Egypt tourism.
-                        Provide detailed information, including historical significance,
-                        what visitors can see, and any practical tips if you know them.
-                        Format your response in a conversational style, like a friendly chat message.
-                        DO NOT use Markdown formatting like headings (#) or bold text (**).
-                        DO NOT use bullet points or numbered lists with special characters.
+                        KEEP YOUR RESPONSE EXTREMELY BRIEF - under 80 words maximum.
+                        Focus ONLY on the most essential facts.
+                        Use simple language and short sentences.
+                        Format your response in a conversational style.
+                        DO NOT use Markdown formatting.
+                        DO NOT use bullet points or numbered lists.
                         Just write in plain, conversational text with regular paragraphs.
                         Respond in {'Arabic' if language == 'ar' else 'English'}.
 
@@ -285,7 +292,7 @@ class Chatbot:
                         # Call the LLM service directly using generate_response method
                         response_text = anthropic_service.generate_response(
                             prompt=prompt,
-                            max_tokens=500
+                            max_tokens=150  # REDUCED FROM 500
                         )
 
                         if response_text:
@@ -708,16 +715,16 @@ class Chatbot:
                     if anthropic_service:
                         logger.info(f"Using Anthropic LLM for fallback response about {attraction_name}")
 
-                        # Create a prompt for the LLM
+                        # Create a prompt for the LLM - UPDATED FOR EXTREME BREVITY
                         prompt = f"""
                         You are an expert guide on Egyptian tourism, history, and culture.
                         Answer the following question about {attraction_name} in Egypt.
-                        Provide BRIEF and CONCISE information - keep your response under 150 words.
-                        Focus on the most essential facts only.
+                        KEEP YOUR RESPONSE EXTREMELY BRIEF - under 50 words maximum.
+                        Focus ONLY on the most essential facts.
                         Use simple language and short sentences.
-                        Format your response in a conversational style, like a friendly chat message.
-                        DO NOT use Markdown formatting like headings (#) or bold text (**).
-                        DO NOT use bullet points or numbered lists with special characters.
+                        Format your response in a conversational style.
+                        DO NOT use Markdown formatting.
+                        DO NOT use bullet points or numbered lists.
                         Just write in plain, conversational text with regular paragraphs.
                         Respond in {'Arabic' if language == 'ar' else 'English'}.
 
@@ -728,7 +735,7 @@ class Chatbot:
                         # Call the LLM service directly using generate_response method
                         response_text = anthropic_service.generate_response(
                             prompt=prompt,
-                            max_tokens=300
+                            max_tokens=100  # REDUCED FROM 300
                         )
 
                         # Clean up the response text to remove any unwanted characters and Markdown formatting
@@ -814,7 +821,67 @@ class Chatbot:
             Dialog action dictionary
         """
         try:
-            # Get next action from dialog manager
+            # Check for specific intents
+            intent = nlu_result.get("intent")
+            user_message = nlu_result.get("text", "")
+
+            if intent == "itinerary_query":
+                logger.info("Detected itinerary query intent, creating custom dialog action")
+
+                # Extract query parameters
+                query_params = {}
+
+                # Add type filter if adventure is mentioned
+                if "adventure" in user_message.lower():
+                    query_params["type_id"] = "adventure"
+                    logger.info("Detected adventure itinerary request")
+
+                # Create a custom dialog action for itinerary query
+                return {
+                    "action_type": "knowledge_query",
+                    "query_type": "itinerary",
+                    "response_type": "itinerary_info",
+                    "params": query_params,
+                    "state": "itinerary_query"
+                }
+
+            elif intent == "practical_info":
+                logger.info("Detected practical info intent, creating custom dialog action")
+
+                # Create a custom dialog action for practical info query
+                return {
+                    "action_type": "knowledge_query",
+                    "query_type": "practical_info",
+                    "response_type": "practical_info",
+                    "params": {},
+                    "state": "practical_info"
+                }
+
+            elif intent == "faq_query":
+                logger.info("Detected FAQ query intent, creating custom dialog action")
+
+                # Create a custom dialog action for FAQ query
+                return {
+                    "action_type": "knowledge_query",
+                    "query_type": "faq",
+                    "response_type": "faq",
+                    "params": {},
+                    "state": "faq_query"
+                }
+
+            elif intent == "event_query":
+                logger.info("Detected event query intent, creating custom dialog action")
+
+                # Create a custom dialog action for event query
+                return {
+                    "action_type": "knowledge_query",
+                    "query_type": "event",
+                    "response_type": "event_info",
+                    "params": {},
+                    "state": "event_query"
+                }
+
+            # Get next action from dialog manager for other intents
             if hasattr(self.dialog_manager.next_action, "__await__"):
                 dialog_action = await self.dialog_manager.next_action(nlu_result, session)
             else:
@@ -846,26 +913,282 @@ class Chatbot:
         try:
             # Handle knowledge base queries if requested by dialog manager
             kb_results = None
+            response_source = "dialog_manager"  # Default source
+
+            # Handle itinerary queries
+            if dialog_action.get("query_type") == "itinerary":
+                logger.info("Processing itinerary knowledge query")
+
+                # Extract query parameters
+                query_params = dialog_action.get("params", {})
+                language = session.get("language", "en")
+
+                # Search for itineraries in the database
+                logger.info(f"Searching for itineraries with params: {query_params}")
+                itineraries = self.knowledge_base.search_itineraries(query=query_params, limit=3, language=language)
+
+                if itineraries and len(itineraries) > 0:
+                    logger.info(f"Found {len(itineraries)} itineraries in database")
+
+                    # Use the first itinerary for now
+                    itinerary = itineraries[0]
+
+                    # Format the response
+                    itinerary_name = itinerary["name"][language] if isinstance(itinerary["name"], dict) and language in itinerary["name"] else itinerary["name"]
+                    itinerary_description = itinerary["description"][language] if isinstance(itinerary["description"], dict) and language in itinerary["description"] else itinerary["description"]
+
+                    response_text = f"I found a great {itinerary['type_id']} itinerary for you: {itinerary_name}. "
+                    response_text += f"This is a {itinerary['duration_days']}-day adventure that includes: {itinerary_description}"
+
+                    return {
+                        "text": response_text,
+                        "response_type": "itinerary_info",
+                        "suggestions": [],
+                        "intent": nlu_result.get("intent"),
+                        "entities": nlu_result.get("entities", {}),
+                        "source": "database"
+                    }
+                else:
+                    logger.info("No itineraries found in database, will use fallback")
+                    # Continue with normal flow to use fallback
+
+            # Handle practical info queries
+            elif dialog_action.get("query_type") == "practical_info" or nlu_result.get("intent") == "practical_info":
+                logger.info("Processing practical info knowledge query")
+
+                # Extract query parameters
+                user_message = nlu_result.get("text", "")
+                language = session.get("language", "en")
+
+                # Extract potential topics from the message
+                topics = []
+                practical_info_keywords = {
+                    "water": "drinking_water",
+                    "drink": "drinking_water",
+                    "currency": "currency",
+                    "money": "currency",
+                    "visa": "visa_requirements",
+                    "safety": "safety",
+                    "safe": "safety",
+                    "weather": "weather",
+                    "dress": "dress_code",
+                    "wear": "dress_code",
+                    "clothing": "dress_code",
+                    "tip": "tipping",
+                    "tipping": "tipping",
+                    "health": "health_safety",
+                    "medical": "health_safety",
+                    "transport": "transportation",
+                    "travel": "transportation"
+                }
+
+                # Check for keywords in the message
+                for keyword, topic in practical_info_keywords.items():
+                    if keyword in user_message.lower():
+                        topics.append(topic)
+                        break
+
+                # If no specific topic found, use a general query
+                if not topics:
+                    topics = ["general"]
+
+                # Search for practical info in the database
+                logger.info(f"Searching for practical info with topics: {topics}")
+                for topic in topics:
+                    practical_info = self.knowledge_base.search_practical_info(
+                        query={"category_id": topic, "text": user_message},
+                        limit=1,
+                        language=language
+                    )
+
+                    if practical_info and len(practical_info) > 0:
+                        logger.info(f"Found practical info for topic: {topic}")
+
+                        # Use the first result
+                        info = practical_info[0]
+
+                        # Format the response
+                        title = info["title"][language] if isinstance(info["title"], dict) and language in info["title"] else info.get("title", topic)
+                        content = info["content"][language] if isinstance(info["content"], dict) and language in info["content"] else info.get("content", "")
+
+                        response_text = f"{title}: {content}"
+
+                        return {
+                            "text": response_text,
+                            "response_type": "practical_info",
+                            "suggestions": [],
+                            "intent": "practical_info",
+                            "entities": nlu_result.get("entities", {}),
+                            "source": "database"
+                        }
+
+                logger.info("No practical info found in database, will use fallback")
+                # Continue with normal flow to use fallback
+
+            # Handle FAQ queries
+            elif dialog_action.get("query_type") == "faq" or nlu_result.get("intent") == "faq_query":
+                logger.info("Processing FAQ knowledge query")
+
+                # Extract query parameters
+                user_message = nlu_result.get("text", "")
+                language = session.get("language", "en")
+
+                # Search for FAQs in the database
+                logger.info(f"Searching for FAQs with query: {user_message}")
+                faqs = self.knowledge_base.search_faqs(
+                    query={"text": user_message},
+                    limit=1,
+                    language=language
+                )
+
+                if faqs and len(faqs) > 0:
+                    logger.info(f"Found {len(faqs)} FAQs in database")
+
+                    # Use the first FAQ
+                    faq = faqs[0]
+
+                    # Format the response
+                    answer = faq["answer"][language] if isinstance(faq["answer"], dict) and language in faq["answer"] else faq.get("answer", "")
+
+                    response_text = f"{answer}"
+
+                    return {
+                        "text": response_text,
+                        "response_type": "faq",
+                        "suggestions": [],
+                        "intent": "faq_query",
+                        "entities": nlu_result.get("entities", {}),
+                        "source": "database"
+                    }
+                else:
+                    logger.info("No FAQs found in database, will use fallback")
+                    # Continue with normal flow to use fallback
+
+            # Handle event queries
+            elif dialog_action.get("query_type") == "event" or nlu_result.get("intent") == "event_query":
+                logger.info("Processing event knowledge query")
+
+                # Extract query parameters
+                user_message = nlu_result.get("text", "")
+                language = session.get("language", "en")
+
+                # Extract potential event types from the message
+                event_types = []
+                event_keywords = {
+                    "food": "food",
+                    "culinary": "food",
+                    "music": "music",
+                    "festival": "cultural",
+                    "cultural": "cultural",
+                    "religious": "religious",
+                    "celebration": "cultural",
+                    "art": "art"
+                }
+
+                # Check for keywords in the message
+                for keyword, event_type in event_keywords.items():
+                    if keyword in user_message.lower():
+                        event_types.append(event_type)
+                        break
+
+                # If no specific event type found, use a general query
+                query_params = {"text": user_message}
+                if event_types:
+                    query_params["category_id"] = event_types[0]
+
+                # Search for events in the database
+                logger.info(f"Searching for events with params: {query_params}")
+                events = self.knowledge_base.search_events(
+                    query=query_params,
+                    limit=3,
+                    language=language
+                )
+
+                if events and len(events) > 0:
+                    logger.info(f"Found {len(events)} events in database")
+
+                    # Use the first event
+                    event = events[0]
+
+                    # Format the response
+                    event_name = event["name"][language] if isinstance(event["name"], dict) and language in event["name"] else event.get("name", "")
+                    event_description = event["description"][language] if isinstance(event["description"], dict) and language in event["description"] else event.get("description", "")
+
+                    response_text = f"{event_name}: {event_description}"
+
+                    return {
+                        "text": response_text,
+                        "response_type": "event_info",
+                        "suggestions": [],
+                        "intent": "event_query",
+                        "entities": nlu_result.get("entities", {}),
+                        "source": "database"
+                    }
+                else:
+                    logger.info("No events found in database, will use fallback")
+                    # Continue with normal flow to use fallback
+
             if dialog_action.get("action_type") == "knowledge_query":
                 query_params = dialog_action.get("query_params", {})
                 query_type = query_params.get("type")
                 filters = query_params.get("filters", {})
 
-                logger.debug(f"Knowledge query: type={query_type}, filters={filters}")
+                logger.info(f"Knowledge query: type={query_type}, filters={filters}")
+                response_source = "knowledge_base"  # Update source
 
                 # Call appropriate knowledge base method based on query type
                 if query_type == "attraction":
                     kb_results = self.knowledge_base.search_attractions(filters=filters)
+                    logger.info(f"Using database for attraction query: {filters}")
                 elif query_type == "restaurant":
                     kb_results = self.knowledge_base.search_restaurants(query=filters)
+                    logger.info(f"Using database for restaurant query: {filters}")
                 elif query_type == "hotel" or query_type == "accommodation":
                     kb_results = self.knowledge_base.search_hotels(query=filters)
+                    logger.info(f"Using database for hotel query: {filters}")
                 elif query_type == "city":
                     kb_results = self.knowledge_base.search_cities(query=filters) if hasattr(self.knowledge_base, "search_cities") else []
+                    logger.info(f"Using database for city query: {filters}")
+                elif query_type == "event" or query_type == "festival":
+                    # Check if we have a method for events
+                    if hasattr(self.knowledge_base, "search_events"):
+                        kb_results = self.knowledge_base.search_events(query=filters)
+                        logger.info(f"Using database for event query: {filters}")
+                    else:
+                        logger.info(f"No method for event queries, will use fallback")
+                        kb_results = []
+                elif query_type == "faq":
+                    # Check if we have a method for FAQs
+                    if hasattr(self.knowledge_base, "search_faqs"):
+                        kb_results = self.knowledge_base.search_faqs(query=filters)
+                        logger.info(f"Using database for FAQ query: {filters}")
+                    else:
+                        logger.info(f"No method for FAQ queries, will use fallback")
+                        kb_results = []
+                elif query_type == "practical_info":
+                    # Check if we have a method for practical info
+                    if hasattr(self.knowledge_base, "search_practical_info"):
+                        kb_results = self.knowledge_base.search_practical_info(query=filters)
+                        logger.info(f"Using database for practical info query: {filters}")
+                    else:
+                        logger.info(f"No method for practical info queries, will use fallback")
+                        kb_results = []
+                elif query_type == "itinerary":
+                    # Check if we have a method for itineraries
+                    if hasattr(self.knowledge_base, "search_itineraries"):
+                        kb_results = self.knowledge_base.search_itineraries(query=filters)
+                        logger.info(f"Using database for itinerary query: {filters}")
+                    else:
+                        logger.info(f"No method for itinerary queries, will use fallback")
+                        kb_results = []
                 else:
+                    logger.info(f"Unknown query type: {query_type}, will use fallback")
                     kb_results = []
 
-                logger.debug(f"Knowledge query results: {kb_results}")
+                if kb_results:
+                    logger.info(f"Knowledge query returned {len(kb_results) if isinstance(kb_results, list) else 'non-list'} results")
+                else:
+                    logger.info(f"Knowledge query returned no results, may use fallback")
 
             # Get language from session
             language = session.get("language", "en")
@@ -876,7 +1199,7 @@ class Chatbot:
                 language=language,
                 params=kb_results or dialog_action.get("params", {})
             )
-            logger.debug(f"Generated Response: {response_text}")
+            logger.info(f"Generated Response from {response_source}: {response_text[:100]}...")
 
             # Get suggestions
             if hasattr(self.dialog_manager.get_suggestions, "__await__"):
@@ -890,7 +1213,8 @@ class Chatbot:
                 "response_type": nlu_result.get("response_type", "fallback"),
                 "suggestions": suggestions,
                 "intent": nlu_result.get("intent"),
-                "entities": nlu_result.get("entities", {})
+                "entities": nlu_result.get("entities", {}),
+                "source": response_source  # Add source information
             }
 
             # Include knowledge results if available
@@ -965,6 +1289,9 @@ class Chatbot:
                         max_tokens=300
                     )
 
+                    # Log the full response for debugging
+                    logger.info(f"FALLBACK LLM response: {response_text[:100]}...")
+
                     # Clean up the response text to remove any unwanted characters and Markdown formatting
                     response_text = self._clean_markdown_formatting(response_text)
 
@@ -975,8 +1302,9 @@ class Chatbot:
                             "suggestions": [],
                             "intent": nlu_result.get("intent"),
                             "entities": nlu_result.get("entities", {}),
-                            "source": "anthropic_llm",
-                            "fallback": True
+                            "source": "anthropic_llm_fallback",
+                            "fallback": True,
+                            "debug_info": {"reason": "Error in response generation, using LLM fallback"}
                         }
             except Exception as llm_err:
                 logger.error(f"Error using LLM fallback: {str(llm_err)}")
@@ -985,7 +1313,9 @@ class Chatbot:
             return {
                 "text": "I'm having trouble providing a specific response right now. How else can I assist you?",
                 "response_type": "fallback",
-                "suggestions": []
+                "suggestions": [],
+                "source": "default_fallback",
+                "debug_info": {"reason": "Error in response generation and LLM fallback failed"}
             }
 
     async def _add_message_to_session(self, session_id: str, role: str, content: str) -> None:

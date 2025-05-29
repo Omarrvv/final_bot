@@ -229,23 +229,45 @@ Feature flags are set in `.env` and loaded via Pydantic settings:
 
 From the project root directory, ensure your `egypt-tourism` conda environment is active.
 
-Use the start script:
+### Development Mode
+
+Use the development script to run both the React frontend and FastAPI backend:
 
 ```bash
-./start_chatbot.sh
+./run_dev.sh
 ```
 
 This script will:
 
-- Activate the correct conda environment.
 - Start the FastAPI backend server using Uvicorn on **http://localhost:5050** (with auto-reload for development).
-- The FastAPI server now serves the built React frontend from the root URL (`/`).
+- Start the React frontend development server on **http://localhost:3000** (with hot reloading).
+- Configure the React frontend to connect to the backend API.
+
+Access the React frontend by opening **http://localhost:3000** in your web browser.
+
+Access the automatic API documentation (Swagger UI) at **http://localhost:5050/docs**.
+
+To stop both servers, press `Ctrl+C` in the terminal where you ran the script.
+
+### Production Mode
+
+Use the production script to build the React frontend and run the FastAPI backend:
+
+```bash
+./run_prod.sh
+```
+
+This script will:
+
+- Build the React frontend for production.
+- Start the FastAPI backend server using Uvicorn on **http://localhost:5050**.
+- The FastAPI server will serve the built React frontend from the root URL (`/`).
 
 Access the application by opening **http://localhost:5050** in your web browser.
 
 Access the automatic API documentation (Swagger UI) at **http://localhost:5050/docs**.
 
-To stop the backend, find its PID (printed by the script) and use `kill <PID>`.
+To stop the backend, press `Ctrl+C` in the terminal where you ran the script.
 
 ## API Endpoints
 

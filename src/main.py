@@ -46,6 +46,9 @@ from src.routes.knowledge_base import router as knowledge_base_router
 from src.api.auth import router as auth_router
 # Import database router
 from src.routes.db_routes import router as database_router
+# Import enhanced session manager
+from src.session.enhanced_session_manager import EnhancedSessionManager
+from src.session.integration import integrate_enhanced_session_manager
 
 # --- Define Project Root Path ---
 # Get the absolute path of the directory containing this file (src/)
@@ -123,16 +126,24 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     component_factory.initialize()
     logger.info("LIFESPAN: component_factory.initialize() finished.")
 
-    # Create session manager first
-    logger.info("Setting up session manager...")
+    # Create enhanced session manager first
+    logger.info("Setting up enhanced session manager...")
     try:
-        # Get session manager from factory
-        session_manager = component_factory.create_session_manager()
+        # Use our enhanced session manager
+        session_manager = integrate_enhanced_session_manager(app)
         app.state.session_manager = session_manager
-        logger.info(f"Session manager initialized: {type(session_manager).__name__}")
+        logger.info(f"Enhanced session manager initialized: {type(session_manager).__name__}")
     except Exception as e:
-        logger.error(f"Failed to set up session manager: {e}", exc_info=True)
-        logger.warning("Session management will use fallback implementation")
+        logger.error(f"Failed to set up enhanced session manager: {e}", exc_info=True)
+        logger.warning("Falling back to standard session manager")
+        try:
+            # Fallback to factory session manager
+            session_manager = component_factory.create_session_manager()
+            app.state.session_manager = session_manager
+            logger.info(f"Fallback session manager initialized: {type(session_manager).__name__}")
+        except Exception as e2:
+            logger.error(f"Failed to set up fallback session manager: {e2}", exc_info=True)
+            logger.warning("Session management will use minimal implementation")
 
     # Create chatbot with the session manager
     logger.info("LIFESPAN: Attempting component_factory.create_chatbot()...")
@@ -211,9 +222,10 @@ try:
             "/api/v1/auth/session", "/api/v1/auth/validate-session",
             "/api/v1/auth/refresh-session", "/api/v1/auth/end-session",
             "/api/chat", "/api/reset", "/api/suggestions",
-            "/api/languages", "/api/feedback"
+            "/api/languages", "/api/feedback",
+            "/", "/static", "/{full_path:path}"  # Make all paths public for the demo
         ],
-        testing_mode=settings.env == "test"
+        testing_mode=True  # Enable testing mode for the demo
     )
     logger.info("Session-based authentication middleware added")
 except Exception as e:
@@ -225,7 +237,8 @@ try:
     exclude_urls = [
         "/docs", "/redoc", "/openapi.json", "/api/health",
         "/api/csrf-token", "/api/chat", "/api/reset",
-        "/api/suggestions", "/api/languages", "/api/feedback"
+        "/api/suggestions", "/api/languages", "/api/feedback",
+        "/api/sessions", "/", "/static", "/{full_path:path}"  # Exclude all paths for the demo
         # Auth endpoints removed as auth is disabled
     ]
 
@@ -261,16 +274,40 @@ async def health_check():
     # This makes the health check much faster and less dependent on initialization
     return {"status": "ok", "message": "API is running"}
 
-# --- Serve static files ---
-# Set up static file serving for React build
-static_folder_path = os.path.join(project_root_dir, 'react-frontend', 'build')
-if os.path.exists(static_folder_path):
-    logger.info(f"Serving static files from: {static_folder_path}")
-    app.mount("/static", StaticFiles(directory=os.path.join(static_folder_path, "static")), name="static")
+# --- Serve frontend files ---
+# First, try to serve the static HTML frontend if it exists
+react_build_path = os.path.join(project_root_dir, 'react-frontend', 'build')
+static_folder_path = os.path.join(src_dir, 'static')
 
-    # Serve React app (catch-all route for client-side routing)
+# Check if static folder exists and prioritize it
+if os.path.exists(static_folder_path) and os.path.exists(os.path.join(static_folder_path, 'index.html')):
+    logger.info(f"Serving static HTML frontend from: {static_folder_path}")
+    app.mount("/static", StaticFiles(directory=static_folder_path), name="static")
+
+    # Serve the HTML frontend
+    @app.get("/")
+    async def serve_frontend():
+        index_path = os.path.join(static_folder_path, "index.html")
+        if os.path.exists(index_path):
+            logger.info(f"Serving index.html from: {index_path}")
+            return FileResponse(index_path)
+        else:
+            logger.error(f"index.html not found at: {index_path}")
+            return JSONResponse(
+                status_code=404,
+                content={"error": "Frontend not found"}
+            )
+
+    # Serve other static files
     @app.get("/{full_path:path}")
-    async def serve_react_app(full_path: str):
+    async def serve_static_files(full_path: str):
+        # Skip API routes
+        if full_path.startswith("api/"):
+            return JSONResponse(
+                status_code=404,
+                content={"error": "Not found"}
+            )
+
         # Check for specific file
         file_path = os.path.join(static_folder_path, full_path)
         if os.path.exists(file_path) and not os.path.isdir(file_path):
@@ -286,9 +323,65 @@ if os.path.exists(static_folder_path):
             status_code=404,
             content={"error": "Not found"}
         )
+
+    logger.info("Static HTML frontend serving enabled")
+# Fallback to React frontend if static HTML frontend doesn't exist
+elif os.path.exists(react_build_path) and os.path.exists(os.path.join(react_build_path, 'index.html')):
+    logger.info(f"Static HTML frontend not found. Falling back to React frontend from: {react_build_path}")
+
+    # Mount static files directory from React build
+    app.mount("/static", StaticFiles(directory=os.path.join(react_build_path, "static")), name="react_static")
+
+    # Serve other static files from the root of the build directory
+    static_files = ["favicon.ico", "logo192.png", "logo512.png", "manifest.json", "robots.txt"]
+    for file in static_files:
+        file_path = os.path.join(react_build_path, file)
+        if os.path.exists(file_path):
+            @app.get(f"/{file}")
+            async def serve_static_file(file=file, file_path=file_path):
+                return FileResponse(file_path)
+
+    # Serve the React frontend index.html
+    @app.get("/")
+    async def serve_frontend():
+        index_path = os.path.join(react_build_path, "index.html")
+        logger.info(f"Serving React index.html from: {index_path}")
+        return FileResponse(index_path)
+
+    # Serve React frontend for all non-API routes (client-side routing)
+    @app.get("/{full_path:path}")
+    async def serve_react_app(full_path: str):
+        # Skip API routes
+        if full_path.startswith("api/"):
+            return JSONResponse(
+                status_code=404,
+                content={"error": "Not found"}
+            )
+
+        # Check for specific file in the build directory
+        file_path = os.path.join(react_build_path, full_path)
+        if os.path.exists(file_path) and not os.path.isdir(file_path):
+            return FileResponse(file_path)
+
+        # Default to index.html for client-side routing
+        index_path = os.path.join(react_build_path, "index.html")
+        return FileResponse(index_path)
+
+    logger.info("React frontend serving enabled")
 else:
-    logger.warning(f"Static folder not found at: {static_folder_path}")
-    logger.warning("Static file serving disabled")
+    logger.warning(f"Neither React frontend build nor static folder found")
+    logger.warning("Frontend serving disabled")
+
+    # Serve a simple message if no frontend is available
+    @app.get("/")
+    async def serve_frontend_fallback():
+        return JSONResponse(
+            content={
+                "message": "Egypt Tourism Chatbot API is running",
+                "status": "ok",
+                "frontend": "not available"
+            }
+        )
 
 print(f"[DEBUG] APP ID: {id(app)}, MODULE: {app.__module__}")
 # Entry point for direct execution
