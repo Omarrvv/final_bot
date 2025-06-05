@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.database.database_manager import DatabaseManager
-from src.config import load_config
+from src.config_unified import settings
 
 logger = logging.getLogger(__name__)
 
@@ -34,18 +34,20 @@ def cleanup_analytics_data():
     try:
         logger.info("Starting analytics data cleanup")
         
-        # Load configuration
-        config = load_config()
-        analytics_config = config.get('ANALYTICS', {})
-        retention_config = analytics_config.get('data_retention', {})
+        # Use unified configuration
+        # Get retention periods from environment or defaults
+        detailed_events_days = getattr(settings, 'analytics_detailed_retention_days', 90)
+        aggregated_stats_days = getattr(settings, 'analytics_aggregated_retention_days', 365)
         
-        # Get retention periods
-        detailed_events_days = retention_config.get('detailed_events_days', 90)
-        aggregated_stats_days = retention_config.get('aggregated_stats_days', 365)
-        
-        # Initialize database manager
-        db_config = config.get('DATABASE', {})
-        db_manager = DatabaseManager(db_config)
+        # Initialize database manager with unified config
+        db_manager = DatabaseManager({
+            'database_uri': settings.database_uri,
+            'postgres_host': settings.postgres_host,
+            'postgres_port': settings.postgres_port,
+            'postgres_db': settings.postgres_db,
+            'postgres_user': settings.postgres_user,
+            'postgres_password': settings.postgres_password.get_secret_value()
+        })
         
         # Delete old detailed events
         logger.info(f"Deleting detailed events older than {detailed_events_days} days")
