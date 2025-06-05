@@ -10,7 +10,7 @@ import asyncio
 from redis.asyncio import Redis
 from redis.exceptions import ConnectionError, TimeoutError
 
-from src.config import settings
+from src.config_unified import settings
 from src.utils.logger import get_logger
 
 logger = logging.getLogger(__name__)

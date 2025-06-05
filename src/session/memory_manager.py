@@ -8,6 +8,9 @@ import time
 import uuid
 from typing import Dict, List, Optional, Any
 from datetime import datetime
+from fastapi import Response
+
+from src.config_unified import settings
 
 logger = logging.getLogger(__name__)
 
@@ -254,9 +257,6 @@ class MemorySessionManager:
         # Use provided max_age or default to session_ttl
         cookie_max_age = max_age or self.session_ttl
 
-        # Import settings to get cookie configuration
-        from src.utils.settings import settings
-
         if isinstance(response, Response):
             response.set_cookie(
                 key=settings.session_cookie_name,
@@ -275,7 +275,7 @@ class MemorySessionManager:
             response: The FastAPI Response object
         """
         from fastapi import Response
-        from src.utils.settings import settings
+        from src.config_unified import settings
 
         if isinstance(response, Response):
             response.delete_cookie(

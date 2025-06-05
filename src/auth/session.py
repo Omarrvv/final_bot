@@ -16,14 +16,14 @@ from fastapi import Request, Response, Depends
 from fastapi.security import HTTPBearer
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from src.config.fastapi_config import settings
+from src.config_unified import settings
 
 # Initialize Redis connection
 redis_client = redis.Redis(
-    host=settings.REDIS_HOST,
-    port=settings.REDIS_PORT,
-    db=settings.REDIS_DB,
-    password=settings.REDIS_PASSWORD,
+    host=settings.redis_host,
+    port=settings.redis_port,
+    db=settings.redis_db,
+    password=settings.redis_password,
     decode_responses=True
 )
 

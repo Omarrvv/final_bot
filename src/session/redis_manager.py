@@ -14,6 +14,9 @@ from datetime import datetime
 
 import redis
 from redis.exceptions import RedisError
+from fastapi import Request, Response
+
+from src.config_unified import settings
 
 from src.session.redis_connection import RedisConnectionManager
 
@@ -646,9 +649,6 @@ class RedisSessionManager:
         # Use provided max_age or default to session_ttl
         cookie_max_age = max_age or self.session_ttl
 
-        # Import settings to get cookie configuration
-        from src.utils.settings import settings
-
         if isinstance(response, Response):
             response.set_cookie(
                 key=settings.session_cookie_name,
@@ -667,7 +667,6 @@ class RedisSessionManager:
             response: The FastAPI Response object
         """
         from fastapi import Response
-        from src.utils.settings import settings
 
         if isinstance(response, Response):
             response.delete_cookie(

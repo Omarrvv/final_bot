@@ -17,7 +17,7 @@ from redis.asyncio import Redis
 from starlette.responses import JSONResponse
 from starlette.status import HTTP_401_UNAUTHORIZED
 
-from src.config import settings
+from src.config_unified import settings
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)

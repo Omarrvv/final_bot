@@ -164,7 +164,7 @@ class ServiceHub:
                         service_cls = getattr(module, class_name)
 
                         # Get settings from environment
-                        from src.utils.settings import settings
+                        from src.config_unified import settings
 
                         # Create service instance
                         if service_name == "anthropic_service":

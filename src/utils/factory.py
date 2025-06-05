@@ -9,7 +9,7 @@ from typing import Dict, List, Any, Optional
 
 from src.utils.container import container
 from src.utils.exceptions import ConfigurationError
-from src.utils.settings import settings
+from src.config_unified import settings
 
 logger = logging.getLogger(__name__)
 

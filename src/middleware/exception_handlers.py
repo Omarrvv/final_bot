@@ -13,11 +13,11 @@ from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from src.config.fastapi_config import settings, get_log_level
+from src.config_unified import settings
 
 # Set up logging
 logger = logging.getLogger(__name__)
-logger.setLevel(get_log_level())
+logger.setLevel(settings.log_level.upper())
 
 
 class APIError(Exception):

@@ -13,7 +13,7 @@ from fastapi import FastAPI, Request, Response, Depends
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.session.enhanced_session_manager import EnhancedSessionManager
-from src.utils.settings import settings
+from src.config_unified import settings
 
 # Configure logging
 logger = logging.getLogger(__name__)
