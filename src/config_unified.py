@@ -25,6 +25,7 @@ import os
 import logging
 from typing import Dict, Any, List, Optional
 from pathlib import Path
+from urllib.parse import quote_plus
 
 from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -575,7 +576,7 @@ class UnifiedSettings(BaseSettings):
         if self.feature_flags.use_redis or self.feature_flags.enable_redis_sessions:
             # Construct Redis URL if individual components are provided
             if all([self.redis_host, self.redis_port]):
-                auth = f":{self.redis_password}@" if self.redis_password else ""
+                auth = f":{quote_plus(self.redis_password)}@" if self.redis_password else ""
                 self.redis_url = f"redis://{auth}{self.redis_host}:{self.redis_port}/{self.redis_db}"
             self.session_storage_uri = self.redis_url
             logger.debug("Redis enabled for session storage")
