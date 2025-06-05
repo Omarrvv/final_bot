@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 # Add the parent directory to the path so we can import our modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.database.database_manager import DatabaseManager
+from src.knowledge.database import DatabaseManager
 from src.config_unified import settings
 
 logger = logging.getLogger(__name__)
