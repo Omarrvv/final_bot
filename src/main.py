@@ -13,7 +13,9 @@ from dotenv import load_dotenv
 from typing import Optional, AsyncGenerator
 from contextlib import asynccontextmanager
 import uvicorn
-from src.config import settings
+# UNIFIED CONFIGURATION - Single source of truth
+from src.config_unified import settings
+
 from .middleware.request_logger import add_request_logging_middleware
 # Authentication middleware
 from .middleware.auth import add_auth_middleware
@@ -35,7 +37,7 @@ load_dotenv(dotenv_path=dotenv_path)
 # Import models and routers
 from src.chatbot import Chatbot
 from src.utils.factory import component_factory
-from src.utils.settings import settings
+# NOTE: settings imported from unified config above - no more conflicts!
 # Import routers
 from src.api.analytics_api import analytics_router
 from src.api.routes.chat import router as chat_router
@@ -386,7 +388,9 @@ else:
 print(f"[DEBUG] APP ID: {id(app)}, MODULE: {app.__module__}")
 # Entry point for direct execution
 if __name__ == "__main__":
-    port = int(os.getenv("API_PORT", "5050"))
-    host = os.getenv("API_HOST", "0.0.0.0")
-    logger.info(f"Starting uvicorn server on {host}:{port}")
+    # Use unified configuration instead of bypassing with os.getenv()
+    host = settings.api_host
+    port = settings.api_port
+    logger.info(f"Starting uvicorn server on {host}:{port} (from unified config)")
+    logger.info(f"Environment: {settings.env}, Debug: {settings.debug}")
     uvicorn.run(app, host=host, port=port)
