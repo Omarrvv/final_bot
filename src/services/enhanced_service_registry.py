@@ -16,7 +16,7 @@ from src.utils.logger import get_logger
 from src.knowledge.core.database_core import DatabaseCore
 from src.knowledge.core.connection_manager import ConnectionManager
 from src.repositories.repository_factory import RepositoryFactory
-from src.services.search.unified_search_service import UnifiedSearchService
+from src.services.search_service import UnifiedSearchService
 
 logger = get_logger(__name__)
 

@@ -11,14 +11,11 @@ import time
 from typing import Any, Dict, List, Optional, Tuple, Union
 from enum import Enum
 
-# Import Phase 2.5 services
-from src.services.database.extension_manager import ExtensionManagementService
-from src.services.database.schema_manager import SchemaManagementService
-from src.services.cache.cache_manager import CacheManagementService
-from src.services.analytics.monitoring_service import AnalyticsMonitoringService
-from src.services.database.batch_processor import BatchOperationsService
-from src.services.ai.embedding_manager import EmbeddingManagementService
-from src.services.search.unified_search_service import UnifiedSearchService
+# Import Phase 2C consolidated services
+from src.services.database_operations_service import DatabaseOperationsService
+from src.services.analytics_service import MonitoringService  
+from src.services.ai_service import EmbeddingService
+from src.services.search_service import UnifiedSearchService
 
 # Import legacy components that will remain
 # Legacy imports no longer needed - using clean facade architecture
@@ -111,43 +108,28 @@ class DatabaseManagerService:
     def _initialize_services(self) -> None:
         """Initialize all Phase 2.5 services."""
         try:
-            # Extension Management Service
-            self._extension_service = ExtensionManagementService(
-                db_manager=self._db_adapter
-            )
-            
-            # Schema Management Service
-            self._schema_service = SchemaManagementService(
+            # Database Operations Service (combines batch, schema, extension management)
+            self._database_service = DatabaseOperationsService(
                 db_manager=self._db_adapter,
-                extension_manager=self._extension_service
-            )
-            
-            # Cache Management Service
-            self._cache_service = CacheManagementService(
-                db_manager=self._db_adapter,
-                redis_uri=os.getenv('REDIS_URL')
+                analytics_service=None  # Will be set after analytics service is created
             )
             
             # Analytics Monitoring Service
-            self._analytics_service = AnalyticsMonitoringService(
+            self._analytics_service = MonitoringService(
                 db_manager=self._db_adapter
             )
             
-            # Batch Operations Service
-            self._batch_service = BatchOperationsService(
-                db_manager=self._db_adapter,
-                analytics_service=self._analytics_service
-            )
+            # Update database service with analytics service
+            self._database_service._analytics_service = self._analytics_service
             
-            # Embedding Management Service
-            self._embedding_service = EmbeddingManagementService(
-                db_manager=self._db_adapter,
-                extension_manager=self._extension_service
+            # AI/Embedding Service
+            self._embedding_service = EmbeddingService(
+                db_manager=self._db_adapter
             )
             
             # Unified Search Service
             self._search_service = UnifiedSearchService(
-                repository_factory=self._repository_factory
+                db_manager=self._db_adapter
             )
             
             self._services_initialized = True
@@ -226,7 +208,7 @@ class DatabaseManagerService:
         
         try:
             if use_service:
-                result = self._extension_service.check_postgis_available()
+                result = self._database_service.check_postgis_available()
             else:
                 # Use direct query through adapter
                 query = "SELECT 1 FROM pg_extension WHERE extname = 'postgis'"
@@ -250,9 +232,9 @@ class DatabaseManagerService:
         
         try:
             if use_service:
-                result = self._extension_service.check_pgvector_available()
+                result = self._database_service.check_pgvector_available()
             # Always use service architecture only
-            result = self._extension_service.check_pgvector_available()
+            result = self._database_service.check_pgvector_available()
             
             duration_ms = (time.time() - start_time) * 1000
             self._track_operation('_check_vector_enabled', True, duration_ms, True)
@@ -275,7 +257,7 @@ class DatabaseManagerService:
         
         try:
             if use_service:
-                result = self._schema_service.table_exists(table_name)
+                result = self._database_service.table_exists(table_name)
             # Legacy fallback removed - using service only
             
             duration_ms = (time.time() - start_time) * 1000
@@ -298,7 +280,7 @@ class DatabaseManagerService:
         
         try:
             if use_service:
-                result = self._schema_service.column_exists(table_name, column_name)
+                result = self._database_service.column_exists(table_name, column_name)
             # Legacy fallback removed - using service only
             
             duration_ms = (time.time() - start_time) * 1000
@@ -321,7 +303,7 @@ class DatabaseManagerService:
         
         try:
             if use_service:
-                result = self._schema_service.get_table_columns(table_name)
+                result = self._database_service.get_table_columns(table_name)
             # Legacy fallback removed - using service only
             
             duration_ms = (time.time() - start_time) * 1000
@@ -348,7 +330,7 @@ class DatabaseManagerService:
         
         try:
             if use_service:
-                result = self._batch_service.create_batch_executor(batch_size, auto_execute)
+                result = self._database_service.create_batch_executor(batch_size, auto_execute)
             # Legacy fallback removed - using service only
             
             duration_ms = (time.time() - start_time) * 1000
@@ -375,7 +357,7 @@ class DatabaseManagerService:
         
         try:
             if use_service:
-                from src.services.ai.embedding_manager import EmbeddingStatus
+                from src.services.ai_service import EmbeddingStatus
                 status = self._embedding_service.store_embedding(table, record_id, embedding)
                 result = status == EmbeddingStatus.SUCCESS
             # Legacy fallback removed - using service only
@@ -402,7 +384,7 @@ class DatabaseManagerService:
             if use_service:
                 results = self._embedding_service.batch_store_embeddings(table, embeddings)
                 # Check if all operations succeeded
-                from src.services.ai.embedding_manager import EmbeddingStatus
+                from src.services.ai_service import EmbeddingStatus
                 result = all(status == EmbeddingStatus.SUCCESS for status in results.values())
             # Legacy fallback removed - using service only
             
@@ -545,22 +527,14 @@ class DatabaseManagerService:
     @property
     def vector_cache(self):
         """Get vector cache instance."""
-        use_service = self._should_use_service('USE_NEW_CACHE_MANAGER')
-        
-        if use_service:
-            return self._cache_service.get_vector_cache()
-        else:
-            return getattr(self._db_adapter, "vector_cache", None)
+        # For now, return None - cache functionality will be added to database service later
+        return None
     
     @property
     def query_cache(self):
         """Get query cache instance."""
-        use_service = self._should_use_service('USE_NEW_CACHE_MANAGER')
-        
-        if use_service:
-            return self._cache_service.get_query_cache()
-        else:
-            return getattr(self._db_adapter, "query_cache", None)
+        # For now, return None - cache functionality will be added to database service later
+        return None
     
     # ============================================================================
     # FACADE MONITORING AND REPORTING
@@ -714,7 +688,7 @@ class DatabaseManagerService:
         try:
             if use_service:
                 # Use batch service for consistency
-                metrics = self._batch_service.bulk_insert(table, [data], batch_size=1)
+                metrics = self._database_service.bulk_insert(table, [data], batch_size=1)
                 result = metrics.successful_operations if metrics.successful_operations > 0 else None
             else:
                 # Direct database query
@@ -754,7 +728,7 @@ class DatabaseManagerService:
                 # Prepare update data with ID
                 update_data = data.copy()
                 update_data['id'] = record_id
-                metrics = self._batch_service.bulk_update(table, [update_data], id_column='id', batch_size=1)
+                metrics = self._database_service.bulk_update(table, [update_data], id_column='id', batch_size=1)
                 result = metrics.successful_operations > 0
             else:
                 # Direct database query
@@ -795,7 +769,7 @@ class DatabaseManagerService:
         
         try:
             if use_service:
-                metrics = self._batch_service.bulk_delete(table, [record_id], id_column='id', batch_size=1)
+                metrics = self._database_service.bulk_delete(table, [record_id], id_column='id', batch_size=1)
                 result = metrics.successful_operations > 0
             else:
                 # Direct database query

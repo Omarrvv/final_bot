@@ -13,7 +13,7 @@ from src.knowledge.core.connection_manager import ConnectionManager
 from src.knowledge.core.database_core import DatabaseCore
 from src.repositories.repository_factory import RepositoryFactory
 from src.services.enhanced_service_registry import EnhancedServiceRegistry
-from src.services.search.unified_search_service import UnifiedSearchService
+from src.services.search_service import UnifiedSearchService
 
 logger = logging.getLogger(__name__)
 

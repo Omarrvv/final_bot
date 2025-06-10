@@ -16,10 +16,10 @@ import uvicorn
 # UNIFIED CONFIGURATION - Single source of truth
 from src.config_unified import settings
 
-from .middleware.request_logger import add_request_logging_middleware
+from .middleware.core import add_core_middleware
 # Authentication middleware
 from .middleware.auth import add_auth_middleware
-from .middleware.csrf import add_csrf_middleware
+from .middleware.security import add_csrf_middleware
 
 # Add this to handle imports properly
 if __name__ == "__main__":
@@ -186,9 +186,9 @@ app = FastAPI(
 logger.info("FastAPI app instance created.")
 
 # --- Middleware Configuration ---
-# Add request logging middleware first so it captures all requests including those that might be rejected by CORS
-add_request_logging_middleware(app)
-logger.info("Request logging middleware added")
+# Add core middleware first so it captures all requests including those that might be rejected by CORS
+add_core_middleware(app, log_request_body=False, log_response_body=False, debug=settings.debug)
+logger.info("Core middleware (logging, error handling, request ID) added")
 
 # --- CORS Middleware Configuration ---
 try:

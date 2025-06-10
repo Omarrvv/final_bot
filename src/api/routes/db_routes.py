@@ -10,9 +10,9 @@ from typing import List, Dict, Any, Optional
 import logging
 
 # Phase 4: Using ComponentFactory instead of direct imports
-from ..knowledge.factory import ComponentFactory
-from ..middleware.auth import User
-from ..utils.auth import get_current_active_user as get_current_user
+from src.knowledge.factory import ComponentFactory
+from src.middleware.auth import User
+from src.utils.auth import get_current_active_user as get_current_user
 
 # Configure logging
 logger = logging.getLogger(__name__)
