@@ -43,11 +43,11 @@ from src.api.analytics_api import analytics_router
 from src.api.routes.chat import router as chat_router
 from src.api.routes.session import router as session_router
 from src.api.routes.misc import router as misc_router
-from src.routes.knowledge_base import router as knowledge_base_router
+from src.api.routes.knowledge_base import router as knowledge_base_router
 # Auth router for session-based authentication
 from src.api.auth import router as auth_router
 # Import database router
-from src.routes.db_routes import router as database_router
+from src.api.routes.db_routes import router as database_router
 # Import enhanced session manager
 from src.session.enhanced_session_manager import EnhancedSessionManager
 from src.session.integration import integrate_enhanced_session_manager
@@ -192,7 +192,7 @@ logger.info("Request logging middleware added")
 
 # --- CORS Middleware Configuration ---
 try:
-    from src.middleware.cors import add_cors_middleware, get_default_origins
+    from src.middleware.security import add_cors_middleware, get_default_origins
 
     # Get allowed origins from settings
     allowed_origins = settings.allowed_origins
