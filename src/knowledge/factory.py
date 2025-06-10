@@ -9,13 +9,9 @@ import os
 import logging
 from typing import Any, Dict, List, Optional, Union
 
-# Import legacy implementations
-from src.knowledge.database import DatabaseManager
-from src.knowledge.knowledge_base import KnowledgeBase
-
-# Import facade implementations
-from src.knowledge.database_facade import DatabaseManagerFacade
-from src.knowledge.knowledge_base_facade import KnowledgeBaseFacade
+# Import the service classes instead of facades
+from .database_service import DatabaseManagerService
+from .knowledge_base_service import KnowledgeBaseService
 
 logger = logging.getLogger(__name__)
 
@@ -23,94 +19,86 @@ class DatabaseManagerFactory:
     """
     Factory for creating DatabaseManager instances.
     
-    Based on feature flags, this factory will return either:
-    - Legacy DatabaseManager (default)
-    - New DatabaseManagerFacade (with Phase 2.5 services)
+    This factory creates DatabaseManagerService instances which provide
+    the full implementation with service layer architecture.
     """
     
     @staticmethod
-    def create(database_uri: str = None, vector_dimension: int = 1536) -> DatabaseManagerFacade:
+    def create(database_uri: str = None, vector_dimension: int = 1536) -> DatabaseManagerService:
         """
-        Create a DatabaseManagerFacade instance (new implementation is default).
+        Create a DatabaseManagerService instance.
         
         Args:
             database_uri: Database connection URI
             vector_dimension: Vector embedding dimension
             
         Returns:
-            DatabaseManagerFacade instance
+            DatabaseManagerService instance
         """
-        # New implementation is now default
         try:
-            logger.info("Creating DatabaseManagerFacade (default implementation)")
-            return DatabaseManagerFacade(database_uri, vector_dimension)
+            logger.info("Creating DatabaseManagerService")
+            return DatabaseManagerService(database_uri, vector_dimension)
                 
         except Exception as e:
-            logger.error(f"Error creating DatabaseManager: {str(e)}")
-            
-            logger.error(f"DatabaseManagerFacade creation failed: {str(e)}")
+            logger.error(f"Error creating DatabaseManagerService: {str(e)}")
             raise
     
     @staticmethod
     def get_implementation_type() -> str:
         """Get the current implementation type being used."""
-        return "facade"  # New implementation is default
+        return "service"
     
     @staticmethod
     def is_facade_enabled() -> bool:
-        """Check if facade is enabled."""
-        return True  # New implementation is default
+        """Check if facade architecture is enabled."""
+        return True  # Service layer is the main implementation
 
 class KnowledgeBaseFactory:
     """
     Factory for creating KnowledgeBase instances.
     
-    Based on feature flags, this factory will return either:
-    - Legacy KnowledgeBase (default)
-    - New KnowledgeBaseFacade (with repository architecture)
+    This factory creates KnowledgeBaseService instances which provide
+    the full implementation with service layer architecture.
     """
     
     @staticmethod
     def create(db_manager: Any, vector_db_uri: Optional[str] = None, 
-              content_path: Optional[str] = None) -> KnowledgeBaseFacade:
+              content_path: Optional[str] = None) -> KnowledgeBaseService:
         """
-        Create a KnowledgeBaseFacade instance (new implementation is default).
+        Create a KnowledgeBaseService instance.
         
         Args:
-            db_manager: DatabaseManagerFacade instance
+            db_manager: DatabaseManagerService instance
             vector_db_uri: Vector database URI
             content_path: Content path for additional data
             
         Returns:
-            KnowledgeBaseFacade instance
+            KnowledgeBaseService instance
         """
-        # New implementation is now default
         try:
-            logger.info("Creating KnowledgeBaseFacade (default implementation)")
-            return KnowledgeBaseFacade(db_manager, vector_db_uri, content_path)
+            logger.info("Creating KnowledgeBaseService")
+            return KnowledgeBaseService(db_manager, vector_db_uri, content_path)
                 
         except Exception as e:
-            logger.error(f"Error creating KnowledgeBase: {str(e)}")
-            
-            logger.error(f"KnowledgeBaseFacade creation failed: {str(e)}")
+            logger.error(f"Error creating KnowledgeBaseService: {str(e)}")
             raise
     
     @staticmethod
     def get_implementation_type() -> str:
         """Get the current implementation type being used."""
-        return "facade"  # New implementation is default
+        return "service"
     
     @staticmethod
     def is_facade_enabled() -> bool:
-        """Check if facade is enabled."""
-        return True  # New implementation is default
+        """Check if service architecture is enabled."""
+        return True  # Service layer is the main implementation
 
 class ComponentFactory:
     """
     Unified factory for creating all knowledge base components.
     
     This factory creates a complete knowledge base stack with proper
-    dependency injection and feature flag management.
+    dependency injection and service layer architecture.
     """
     
     @staticmethod
@@ -127,24 +115,24 @@ class ComponentFactory:
             - 'knowledge_base': KnowledgeBase instance
             - 'implementation_info': Information about implementations used
         """
-        logger.info("Creating knowledge base stack with factory")
+        logger.info("Creating knowledge base stack with service layer architecture")
         
-        # Create database manager
+        # Create database manager service
         db_manager = DatabaseManagerFactory.create(database_uri, vector_dimension)
         
-        # Create knowledge base
+        # Create knowledge base service
         knowledge_base = KnowledgeBaseFactory.create(db_manager, vector_db_uri, content_path)
         
         # Gather implementation information
         implementation_info = {
             'database_manager': {
                 'type': DatabaseManagerFactory.get_implementation_type(),
-                'facade_enabled': DatabaseManagerFactory.is_facade_enabled(),
+                'service_enabled': DatabaseManagerFactory.is_facade_enabled(),
                 'class_name': type(db_manager).__name__
             },
             'knowledge_base': {
                 'type': KnowledgeBaseFactory.get_implementation_type(),
-                'facade_enabled': KnowledgeBaseFactory.is_facade_enabled(),
+                'service_enabled': KnowledgeBaseFactory.is_facade_enabled(),
                 'class_name': type(knowledge_base).__name__
             },
             'feature_flags': ComponentFactory.get_all_feature_flags(),
@@ -165,30 +153,29 @@ class ComponentFactory:
     def get_all_feature_flags() -> Dict[str, bool]:
         """Get all feature flags related to the knowledge base architecture."""
         flags = {
-            # Phase 3 Facade Flags
-            'USE_DATABASE_FACADE': os.getenv('USE_DATABASE_FACADE', 'false').lower() == 'true',
-            'USE_KNOWLEDGE_BASE_FACADE': os.getenv('USE_KNOWLEDGE_BASE_FACADE', 'false').lower() == 'true',
-            'USE_NEW_KB_ARCHITECTURE': os.getenv('USE_NEW_KB_ARCHITECTURE', 'false').lower() == 'true',
-            'ENABLE_FACADE_LOGGING': os.getenv('ENABLE_FACADE_LOGGING', 'true').lower() == 'true',
+            # Service Layer Flags (renamed from facade flags)
+            'USE_DATABASE_SERVICE': os.getenv('USE_DATABASE_SERVICE', 'true').lower() == 'true',
+            'USE_KNOWLEDGE_BASE_SERVICE': os.getenv('USE_KNOWLEDGE_BASE_SERVICE', 'true').lower() == 'true',
+            'USE_SERVICE_ARCHITECTURE': os.getenv('USE_SERVICE_ARCHITECTURE', 'true').lower() == 'true',
+            'ENABLE_SERVICE_LOGGING': os.getenv('ENABLE_SERVICE_LOGGING', 'true').lower() == 'true',
             'ENABLE_LEGACY_FALLBACK': os.getenv('ENABLE_LEGACY_FALLBACK', 'true').lower() == 'true',
             
             # Repository Architecture Flags
-            'USE_NEW_REPOSITORIES': os.getenv('USE_NEW_REPOSITORIES', 'false').lower() == 'true',
-            'USE_REPOSITORY_FACTORY': os.getenv('USE_REPOSITORY_FACTORY', 'false').lower() == 'true',
+            'USE_NEW_REPOSITORIES': os.getenv('USE_NEW_REPOSITORIES', 'true').lower() == 'true',
+            'USE_REPOSITORY_FACTORY': os.getenv('USE_REPOSITORY_FACTORY', 'true').lower() == 'true',
             
-            # Service Layer Flags
-            'USE_NEW_EXTENSION_MANAGER': os.getenv('USE_NEW_EXTENSION_MANAGER', 'false').lower() == 'true',
-            'USE_NEW_SCHEMA_MANAGER': os.getenv('USE_NEW_SCHEMA_MANAGER', 'false').lower() == 'true',
-            'USE_NEW_CACHE_MANAGER': os.getenv('USE_NEW_CACHE_MANAGER', 'false').lower() == 'true',
-            'USE_NEW_ANALYTICS_SERVICE': os.getenv('USE_NEW_ANALYTICS_SERVICE', 'false').lower() == 'true',
-            'USE_NEW_BATCH_SERVICE': os.getenv('USE_NEW_BATCH_SERVICE', 'false').lower() == 'true',
-            'USE_NEW_EMBEDDING_SERVICE': os.getenv('USE_NEW_EMBEDDING_SERVICE', 'false').lower() == 'true',
-            'USE_UNIFIED_SEARCH_SERVICE': os.getenv('USE_UNIFIED_SEARCH_SERVICE', 'false').lower() == 'true',
+            # Service Layer Components
+            'USE_NEW_EXTENSION_MANAGER': os.getenv('USE_NEW_EXTENSION_MANAGER', 'true').lower() == 'true',
+            'USE_NEW_SCHEMA_MANAGER': os.getenv('USE_NEW_SCHEMA_MANAGER', 'true').lower() == 'true',
+            'USE_NEW_CACHE_MANAGER': os.getenv('USE_NEW_CACHE_MANAGER', 'true').lower() == 'true',
+            'USE_NEW_ANALYTICS_SERVICE': os.getenv('USE_NEW_ANALYTICS_SERVICE', 'true').lower() == 'true',
+            'USE_NEW_BATCH_SERVICE': os.getenv('USE_NEW_BATCH_SERVICE', 'true').lower() == 'true',
+            'USE_NEW_EMBEDDING_SERVICE': os.getenv('USE_NEW_EMBEDDING_SERVICE', 'true').lower() == 'true',
+            'USE_UNIFIED_SEARCH_SERVICE': os.getenv('USE_UNIFIED_SEARCH_SERVICE', 'true').lower() == 'true',
             
-            # Phase 5 Cleanup Flags
-            'USE_LEGACY_CLEANUP': os.getenv('USE_LEGACY_CLEANUP', 'false').lower() == 'true',
-            'USE_CLEAN_DATABASE_MANAGER': os.getenv('USE_CLEAN_DATABASE_MANAGER', 'false').lower() == 'true',
-            'USE_CLEAN_KNOWLEDGE_BASE': os.getenv('USE_CLEAN_KNOWLEDGE_BASE', 'false').lower() == 'true',
+            # Clean Architecture Flags
+            'USE_CLEAN_DATABASE_MANAGER': os.getenv('USE_CLEAN_DATABASE_MANAGER', 'true').lower() == 'true',
+            'USE_CLEAN_KNOWLEDGE_BASE': os.getenv('USE_CLEAN_KNOWLEDGE_BASE', 'true').lower() == 'true',
             'ENABLE_CLEANUP_LOGGING': os.getenv('ENABLE_CLEANUP_LOGGING', 'true').lower() == 'true'
         }
         
@@ -196,8 +183,8 @@ class ComponentFactory:
     
     @staticmethod
     def get_current_phase() -> str:
-        """Determine the current refactoring phase (new implementation is now default)."""
-        return "Phase 4 (Production Ready - New Model Default)"
+        """Determine the current refactoring phase."""
+        return "Phase 5 (Clean Architecture - Service Layer Default)"
     
     @staticmethod
     def get_migration_status() -> Dict[str, Any]:
@@ -206,104 +193,73 @@ class ComponentFactory:
         current_phase = ComponentFactory.get_current_phase()
         
         # Count enabled flags by category
-        facade_flags = ['USE_DATABASE_FACADE', 'USE_KNOWLEDGE_BASE_FACADE']
-        service_flags = [
+        service_flags = ['USE_DATABASE_SERVICE', 'USE_KNOWLEDGE_BASE_SERVICE']
+        component_flags = [
             'USE_NEW_EXTENSION_MANAGER', 'USE_NEW_SCHEMA_MANAGER', 
             'USE_NEW_CACHE_MANAGER', 'USE_NEW_ANALYTICS_SERVICE',
             'USE_NEW_BATCH_SERVICE', 'USE_NEW_EMBEDDING_SERVICE'
         ]
         repo_flags = ['USE_NEW_REPOSITORIES', 'USE_REPOSITORY_FACTORY']
         
-        facade_enabled = sum(1 for flag in facade_flags if flags[flag])
         service_enabled = sum(1 for flag in service_flags if flags[flag])
+        component_enabled = sum(1 for flag in component_flags if flags[flag])
         repo_enabled = sum(1 for flag in repo_flags if flags[flag])
         
         # Calculate overall migration progress
-        total_flags = len(facade_flags) + len(service_flags) + len(repo_flags)
-        enabled_flags = facade_enabled + service_enabled + repo_enabled
+        total_flags = len(service_flags) + len(component_flags) + len(repo_flags)
+        enabled_flags = service_enabled + component_enabled + repo_enabled
         overall_progress = (enabled_flags / total_flags) * 100
         
         # Determine if ready for production
         ready_for_production = (
-            facade_enabled >= 2 and  # Both facades enabled
-            service_enabled >= 4 and  # Most services enabled
-            flags['ENABLE_LEGACY_FALLBACK'] and  # Safety features
-            flags['ENABLE_FACADE_LOGGING']
+            service_enabled >= 2 and  # Both services enabled
+            component_enabled >= 4 and  # Most components enabled
+            repo_enabled >= 1  # Repository layer enabled
         )
         
         status = {
             'current_phase': current_phase,
-            'migration_progress': overall_progress,
+            'overall_progress': overall_progress,
             'ready_for_production': ready_for_production,
-            'component_status': {
-                'database_facade': flags['USE_DATABASE_FACADE'],
-                'knowledge_base_facade': flags['USE_KNOWLEDGE_BASE_FACADE'],
-                'repository_factory': flags['USE_REPOSITORY_FACTORY'],
-                'extension_manager': flags['USE_NEW_EXTENSION_MANAGER'],
-                'schema_manager': flags['USE_NEW_SCHEMA_MANAGER'],
-                'cache_manager': flags['USE_NEW_CACHE_MANAGER'],
-                'analytics_service': flags['USE_NEW_ANALYTICS_SERVICE'],
-                'batch_service': flags['USE_NEW_BATCH_SERVICE'],
-                'embedding_service': flags['USE_NEW_EMBEDDING_SERVICE']
+            'enabled_flags': {
+                'service_layer': service_enabled,
+                'components': component_enabled,
+                'repositories': repo_enabled,
+                'total': enabled_flags
             },
-            'safety_features': {
-                'logging_enabled': flags['ENABLE_FACADE_LOGGING'],
-                'fallback_enabled': flags['ENABLE_LEGACY_FALLBACK']
-            },
-            'recommendations': ComponentFactory._get_migration_recommendations(flags)
+            'total_flags': total_flags,
+            'recommendations': ComponentFactory._get_migration_recommendations(flags),
+            'feature_breakdown': flags
         }
         
         return status
     
     @staticmethod
     def _get_migration_recommendations(flags: Dict[str, bool]) -> List[str]:
-        """Get migration recommendations based on current flag state."""
+        """Generate migration recommendations based on current flag status."""
         recommendations = []
         
-        # Safety recommendations
-        if not flags['ENABLE_LEGACY_FALLBACK']:
-            recommendations.append("Enable ENABLE_LEGACY_FALLBACK=true for safer migration")
+        # Check service layer
+        if not flags.get('USE_DATABASE_SERVICE', False):
+            recommendations.append("Enable USE_DATABASE_SERVICE for modern database management")
+        if not flags.get('USE_KNOWLEDGE_BASE_SERVICE', False):
+            recommendations.append("Enable USE_KNOWLEDGE_BASE_SERVICE for improved knowledge base architecture")
         
-        if not flags['ENABLE_FACADE_LOGGING']:
-            recommendations.append("Enable ENABLE_FACADE_LOGGING=true for performance monitoring")
+        # Check repository layer
+        if not flags.get('USE_NEW_REPOSITORIES', False):
+            recommendations.append("Enable USE_NEW_REPOSITORIES for better data access patterns")
+        if not flags.get('USE_REPOSITORY_FACTORY', False):
+            recommendations.append("Enable USE_REPOSITORY_FACTORY for dependency injection")
         
-        # Check actual clean implementation usage (not just cleanup flag)
-        clean_implementations_active = (
-            flags.get('USE_CLEAN_DATABASE_MANAGER', False) and 
-            flags.get('USE_CLEAN_KNOWLEDGE_BASE', False)
-        )
+        # Check advanced services
+        if not flags.get('USE_NEW_CACHE_MANAGER', False):
+            recommendations.append("Enable USE_NEW_CACHE_MANAGER for better performance")
+        if not flags.get('USE_NEW_ANALYTICS_SERVICE', False):
+            recommendations.append("Enable USE_NEW_ANALYTICS_SERVICE for monitoring")
+        if not flags.get('USE_UNIFIED_SEARCH_SERVICE', False):
+            recommendations.append("Enable USE_UNIFIED_SEARCH_SERVICE for consolidated search")
         
-        # Check Phase 4 readiness
-        facades_ready = flags['USE_DATABASE_FACADE'] and flags['USE_KNOWLEDGE_BASE_FACADE']
-        repositories_ready = flags['USE_REPOSITORY_FACTORY']
-        services_available = any([
-            flags['USE_NEW_EXTENSION_MANAGER'], flags['USE_NEW_SCHEMA_MANAGER'],
-            flags['USE_NEW_CACHE_MANAGER'], flags['USE_NEW_ANALYTICS_SERVICE'],
-            flags['USE_NEW_BATCH_SERVICE'], flags['USE_NEW_EMBEDDING_SERVICE']
-        ])
-        
-        if clean_implementations_active:
-            recommendations.append("🎉 Phase 5 COMPLETE! God objects eliminated - 95% code reduction achieved!")
-            recommendations.append("🚀 Production ready with clean architecture!")
-        elif facades_ready and repositories_ready and services_available:
-            # Phase 4 ready - this is our current state
-            recommendations.append("🚀 PHASE 4 READY FOR DEPLOYMENT!")
-            recommendations.append("✅ All facades, repositories, and services are implemented and tested")
-            recommendations.append("✅ Phase 1-3 completed successfully with zero breaking changes")
-            recommendations.append("📋 Ready to begin incremental migration of specific components:")
-            recommendations.append("   • Start with low-risk routes: /routes/db_routes.py")
-            recommendations.append("   • Enable feature flags incrementally per component")
-            recommendations.append("   • Monitor performance during gradual rollout")
-            recommendations.append("💡 To proceed to Phase 5: Enable USE_CLEAN_DATABASE_MANAGER=true when ready")
-        elif facades_ready:
-            recommendations.append("✅ Facades enabled and working")
-            recommendations.append("📋 Phase 4 migration can proceed with service integration")
-        else:
-            # Earlier phases
-            if not facades_ready:
-                if not flags['USE_DATABASE_FACADE']:
-                    recommendations.append("🔄 Ready to enable Phase 3 facades: START with USE_DATABASE_FACADE=true")
-                elif not flags['USE_KNOWLEDGE_BASE_FACADE']:
-                    recommendations.append("🔄 Database facade enabled. Next: enable USE_KNOWLEDGE_BASE_FACADE=true")
+        if not recommendations:
+            recommendations.append("System is fully migrated to service layer architecture")
         
         return recommendations 

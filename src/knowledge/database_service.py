@@ -28,7 +28,7 @@ from src.repositories.repository_factory import RepositoryFactory
 
 logger = logging.getLogger(__name__)
 
-class DatabaseManagerFacade:
+class DatabaseManagerService:
     """
     Facade for DatabaseManager that delegates to Phase 2.5 services.
     
@@ -86,7 +86,7 @@ class DatabaseManagerFacade:
         
         # Legacy DB reference removed - using direct service architecture
         
-        logger.info(f"DatabaseManagerFacade initialized (facade_enabled={self.use_facade})")
+        logger.info(f"DatabaseManagerService initialized (service_enabled={self.use_facade})")
     
     def _create_db_adapter(self):
         """Create an adapter that makes ConnectionManager compatible with service interface."""

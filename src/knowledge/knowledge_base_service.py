@@ -1,5 +1,5 @@
 """
-KnowledgeBaseFacade - Provides backward compatibility while using new repository architecture.
+KnowledgeBaseService - Provides backward compatibility while using new repository architecture.
 
 This facade maintains the same API as the original KnowledgeBase class while
 internally using the new repository pattern and services.
@@ -8,7 +8,7 @@ import logging
 import time
 from typing import Any, Dict, List, Optional
 
-from src.knowledge.database_facade import DatabaseManagerFacade
+from .database_service import DatabaseManagerService
 from src.knowledge.core.connection_manager import ConnectionManager
 from src.knowledge.core.database_core import DatabaseCore
 from src.repositories.repository_factory import RepositoryFactory
@@ -18,7 +18,7 @@ from src.services.search.unified_search_service import UnifiedSearchService
 logger = logging.getLogger(__name__)
 
 
-class KnowledgeBaseFacade:
+class KnowledgeBaseService:
     """
     Facade implementation that maintains KnowledgeBase API compatibility.
     
@@ -27,7 +27,7 @@ class KnowledgeBaseFacade:
     """
     
     def __init__(self, db_manager: Any, vector_db_uri: Optional[str] = None, content_path: Optional[str] = None):
-        """Initialize KnowledgeBaseFacade with backward compatibility."""
+        """Initialize KnowledgeBaseService with backward compatibility."""
         self.db_manager = db_manager
         self.vector_db_uri = vector_db_uri
         self.content_path = content_path
@@ -49,7 +49,7 @@ class KnowledgeBaseFacade:
         # Initialize new architecture components
         self._initialize_new_architecture()
         
-        logger.info("KnowledgeBaseFacade initialized with repository architecture")
+        logger.info("KnowledgeBaseService initialized with repository architecture")
     
     def _initialize_new_architecture(self) -> None:
         """Initialize the new repository and service architecture."""
@@ -429,7 +429,7 @@ class KnowledgeBaseFacade:
     def get_facade_metrics(self) -> Dict[str, Any]:
         """Get facade performance and usage metrics."""
         return {
-            'facade_type': 'KnowledgeBaseFacade',
+            'service_type': 'KnowledgeBaseService',
             'architecture': 'Repository Pattern',
             'metrics': self._facade_metrics.copy(),
             'components': {
