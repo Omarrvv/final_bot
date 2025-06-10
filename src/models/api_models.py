@@ -1,7 +1,7 @@
 """
 Pydantic models for API request and response validation.
 """
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List, Dict, Any, Union
 
 class ChatMessageRequest(BaseModel):
@@ -15,7 +15,12 @@ class ChatMessageRequest(BaseModel):
 class Suggestion(BaseModel):
     """Model for a suggested action."""
     text: Union[str, Dict[str, Any]] = Field(..., description="Suggestion text")  # Can be string or structured response
-    action: str # Or define specific Literal action types if known
+    action: Optional[str] = Field(None, description="Optional action type")  # Make action optional
+    
+    @classmethod
+    def from_string(cls, text: str):
+        """Create a Suggestion from a simple string."""
+        return cls(text=text, action="suggestion")
 
 class ChatbotResponse(BaseModel):
     """Model for the response body of the /api/chat endpoint."""
@@ -23,9 +28,25 @@ class ChatbotResponse(BaseModel):
     text: Union[str, Dict[str, Any]] = Field(..., description="The chatbot's response text.")  # Can be string or structured response
     response_type: str = Field(..., description="Type of response (e.g., 'greeting', 'attraction_info', 'fallback').")
     language: str = Field(..., description="Language code of the response.")
-    suggestions: Optional[List[Suggestion]] = Field(None, description="Optional list of suggested follow-up actions.")
+    suggestions: Optional[List[Union[Suggestion, str]]] = Field(None, description="Optional list of suggested follow-up actions.")
     # Include other potential fields based on Chatbot.process_message output
     debug_info: Optional[Dict[str, Any]] = Field(None, description="Optional debugging information.")
+    
+    @field_validator('suggestions', mode='before')
+    @classmethod
+    def convert_suggestion_strings(cls, v):
+        """Convert string suggestions to Suggestion objects."""
+        if v is None:
+            return v
+        result = []
+        for item in v:
+            if isinstance(item, str):
+                result.append(Suggestion.from_string(item))
+            elif isinstance(item, dict):
+                result.append(Suggestion(**item))
+            else:
+                result.append(item)
+        return result
     # Example: Add fields if the chatbot returns structured data like lists of items
     # items: Optional[List[Dict[str, Any]]] = None
 

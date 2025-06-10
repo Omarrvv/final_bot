@@ -165,3 +165,9 @@ environment.yml
 
 # Local development configuration
 local_settings.py
+
+# Model Files (large models downloaded at runtime)
+models/
+
+# Archive Directories (historical reports and logs)
+archives/

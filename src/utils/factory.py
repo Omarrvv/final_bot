@@ -30,7 +30,6 @@ class ComponentFactory:
 
         # Log key feature flags
         logger.info(f"Feature flags (before initialization): " +
-                   f"USE_NEW_KB={settings.feature_flags.use_new_kb}, " +
                    f"USE_POSTGRES={settings.feature_flags.use_postgres}")
 
         self._load_environment_variables()
@@ -75,7 +74,6 @@ class ComponentFactory:
 
         # Log feature flags for component selection
         logger.info(f"Feature flags during registration: " +
-                   f"USE_NEW_KB={settings.feature_flags.use_new_kb}, " +
                    f"USE_POSTGRES={settings.feature_flags.use_postgres}")
 
         # Register configurations
@@ -177,117 +175,18 @@ class ComponentFactory:
     def create_knowledge_base(self) -> Any:
         """Create the knowledge base component."""
         from src.knowledge.knowledge_base import KnowledgeBase
-        from src.knowledge.data.tourism_kb import TourismKnowledgeBase
 
-        # Check if USE_NEW_KB flag is enabled
-        if settings.feature_flags.use_new_kb:
-            logger.info("Creating new Knowledge Base implementation with database connection (USE_NEW_KB=true)")
-            # Get DatabaseManager instance from the container
-            db_manager = container.get("database_manager")
+        # Always use the new Knowledge Base implementation (default since Phase 5)
+        logger.info("Creating Knowledge Base implementation with database connection (new implementation default)")
+        # Get DatabaseManager instance from the container
+        db_manager = container.get("database_manager")
 
-            # Create and return the KnowledgeBase with the db_manager
-            return KnowledgeBase(
-                db_manager=db_manager, # Inject the db_manager instance
-                vector_db_uri=settings.vector_db_uri,
-                content_path=settings.content_path
-            )
-        else:
-            # Legacy implementation - use a direct wrapper around TourismKnowledgeBase
-            logger.warning("Using legacy Knowledge Base implementation (USE_NEW_KB=false)")
-            class LegacyKnowledgeBase:
-                """
-                Legacy wrapper around TourismKnowledgeBase to maintain API compatibility
-                """
-                def __init__(self):
-                    self.tourism_kb = TourismKnowledgeBase()
-
-                def lookup_attraction(self, attraction_name: str, language: str = "en"):
-                    """Map lookup_attraction to the hardcoded data"""
-                    attractions = self.tourism_kb.get_category("attractions")
-
-                    # Direct lookup if exact key exists
-                    if attraction_name.lower() in attractions:
-                        return {
-                            "id": attraction_name.lower(),
-                            "name": {"en": attraction_name, "ar": attraction_name},
-                            "description": {"en": attractions[attraction_name.lower()], "ar": ""},
-                            "location": {"coordinates": {"latitude": 0, "longitude": 0}},
-                            "source": "hardcoded"
-                        }
-
-                    # Fuzzy search for name in hardcoded attraction descriptions
-                    for key, description in attractions.items():
-                        if attraction_name.lower() in key.lower() or key.lower() in attraction_name.lower():
-                            return {
-                                "id": key,
-                                "name": {"en": key.title(), "ar": key.title()},
-                                "description": {"en": description, "ar": ""},
-                                "location": {"coordinates": {"latitude": 0, "longitude": 0}},
-                                "source": "hardcoded"
-                            }
-
-                    return None
-
-                def search_attractions(self, query: str = "", filters=None, language: str = "en", limit: int = 10):
-                    """Map search_attractions to the hardcoded data"""
-                    results = []
-                    attractions = self.tourism_kb.get_category("attractions")
-
-                    if not query or query == "":
-                        # Return all attractions up to limit
-                        for key, description in list(attractions.items())[:limit]:
-                            results.append({
-                                "id": key,
-                                "name": {"en": key.title(), "ar": key.title()},
-                                "description": {"en": description, "ar": ""},
-                                "location": {"coordinates": {"latitude": 0, "longitude": 0}},
-                                "source": "hardcoded"
-                            })
-                    else:
-                        # Search for query in keys and descriptions
-                        for key, description in attractions.items():
-                            if (query.lower() in key.lower() or
-                                query.lower() in description.lower()):
-                                results.append({
-                                    "id": key,
-                                    "name": {"en": key.title(), "ar": key.title()},
-                                    "description": {"en": description, "ar": ""},
-                                    "location": {"coordinates": {"latitude": 0, "longitude": 0}},
-                                    "source": "hardcoded"
-                                })
-
-                                if len(results) >= limit:
-                                    break
-
-                    return results
-
-                def get_practical_info(self, category: str, language: str = "en"):
-                    """Map get_practical_info to the hardcoded data"""
-                    travel_tips = self.tourism_kb.get_category("travel_tips")
-
-                    if category in travel_tips:
-                        return {
-                            "id": category,
-                            "title": {"en": category.title(), "ar": category.title()},
-                            "content": {"en": travel_tips[category], "ar": ""},
-                            "source": "hardcoded"
-                        }
-
-                    # Try to fuzzy match the category
-                    for key, content in travel_tips.items():
-                        if category.lower() in key.lower() or key.lower() in category.lower():
-                            return {
-                                "id": key,
-                                "title": {"en": key.title(), "ar": key.title()},
-                                "content": {"en": content, "ar": ""},
-                                "source": "hardcoded"
-                            }
-
-                    return None
-
-                # Add other methods as needed for compatibility
-
-            return LegacyKnowledgeBase()
+        # Create and return the KnowledgeBase with the db_manager
+        return KnowledgeBase(
+            db_manager=db_manager, # Inject the db_manager instance
+            vector_db_uri=settings.vector_db_uri,
+            content_path=settings.content_path
+        )
 
     def create_nlu_engine(self) -> Any:
         """Create the NLU engine component."""

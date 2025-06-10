@@ -7,7 +7,7 @@ to handle database operations for different entity types.
 import json
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-from src.knowledge.database_core import DatabaseCore
+from src.knowledge.core.database_core import DatabaseCore
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)

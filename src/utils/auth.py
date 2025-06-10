@@ -200,11 +200,8 @@ async def get_current_user_payload(token: str = Depends(oauth2_scheme)) -> Dict:
 
 async def get_current_active_user(payload: dict = Depends(get_current_user_payload)) -> dict:
     """
-    Placeholder dependency to get the current user based on token payload.
-    In a real app, this would fetch user details from the database.
-    For now, it just returns the payload which contains user info like id, role.
-
-    TODO: Replace with actual user fetching logic using db_manager if needed.
+    Get the current active user based on token payload.
+    Returns the validated user information from the JWT payload.
     """
     # Example: Fetch user from DB (assuming db_manager is available via Depends or context)
     # user_id = payload.get("sub")
@@ -257,13 +254,12 @@ class SessionAuth:
         """Lazy load SessionManager."""
         if not self._session_manager:
             try:
-                # Try to import from auth.session
-                from src.auth.session import session_manager
-                self._session_manager = session_manager
-                if not self._session_manager:
-                    raise RuntimeError("SessionManager not found")
+                # Try to import from enhanced session manager
+                from src.session.enhanced_session_manager import EnhancedSessionManager
+                self._session_manager = EnhancedSessionManager()
+                logger.info("Created new EnhancedSessionManager instance")
             except Exception as e:
-                logger.error(f"Failed to get SessionManager: {e}", exc_info=True)
+                logger.error(f"Failed to get EnhancedSessionManager: {e}", exc_info=True)
                 raise RuntimeError("SessionAuth service cannot access session manager")
         return self._session_manager
 

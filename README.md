@@ -424,13 +424,13 @@ The authentication middleware is responsible for validating user sessions and at
 
 ```python
 from src.middleware.auth import add_auth_middleware
-from src.services.session import SessionService
+from src.session.enhanced_session_manager import EnhancedSessionManager
 
 # Setup session service
-session_service = SessionService(redis_client)
+session_manager = EnhancedSessionManager(redis_uri="redis://localhost:6379/0")
 
 # Add middleware to FastAPI app
-add_auth_middleware(app, session_service)
+add_auth_middleware(app, session_manager)
 ```
 
 ## Request Logging Middleware

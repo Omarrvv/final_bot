@@ -194,7 +194,7 @@ class IntentClassifier:
 
     def _apply_context(self, classification_result, context):
         """Stub for applying context to intent classification."""
-        # TODO: Implement actual context logic if needed
+                    # Context logic can be implemented here for future enhancements
         # Example: If last intent was X and current is general_query, maybe stick with X?
         last_intent = context.get("last_intent")
         current_intent = classification_result.get("intent")

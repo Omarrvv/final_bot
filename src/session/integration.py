@@ -11,6 +11,7 @@ from typing import Dict, Any, Optional, List
 
 from fastapi import FastAPI, Request, Response, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
 from src.session.enhanced_session_manager import EnhancedSessionManager
 from src.config_unified import settings
@@ -56,7 +57,7 @@ def integrate_enhanced_session_manager(app: FastAPI) -> EnhancedSessionManager:
         logger.error(f"Failed to integrate enhanced session manager: {e}")
         raise
 
-class SessionMiddleware:
+class SessionMiddleware(BaseHTTPMiddleware):
     """
     Middleware to handle session management.
     
@@ -84,12 +85,12 @@ class SessionMiddleware:
             cookie_name (str, optional): The name of the session cookie. Defaults to "session_id".
             cookie_secure (bool, optional): Whether to set the secure flag on the cookie. Defaults to False.
         """
-        self.app = app
+        super().__init__(app)
         self.session_manager = session_manager
         self.cookie_name = cookie_name
         self.cookie_secure = cookie_secure
     
-    async def __call__(self, request: Request, call_next):
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint):
         """
         Process the request and response.
         

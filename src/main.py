@@ -214,46 +214,50 @@ except Exception as e:
     logger.warning("CORS protection will be disabled. This is a security risk.")
 
 # --- Add Auth Middleware ---
-try:
-    # Add auth middleware with session manager
-    add_auth_middleware(
-        app=app,
-        session_manager=session_manager,
-        public_paths=[
-            "/docs", "/redoc", "/openapi.json", "/api/health",
-            "/api/v1/auth/session", "/api/v1/auth/validate-session",
-            "/api/v1/auth/refresh-session", "/api/v1/auth/end-session",
-            "/api/chat", "/api/reset", "/api/suggestions",
-            "/api/languages", "/api/feedback",
-            "/", "/static", "/{full_path:path}"  # Make all paths public for the demo
-        ],
-        testing_mode=True  # Enable testing mode for the demo
-    )
-    logger.info("Session-based authentication middleware added")
-except Exception as e:
-    logger.error(f"Failed to add authentication middleware: {e}", exc_info=True)
-    logger.warning("Authentication middleware will be disabled")
+# TEMPORARILY DISABLED FOR TESTING
+# try:
+#     # Add auth middleware with session manager
+#     add_auth_middleware(
+#         app=app,
+#         session_manager=session_manager,
+#         public_paths=[
+#             "/docs", "/redoc", "/openapi.json", "/api/health",
+#             "/api/v1/auth/session", "/api/v1/auth/validate-session",
+#             "/api/v1/auth/refresh-session", "/api/v1/auth/end-session",
+#             "/api/chat", "/api/reset", "/api/suggestions",
+#             "/api/languages", "/api/feedback",
+#             "/", "/static", "/{full_path:path}"  # Make all paths public for the demo
+#         ],
+#         testing_mode=True  # Enable testing mode for the demo
+#     )
+#     logger.info("Session-based authentication middleware added")
+# except Exception as e:
+#     logger.error(f"Failed to add authentication middleware: {e}", exc_info=True)
+#     logger.warning("Authentication middleware will be disabled")
+logger.warning("Authentication middleware DISABLED for testing")
 
 # --- Add CSRF Middleware ---
-try:
-    exclude_urls = [
-        "/docs", "/redoc", "/openapi.json", "/api/health",
-        "/api/csrf-token", "/api/chat", "/api/reset",
-        "/api/suggestions", "/api/languages", "/api/feedback",
-        "/api/sessions", "/", "/static", "/{full_path:path}"  # Exclude all paths for the demo
-        # Auth endpoints removed as auth is disabled
-    ]
+# TEMPORARILY DISABLED FOR TESTING
+# try:
+#     exclude_urls = [
+#         "/docs", "/redoc", "/openapi.json", "/api/health",
+#         "/api/csrf-token", "/api/chat", "/api/reset",
+#         "/api/suggestions", "/api/languages", "/api/feedback",
+#         "/api/sessions", "/", "/static", "/{full_path:path}"  # Exclude all paths for the demo
+#         # Auth endpoints removed as auth is disabled
+#     ]
 
-    add_csrf_middleware(
-        app=app,
-        secret=settings.jwt_secret,
-        exclude_urls=exclude_urls,
-        cookie_secure=settings.env != "development"
-    )
-    logger.info("CSRF middleware added")
-except Exception as e:
-    logger.error(f"Failed to add CSRF middleware: {e}", exc_info=True)
-    logger.warning("CSRF protection will be disabled")
+#     add_csrf_middleware(
+#         app=app,
+#         secret=settings.jwt_secret,
+#         exclude_urls=exclude_urls,
+#         cookie_secure=settings.env != "development"
+#     )
+#     logger.info("CSRF middleware added")
+# except Exception as e:
+#     logger.error(f"Failed to add CSRF middleware: {e}", exc_info=True)
+#     logger.warning("CSRF protection will be disabled")
+logger.warning("CSRF middleware DISABLED for testing")
 
 # --- Include routers ---
 app.include_router(chat_router, prefix="/api")

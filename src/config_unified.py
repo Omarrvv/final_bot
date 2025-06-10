@@ -48,11 +48,7 @@ class FeatureFlags(BaseSettings):
         description="Use PostgreSQL database instead of SQLite",
         env="USE_POSTGRES"
     )
-    use_new_kb: bool = Field(
-        default=False, 
-        description="Enable new knowledge base implementation",
-        env="USE_NEW_KB"
-    )
+    # Removed use_new_kb - new implementation is now the default
     use_vector_search: bool = Field(
         default=True, 
         description="Enable vector-based semantic search",
@@ -74,12 +70,7 @@ class FeatureFlags(BaseSettings):
         env="ENABLE_RATE_LIMITING"
     )
     
-    # FastAPI specific flags
-    use_new_api: bool = Field(
-        default=False, 
-        description="Enable new API features",
-        env="USE_NEW_API"
-    )
+    # FastAPI specific flags - removed use_new_api as new API is default
     enable_redis_sessions: bool = Field(
         default=False, 
         description="Enable Redis-based session management",
@@ -499,10 +490,7 @@ class UnifiedSettings(BaseSettings):
         """Backward compatibility: FastAPI LOG_FORMAT field."""
         return self.log_format
     
-    @property
-    def USE_NEW_API(self) -> bool:
-        """Backward compatibility: FastAPI USE_NEW_API field."""
-        return self.feature_flags.use_new_api
+    # Removed USE_NEW_API property - new API is default
     
     @property
     def ENABLE_REDIS_SESSIONS(self) -> bool:

@@ -9,7 +9,7 @@ from typing import Any, Dict, Optional
 
 from fastapi import Depends, HTTPException, Request, status
 
-from src.services.session import SessionService
+from src.session.enhanced_session_manager import EnhancedSessionManager
 from src.utils.factory import component_factory
 from src.utils.logger import get_logger
 from src.utils.auth import SessionAuth
@@ -17,12 +17,12 @@ from src.utils.auth import SessionAuth
 logger = get_logger(__name__)
 
 
-def get_session_service() -> SessionService:
+def get_session_service():
     """
     Dependency for getting the session service.
 
     Returns:
-        SessionService instance
+        Session manager instance (from component factory)
     """
     return component_factory.get_session_service()
 

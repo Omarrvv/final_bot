@@ -294,12 +294,8 @@ class ResponseGenerator:
     def generate_response(self, *args, **kwargs):
         """
         Legacy method for backward compatibility.
-        Redirects to generate_response_by_type.
-
-        This method is deprecated and will be removed in a future version.
-        Use generate_response_by_type instead.
+        Maintained for existing integrations that may depend on this method.
         """
-        logger.warning("The generate_response method is deprecated. Use generate_response_by_type instead.")
         return self.generate_response_by_type(*args, **kwargs)
 
     def _generate_response_action(self, dialog_action: Dict, nlu_result: Dict, context: Dict) -> Dict:

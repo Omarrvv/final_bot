@@ -1,5 +1,6 @@
 """
 Chat-related API endpoints for FastAPI.
+MIGRATED TO PHASE 4 FACADE ARCHITECTURE
 """
 import logging
 from typing import Optional, Dict, Any, List
@@ -10,8 +11,8 @@ import os
 from ...models.api_models import ChatMessageRequest, ChatbotResponse, SuggestionsResponse
 from ...utils.exceptions import ChatbotError
 
-# Import dependencies
-from ...utils.factory import component_factory
+# Phase 4: Import the new ComponentFactory instead of legacy factory
+from ...knowledge.factory import ComponentFactory
 from ...chatbot import Chatbot
 from ...utils.llm_config import toggle_llm_first, get_config
 
@@ -23,17 +24,33 @@ logger = logging.getLogger(__name__)
 def get_chatbot():
     """
     Dependency to get the chatbot instance.
+    PHASE 4: Now using ComponentFactory for facade architecture.
     """
     try:
-        # Get chatbot from app state if available
-        from starlette.concurrency import run_in_threadpool
-
-        # Create a new chatbot if needed
+        # Phase 4: Use new ComponentFactory to create chatbot with facades
+        stack = ComponentFactory.create_knowledge_base_stack()
+        db_manager = stack['db_manager']
+        knowledge_base = stack['knowledge_base']
+        
+        # Create the chatbot using the new factory pattern
+        from ...utils.factory import component_factory
+        
+        # Initialize the factory if not already done
+        if not hasattr(component_factory, '_initialized'):
+            component_factory.initialize()
+            component_factory._initialized = True
+        
+        # Override the factory components with facade implementations
+        component_factory.register_component("database_manager", db_manager)
+        component_factory.register_component("knowledge_base", knowledge_base)
+        
+        # Create chatbot
         chatbot = component_factory.create_chatbot()
 
         if not chatbot:
             raise HTTPException(status_code=500, detail="Chatbot service not available")
 
+        logger.info(f"✅ Chat using: DB={type(db_manager).__name__}, KB={type(knowledge_base).__name__}")
         return chatbot
     except Exception as e:
         logger.error(f"Error getting chatbot: {str(e)}", exc_info=True)
@@ -50,6 +67,7 @@ async def chat_endpoint(
 ):
     """
     Process a chat message and return a response.
+    PHASE 4: Now using facade architecture.
 
     Args:
         message_request: The chat message request containing the user message and session ID
@@ -76,6 +94,7 @@ async def chat_endpoint(
             language=message_request.language
         )
 
+        logger.info(f"✅ Chat processed via Phase 4 facade architecture")
         # Return response
         return response
 
@@ -96,9 +115,13 @@ async def get_suggestions(
     language: str = "en",
     chatbot=Depends(get_chatbot)
 ):
-    """Get suggested queries for the chatbot."""
+    """
+    Get suggested queries for the chatbot.
+    PHASE 4: Now using facade architecture.
+    """
     try:
         suggestions = chatbot.get_suggestions(session_id=session_id, language=language)
+        logger.info(f"✅ Suggestions retrieved via Phase 4 facade architecture")
         return {"suggestions": suggestions}
     except Exception as e:
         logger.error(f"Error getting suggestions: {str(e)}", exc_info=True)
@@ -148,3 +171,35 @@ async def get_llm_config():
     except Exception as e:
         logger.error(f"Error getting LLM configuration: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to get LLM configuration")
+
+# Phase 4 Health Check Endpoint
+@router.get("/health")
+async def chat_health_check():
+    """
+    Health check endpoint to verify chat facade architecture is working.
+    PHASE 4: New endpoint for monitoring facade health.
+    """
+    try:
+        stack = ComponentFactory.create_knowledge_base_stack()
+        db_manager = stack['db_manager']
+        knowledge_base = stack['knowledge_base']
+        
+        return {
+            "status": "healthy",
+            "phase": "4_incremental_migration",
+            "chat_components": {
+                "database_manager": {
+                    "type": type(db_manager).__name__,
+                    "connected": db_manager.is_connected(),
+                    "facade_enabled": hasattr(db_manager, 'get_facade_metrics')
+                },
+                "knowledge_base": {
+                    "type": type(knowledge_base).__name__,
+                    "facade_enabled": hasattr(knowledge_base, 'get_facade_metrics')
+                }
+            },
+            "implementation_info": stack['implementation_info']
+        }
+    except Exception as e:
+        logger.error(f"Chat health check failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Health check failed: {str(e)}")

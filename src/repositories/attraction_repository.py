@@ -6,7 +6,7 @@ This module provides a repository class for handling database operations related
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from src.repositories.base_repository import BaseRepository
-from src.knowledge.database_core import DatabaseCore
+from src.knowledge.core.database_core import DatabaseCore
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)

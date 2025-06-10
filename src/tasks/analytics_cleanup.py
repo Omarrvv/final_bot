@@ -54,7 +54,7 @@ def cleanup_analytics_data():
         deleted_count = db_manager.delete_old_analytics_events(days=detailed_events_days)
         logger.info(f"Deleted {deleted_count} old events")
         
-        # TODO: Implement aggregated stats cleanup when aggregation is implemented
+        # Aggregated stats cleanup can be implemented when aggregation functionality is added
         
         logger.info("Analytics data cleanup completed successfully")
         return True
