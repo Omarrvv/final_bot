@@ -20,18 +20,27 @@ router = APIRouter(
     tags=["knowledge-base"],
 )
 
-def get_knowledge_base():
-    """Dependency to get the KnowledgeBase service instance via ComponentFactory."""
+def get_knowledge_base(request: Request):
+    """Dependency to get the KnowledgeBase from app.state singleton (PERFORMANCE OPTIMIZED)."""
     try:
-        # Phase 4: Use ComponentFactory to get the appropriate implementation
-        stack = ComponentFactory.create_knowledge_base_stack()
-        knowledge_base = stack['knowledge_base']
+        # Use singleton from app.state instead of expensive factory call
+        if not hasattr(request.app.state, 'chatbot') or not request.app.state.chatbot:
+            logger.error("Chatbot singleton not found in app.state")
+            raise HTTPException(status_code=503, detail="Knowledge base service unavailable")
         
-        logger.info(f"✅ Knowledge Route using: {type(knowledge_base).__name__}")
+        chatbot = request.app.state.chatbot
+        if not hasattr(chatbot, 'knowledge_base'):
+            logger.error("Knowledge base not found in chatbot singleton")
+            raise HTTPException(status_code=503, detail="Knowledge base service unavailable")
+        
+        knowledge_base = chatbot.knowledge_base
+        logger.debug(f"✅ Knowledge Route using singleton: {type(knowledge_base).__name__}")
         return knowledge_base
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Error initializing KnowledgeBase: {e}")
-        raise HTTPException(status_code=500, detail="Knowledge base initialization error")
+        logger.error(f"Error accessing knowledge base singleton: {e}")
+        raise HTTPException(status_code=503, detail="Knowledge base service unavailable")
 
 def get_session_id(request: Request) -> str:
     """Extract session ID from cookies or generate a new one."""
@@ -163,8 +172,11 @@ async def search_cities(
     PHASE 4: Now using facade architecture.
     """
     try:
-        # Use the legacy database access for cities (since KB doesn't have direct city search)
-        db_manager = ComponentFactory.create_knowledge_base_stack()['db_manager']
+        # Use singleton database manager from app.state instead of factory
+        if not hasattr(request.app.state, 'chatbot') or not request.app.state.chatbot:
+            raise HTTPException(status_code=503, detail="Database service unavailable")
+        
+        db_manager = request.app.state.chatbot.db_manager
         cities = db_manager.search_cities({"name": name} if name else {}, limit, offset)
         
         # Log the search for analytics
@@ -417,41 +429,40 @@ async def search_faqs(
         raise HTTPException(status_code=500, detail=f"Error searching FAQs: {str(e)}")
 
 @router.get("/health")
-async def knowledge_health_check():
+async def knowledge_health_check(request: Request):
     """
-    Health check endpoint for the knowledge base service.
-    PHASE 4: Now using facade architecture.
+    Health check endpoint using optimized singleton access.
+    PERFORMANCE OPTIMIZED: Uses app.state instead of factory calls.
     """
     try:
-        # Test if we can create a knowledge base instance
-        stack = ComponentFactory.create_knowledge_base_stack()
-        kb = stack['knowledge_base']
-        db_manager = stack['db_manager']
+        # Use singleton from app.state instead of expensive factory call
+        if not hasattr(request.app.state, 'chatbot') or not request.app.state.chatbot:
+            return {
+                "status": "unhealthy",
+                "error": "Chatbot singleton not available in app.state",
+                "implementation": "Performance Optimized"
+            }
+        
+        chatbot = request.app.state.chatbot
+        kb = chatbot.knowledge_base if hasattr(chatbot, 'knowledge_base') else None
+        db_manager = chatbot.db_manager if hasattr(chatbot, 'db_manager') else None
         
         # Test basic database connectivity
-        is_connected = db_manager.is_connected()
+        is_connected = db_manager.is_connected() if db_manager else False
         
-        # Get facade metrics if available
-        metrics = {}
-        if hasattr(kb, 'get_facade_metrics'):
-            try:
-                metrics = kb.get_facade_metrics()
-            except:
-                metrics = {"error": "Unable to get facade metrics"}
-        
-        logger.info(f"✅ Knowledge health check via {type(kb).__name__}")
+        logger.debug(f"✅ Knowledge health check using singleton: {type(kb).__name__}")
         
         return {
             "status": "healthy" if is_connected else "unhealthy",
-            "knowledge_base_type": type(kb).__name__,
+            "knowledge_base_type": type(kb).__name__ if kb else "None",
             "database_connected": is_connected,
-            "implementation": "Phase 4 (Production Ready - New Model Default)",
-            "metrics": metrics
+            "implementation": "Performance Optimized (Using app.state singleton)",
+            "optimization": "No factory calls - using singleton from app.state"
         }
     except Exception as e:
         logger.error(f"Knowledge health check failed: {e}")
         return {
             "status": "unhealthy",
             "error": str(e),
-            "implementation": "Phase 4 (Production Ready - New Model Default)"
+            "implementation": "Performance Optimized"
         } 

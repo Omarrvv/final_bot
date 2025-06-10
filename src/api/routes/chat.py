@@ -21,40 +21,25 @@ router = APIRouter(tags=["Chatbot"])
 logger = logging.getLogger(__name__)
 
 # Define dependencies
-def get_chatbot():
+def get_chatbot(request: Request):
     """
-    Dependency to get the chatbot instance.
-    PHASE 4: Now using ComponentFactory for facade architecture.
+    Dependency to get the chatbot instance from app.state (PERFORMANCE OPTIMIZED).
+    Uses singleton instance created during app startup instead of recreating components.
     """
     try:
-        # Phase 4: Use new ComponentFactory to create chatbot with facades
-        stack = ComponentFactory.create_knowledge_base_stack()
-        db_manager = stack['db_manager']
-        knowledge_base = stack['knowledge_base']
+        # Use singleton from app.state instead of recreating via factory
+        if not hasattr(request.app.state, 'chatbot') or not request.app.state.chatbot:
+            logger.error("Chatbot not found in app.state - check lifespan initialization")
+            raise HTTPException(status_code=503, detail="Chatbot service unavailable")
         
-        # Create the chatbot using the new factory pattern
-        from ...utils.factory import component_factory
-        
-        # Initialize the factory if not already done
-        if not hasattr(component_factory, '_initialized'):
-            component_factory.initialize()
-            component_factory._initialized = True
-        
-        # Override the factory components with facade implementations
-        component_factory.register_component("database_manager", db_manager)
-        component_factory.register_component("knowledge_base", knowledge_base)
-        
-        # Create chatbot
-        chatbot = component_factory.create_chatbot()
-
-        if not chatbot:
-            raise HTTPException(status_code=500, detail="Chatbot service not available")
-
-        logger.info(f"✅ Chat using: DB={type(db_manager).__name__}, KB={type(knowledge_base).__name__}")
+        chatbot = request.app.state.chatbot
+        logger.debug(f"✅ Chat using singleton: {type(chatbot).__name__}")
         return chatbot
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Error getting chatbot: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Chatbot service not available")
+        logger.error(f"Error accessing chatbot singleton: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Chatbot service unavailable")
 
 # Conditional rate limiter based on environment
 
@@ -172,33 +157,36 @@ async def get_llm_config():
         logger.error(f"Error getting LLM configuration: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to get LLM configuration")
 
-# Phase 4 Health Check Endpoint
+# Performance Optimized Health Check Endpoint
 @router.get("/health")
-async def chat_health_check():
+async def chat_health_check(request: Request):
     """
-    Health check endpoint to verify chat facade architecture is working.
-    PHASE 4: New endpoint for monitoring facade health.
+    Health check endpoint using optimized singleton access.
+    PERFORMANCE OPTIMIZED: Uses app.state instead of factory calls.
     """
     try:
-        stack = ComponentFactory.create_knowledge_base_stack()
-        db_manager = stack['db_manager']
-        knowledge_base = stack['knowledge_base']
+        # Use singleton from app.state instead of expensive factory call
+        if not hasattr(request.app.state, 'chatbot') or not request.app.state.chatbot:
+            return {
+                "status": "unhealthy",
+                "error": "Chatbot singleton not available in app.state",
+                "phase": "performance_optimized"
+            }
+        
+        chatbot = request.app.state.chatbot
         
         return {
             "status": "healthy",
-            "phase": "4_incremental_migration",
+            "phase": "performance_optimized",
             "chat_components": {
-                "database_manager": {
-                    "type": type(db_manager).__name__,
-                    "connected": db_manager.is_connected(),
-                    "facade_enabled": hasattr(db_manager, 'get_facade_metrics')
-                },
-                "knowledge_base": {
-                    "type": type(knowledge_base).__name__,
-                    "facade_enabled": hasattr(knowledge_base, 'get_facade_metrics')
+                "chatbot": {
+                    "type": type(chatbot).__name__,
+                    "has_db_manager": hasattr(chatbot, 'db_manager'),
+                    "has_knowledge_base": hasattr(chatbot, 'knowledge_base'),
+                    "db_connected": chatbot.db_manager.is_connected() if hasattr(chatbot, 'db_manager') else False
                 }
             },
-            "implementation_info": stack['implementation_info']
+            "optimization": "Using singleton from app.state (no factory calls)"
         }
     except Exception as e:
         logger.error(f"Chat health check failed: {e}")
