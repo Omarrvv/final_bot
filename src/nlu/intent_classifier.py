@@ -132,6 +132,15 @@ class AdvancedIntentClassifier:
         """
         Calculate similarity scores for all intents.
         
+        # Ensure embedding has proper dimensions
+                                if embedding.ndim == 0 or (embedding.ndim == 1 and embedding.size == 1):
+                                    logger.warning(f"Detected scalar embedding in intent classifier, expanding to standard dimension")
+                                    standard_dim = 768  # Standard embedding dimension
+                                    expanded = np.zeros(standard_dim)
+                                    if embedding.size > 0:
+                                        scalar_value = float(embedding.item() if hasattr(embedding, 'item') else embedding)
+                                        expanded.fill(scalar_value)
+                                    embedding = expanded
         Args:
             embedding (np.ndarray): Input text embedding
             context (Dict): Conversation context

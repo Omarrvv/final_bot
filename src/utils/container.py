@@ -18,6 +18,7 @@ class Container:
         self._services = {}
         self._factories = {}
         self._singletons = {}
+        self._factory_cache = {}  # NEW: Cache factory results for singleton behavior
     
     def register(self, name: str, implementation: Any) -> None:
         """
@@ -40,6 +41,18 @@ class Container:
         """
         self._factories[name] = factory
         logger.debug(f"Registered factory: {name}")
+    
+    def register_cached_factory(self, name: str, factory: Callable[..., Any]) -> None:
+        """
+        Register a factory that caches its results (singleton behavior).
+        This ensures the factory is only called once and subsequent calls return the cached instance.
+        
+        Args:
+            name (str): Name of the component
+            factory (Callable): Factory function that creates the component
+        """
+        self._factories[name] = factory
+        logger.debug(f"Registered cached factory: {name}")
     
     def register_singleton(self, name: str, implementation: Type) -> None:
         """
@@ -73,14 +86,22 @@ class Container:
         if name in self._services:
             return self._services[name]
         
-        # Check if service has a factory
+        # Check if service has a cached factory result
         if name in self._factories:
-            return self._factories[name](**kwargs)
+            if name not in self._factory_cache:
+                logger.info(f"Creating singleton instance via factory: {name}")
+                self._factory_cache[name] = self._factories[name](**kwargs)
+            else:
+                logger.debug(f"Returning cached factory instance: {name}")
+            return self._factory_cache[name]
         
         # Check if service is a singleton
         if name in self._singletons:
             if self._singletons[name]['instance'] is None:
+                logger.info(f"Creating singleton instance: {name}")
                 self._singletons[name]['instance'] = self._singletons[name]['implementation'](**kwargs)
+            else:
+                logger.debug(f"Returning existing singleton instance: {name}")
             return self._singletons[name]['instance']
         
         raise KeyError(f"Service not registered: {name}")
@@ -96,6 +117,36 @@ class Container:
             bool: True if the component is registered
         """
         return name in self._services or name in self._factories or name in self._singletons
+    
+    def clear_cache(self, name: str = None) -> None:
+        """
+        Clear the factory cache for debugging/testing purposes.
+        
+        Args:
+            name (str, optional): Specific component to clear. If None, clears all cached instances.
+        """
+        if name:
+            if name in self._factory_cache:
+                del self._factory_cache[name]
+                logger.info(f"Cleared cached instance: {name}")
+        else:
+            self._factory_cache.clear()
+            logger.info("Cleared all cached factory instances")
+    
+    def get_cache_info(self) -> Dict[str, Any]:
+        """
+        Get information about cached instances for debugging.
+        
+        Returns:
+            Dict with cache statistics
+        """
+        return {
+            "cached_factories": list(self._factory_cache.keys()),
+            "cache_count": len(self._factory_cache),
+            "registered_factories": list(self._factories.keys()),
+            "registered_singletons": list(self._singletons.keys()),
+            "registered_services": list(self._services.keys())
+        }
     
     def get_feature_flag(self, flag_name: str) -> bool:
         """

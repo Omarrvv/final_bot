@@ -19,24 +19,38 @@ class DatabaseManagerFactory:
     """
     Factory for creating DatabaseManager instances.
     
-    This factory creates DatabaseManagerService instances which provide
-    the full implementation with service layer architecture.
+    PERFORMANCE OPTIMIZED: Now returns shared DatabaseManager instances
+    to prevent connection pool proliferation.
     """
     
     @staticmethod
-    def create(database_uri: str = None, vector_dimension: int = 1536) -> DatabaseManagerService:
+    def create(database_uri: str = None, vector_dimension: int = 768) -> DatabaseManagerService:
         """
-        Create a DatabaseManagerService instance.
+        Get or create a DatabaseManagerService instance (PHASE 2B OPTIMIZATION).
         
         Args:
             database_uri: Database connection URI
             vector_dimension: Vector embedding dimension
             
         Returns:
-            DatabaseManagerService instance
+            DatabaseManagerService instance (connection pool optimized)
         """
         try:
-            logger.info("Creating DatabaseManagerService")
+            logger.info("🔄 Creating DatabaseManagerService (Phase 2B - checking for shared pool reuse)")
+            
+            # Check if we're in an app context with shared database manager
+            try:
+                # Try to get shared database manager from app context
+                from src.utils.factory import component_factory
+                if hasattr(component_factory, '_shared_db_manager') and component_factory._shared_db_manager:
+                    logger.info("✅ Using shared database connection pool (Phase 2B optimization)")
+                    # Return the shared instance if available
+                    return component_factory._shared_db_manager
+            except (ImportError, AttributeError):
+                logger.debug("No shared database manager available in current context")
+            
+            # Create new instance if no shared manager is available
+            logger.info("📊 Creating new DatabaseManagerService (new connection pool)")
             return DatabaseManagerService(database_uri, vector_dimension)
                 
         except Exception as e:
@@ -105,7 +119,7 @@ class ComponentFactory:
     def create_knowledge_base_stack(database_uri: str = None, 
                                    vector_db_uri: Optional[str] = None,
                                    content_path: Optional[str] = None,
-                                   vector_dimension: int = 1536) -> Dict[str, Any]:
+                                   vector_dimension: int = 768) -> Dict[str, Any]:
         """
         Create a complete knowledge base stack.
         

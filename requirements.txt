@@ -37,3 +37,4 @@ starlette-admin==0.8.0
 starlette-context==0.3.6
 starlette-csrf>=1.5.0
 uvicorn[standard]>=0.22.0
+sentence-transformers==2.7.0

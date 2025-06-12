@@ -39,15 +39,10 @@ def cleanup_analytics_data():
         detailed_events_days = getattr(settings, 'analytics_detailed_retention_days', 90)
         aggregated_stats_days = getattr(settings, 'analytics_aggregated_retention_days', 365)
         
-        # Initialize database manager with unified config
-        db_manager = DatabaseManager({
-            'database_uri': settings.database_uri,
-            'postgres_host': settings.postgres_host,
-            'postgres_port': settings.postgres_port,
-            'postgres_db': settings.postgres_db,
-            'postgres_user': settings.postgres_user,
-            'postgres_password': settings.postgres_password.get_secret_value()
-        })
+        # Use shared database manager instead of creating new instance (PERFORMANCE OPTIMIZED)
+        logger.info("🔄 Using shared database manager for analytics cleanup (connection pool reuse)")
+        from src.utils.factory import component_factory
+        db_manager = component_factory.create_database_manager()  # Uses singleton pattern
         
         # Delete old detailed events
         logger.info(f"Deleting detailed events older than {detailed_events_days} days")

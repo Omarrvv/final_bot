@@ -200,18 +200,8 @@ class VectorSearchCache:
             bool: Success status
         """
         try:
-            # Use the database function for selective cache invalidation
-            from src.knowledge.database import DatabaseManager
-            db = DatabaseManager()
-
-            # Call the PostgreSQL function to invalidate cache by table
-            result = db.execute_query(
-                "SELECT invalidate_table_cache(%s) AS count",
-                (table_name,)
-            )
-
-            invalidated_count = result[0]['count'] if result else 0
-            logger.info(f"Invalidated {invalidated_count} database cache entries for table: {table_name}")
+            # Use shared database manager instead of creating new instance
+            self._invalidate_database_cache(table_name)
 
             # Create a pattern for all keys related to this table in Redis
             pattern = f"{self.cache_prefix}{table_name}:*"
@@ -251,6 +241,25 @@ class VectorSearchCache:
             logger.warning(f"Fell back to clearing all caches due to error: {e}")
 
             return False
+
+    def _invalidate_database_cache(self, table_name: str) -> None:
+        """Invalidate database cache using shared database manager (no new connection pool)."""
+        try:
+            # Get shared database manager from the global factory instead of creating new instance
+            from src.utils.factory import component_factory
+            db_manager = component_factory.create_database_manager()  # Uses singleton pattern
+            
+            # Call the PostgreSQL function to invalidate cache by table
+            result = db_manager.execute_query(
+                "SELECT invalidate_table_cache(%s) AS count",
+                (table_name,)
+            )
+
+            invalidated_count = result[0]['count'] if result else 0
+            logger.info(f"Invalidated {invalidated_count} database cache entries for table: {table_name} (shared connection)")
+
+        except Exception as e:
+            logger.warning(f"Database cache invalidation failed (using shared connection): {e}")
 
     def _clear_all_caches(self) -> None:
         """Clear all caches (Redis and local) as a fallback."""

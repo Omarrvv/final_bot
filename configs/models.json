@@ -1,4 +1,17 @@
 {
+  "model_loading": {
+    "preload_on_startup": true,
+    "warmup_queries": [
+      "hello",
+      "pyramids of giza",
+      "tourism information",
+      "مرحبا",
+      "معلومات سياحية"
+    ],
+    "cache_embeddings": true,
+    "batch_size": 32,
+    "progress_tracking": true
+  },
   "language_detection": {
     "model_path": "lid.176.bin",
     "confidence_threshold": 0.8

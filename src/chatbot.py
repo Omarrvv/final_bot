@@ -4,6 +4,7 @@ Provides the core chatbot functionality with dependency injection.
 """
 import logging
 import json
+import re
 from typing import Dict, List, Any, Optional
 import os
 import importlib
@@ -78,6 +79,42 @@ class Chatbot:
         """
         start_time = time.time()
         logger.info(f"Processing message: '{user_message}'")
+
+        # Phase 1 Fix: Enhanced Fast-Path with Tourism Patterns
+        simple_patterns = {
+            # Greetings & Social
+            r'\b(hi|hello|hey|greetings|مرحبا|أهلا|السلام عليكم)\b': 'greeting',
+            r'\b(bye|goodbye|farewell|وداعا|مع السلامة|إلى اللقاء)\b': 'farewell',
+            r'\b(thanks?|thank you|شكرا|متشكر|ممنون)\b': 'gratitude',
+            
+            # Help & Information
+            r'\b(help|info|information|معلومات|مساعدة|إزاي|كيف)\b': 'help_request',
+            r'\b(what can you do|what do you know|ايه اللي تقدر|ايه خدماتك)\b': 'capabilities',
+            
+            # Popular Tourism Fast-Path (Phase 1 Critical Optimization)
+            r'\b(pyramid|pyramids|giza|الأهرام|هرم|أهرامات)\b': 'attraction_pyramids',
+            r'\b(sphinx|abu el hol|أبو الهول|تمثال الهول)\b': 'attraction_sphinx',
+            r'\b(luxor|الأقصر|معابد الأقصر)\b': 'attraction_luxor',
+            r'\b(aswan|أسوان|سد أسوان)\b': 'attraction_aswan',
+            r'\b(alexandria|الإسكندرية|مكتبة الإسكندرية)\b': 'attraction_alexandria',
+            r'\b(red sea|البحر الأحمر|شرم|hurghada|الغردقة)\b': 'attraction_redsea',
+            r'\b(nile|النيل|نهر النيل|رحلة نيلية)\b': 'attraction_nile',
+            r'\b(cairo|القاهرة|العاصمة)\b': 'destination_cairo',
+            
+            # Quick Tourism Services
+            r'\b(hotel|accommodation|فندق|إقامة|مكان نوم)\b': 'service_hotel',
+            r'\b(restaurant|food|طعام|مطعم|أكل)\b': 'service_restaurant',
+            r'\b(transport|taxi|موصلات|تاكسي|قطر)\b': 'service_transport',
+            r'\b(price|cost|how much|سعر|كام|تكلفة|فلوس)\b': 'inquiry_price'
+        }
+
+        for pattern, intent in simple_patterns.items():
+            if re.search(pattern, user_message.lower()):
+                logger.info(f"🚀 Fast-path processing for intent: {intent}")
+                return await self._handle_quick_response(intent, user_message, session_id, language)
+
+        # Full NLU processing for complex queries
+        logger.info("🧠 Full NLU processing required")
 
         # Get the current LLM configuration
         USE_LLM_FIRST = use_llm_first()
@@ -202,16 +239,19 @@ class Chatbot:
                     # Continue with the regular flow if LLM fails
 
             # Pre-check for special attraction queries like pyramids
-            attraction_keywords = ["pyramid", "pyramids", "giza", "sphinx", "luxor", "karnak",
-                                  "valley of the kings", "abu simbel", "alexandria", "library"]
+            attraction_keywords = ["pyramid", "pyramids", "sphinx"]
 
-            # Check if this might be an attraction query
-            if any(keyword in user_message.lower() for keyword in attraction_keywords):
-                logger.info(f"Detected potential attraction query: '{user_message}'")
-                # Call specialized attraction query handler
-                resp = await self.process_attraction_query(user_message, session_id, language)
-                resp = self._ensure_response_fields(resp, session_id, language, default_type="attraction_info")
-                return resp
+            # Avoid hijacking hotel/restaurant queries that mention locations
+            if re.search(r"\bhotel(s)?\b", user_message.lower()) or re.search(r"\brestaurant(s)?\b", user_message.lower()):
+                logger.debug("Skipping attraction quick path because message references hotels/restaurants")
+            else:
+                # Check if this might be an attraction query
+                if any(keyword in user_message.lower() for keyword in attraction_keywords):
+                    logger.info(f"Detected potential attraction query: '{user_message}'")
+                    # Call specialized attraction query handler
+                    resp = await self.process_attraction_query(user_message, session_id, language)
+                    resp = self._ensure_response_fields(resp, session_id, language, default_type="attraction_info")
+                    return resp
 
             # Regular message processing logic continues here...
 
@@ -295,25 +335,18 @@ class Chatbot:
                             max_tokens=150  # REDUCED FROM 500
                         )
 
-                        if response_text:
-                            # Log the response text for debugging
-                            logger.info(f"Anthropic fallback response text: {response_text[:100]}...")
+                        # Clean up the response text to remove any unwanted characters and Markdown formatting
+                        response_text = self._clean_markdown_formatting(response_text)
 
-                            # Create a more detailed log to debug the response
-                            logger.info(f"FULL Anthropic fallback response: {response_text}")
-
-                            # Clean up the response text to remove any unwanted characters and Markdown formatting
-                            response_text = self._clean_markdown_formatting(response_text)
-
-                            response = {
-                                "text": response_text,
-                                "response_type": "fallback",
-                                "suggestions": response.get("suggestions", []),
-                                "intent": nlu_result.get("intent"),
-                                "entities": nlu_result.get("entities", {}),
-                                "source": "anthropic_llm",
-                                "fallback": True
-                            }
+                        response = {
+                            "text": response_text,
+                            "response_type": "fallback",
+                            "suggestions": response.get("suggestions", []),
+                            "intent": nlu_result.get("intent"),
+                            "entities": nlu_result.get("entities", {}),
+                            "source": "anthropic_llm",
+                            "fallback": True
+                        }
                 except Exception as llm_err:
                     logger.error(f"Error using LLM fallback in process_message: {str(llm_err)}")
                     # Continue with the original response if LLM fails
@@ -765,7 +798,7 @@ class Chatbot:
 
     async def _process_nlu(self, text: str, session_id: str, language: str) -> Dict[str, Any]:
         """
-        Process text through the NLU engine.
+        Process text through the NLU engine (Phase 3.3: Using async processing when available).
 
         Args:
             text: User message text
@@ -782,8 +815,16 @@ class Chatbot:
             else:
                 session_data = self.session_manager.get_session(session_id)
 
-            # Process through NLU pipeline
-            if hasattr(self.nlu_engine.process, "__await__"):
+            # Use async NLU processing if available (Phase 3.3)
+            if hasattr(self.nlu_engine, 'process_async'):
+                logger.info("🚀 Using async NLU processing for better performance")
+                nlu_result = await self.nlu_engine.process_async(
+                    text,
+                    session_id=session_id,
+                    language=language,
+                    context=session_data
+                )
+            elif hasattr(self.nlu_engine.process, "__await__"):
                 nlu_result = await self.nlu_engine.process(
                     text,
                     session_id=session_id,
@@ -1210,7 +1251,7 @@ class Chatbot:
             # Prepare response
             response = {
                 "text": response_text,
-                "response_type": nlu_result.get("response_type", "fallback"),
+                "response_type": dialog_action.get("response_type", "general"),  # Fixed: use dialog_action instead of nlu_result to avoid fallback
                 "suggestions": suggestions,
                 "intent": nlu_result.get("intent"),
                 "entities": nlu_result.get("entities", {}),
@@ -1391,34 +1432,167 @@ class Chatbot:
 
     def _detect_language(self, text: str) -> str:
         """
-        Detect language from user message.
-
+        Detect the language of a text string.
+        
         Args:
-            text: User message text
-
+            text: Text string to analyze
+            
         Returns:
-            Language code (en or ar)
+            Language code (e.g., 'en', 'ar')
         """
         try:
-            # Check if NLU engine has language detection method
-            if hasattr(self.nlu_engine, "detect_language"):
-                detected_lang = self.nlu_engine.detect_language(text)
-                logger.info(f"Detected language: {detected_lang}")
-                return detected_lang
-
-            # Simple detection based on character set
-            arabic_chars = set("ابتثجحخدذرزسشصضطظعغفقكلمنهوي")
-            text_chars = set(text.lower())
-
-            # Check for overlap with Arabic characters
-            if any(char in arabic_chars for char in text_chars):
-                return "ar"
-
-            # Default to English
-            return "en"
+            # Try to use the NLU engine's language detector
+            if hasattr(self.nlu_engine, 'language_detector'):
+                language, confidence = self.nlu_engine.language_detector.detect(text)
+                if confidence > 0.5:
+                    return language
         except Exception as e:
-            logger.error(f"Error detecting language: {str(e)}")
-            return "en"  # Default to English on error
+            logger.warning(f"Language detection failed: {str(e)}")
+        
+        # Fallback: check for Arabic characters
+        arabic_pattern = r'[\u0600-\u06FF]'
+        if re.search(arabic_pattern, text):
+            return 'ar'
+        
+        # Default to English
+        return 'en'
+
+    async def _handle_quick_response(self, intent: str, user_message: str, session_id: str = None, language: str = None) -> Dict[str, Any]:
+        """
+        Handle quick responses for simple patterns without heavy NLU processing (Phase 3.2).
+        
+        Args:
+            intent: Detected intent from pattern matching
+            user_message: Original user message
+            session_id: Session identifier
+            language: Language code
+            
+        Returns:
+            Quick response dictionary
+        """
+        start_time = time.time()
+        
+        # Create session if needed
+        if not session_id:
+            session_id = str(uuid.uuid4())
+            
+        # Detect language if not provided
+        if not language:
+            language = self._detect_language(user_message)
+            
+        # Get or create session
+        session = await self.get_or_create_session(session_id)
+        session["language"] = language
+        
+        # Handle different intents with quick responses
+        if intent == 'greeting':
+            response = self._create_greeting_response(session_id, language)
+        elif intent == 'farewell':
+            response = self._create_farewell_response(session_id, language)
+        elif intent == 'attraction_pyramids':
+            response = await self._create_quick_pyramid_response(session_id, language)
+        elif intent == 'attraction_sphinx':
+            response = await self._create_quick_sphinx_response(session_id, language)
+        elif intent == 'attraction_luxor':
+            response = await self._create_quick_luxor_response(session_id, language)
+        elif intent == 'help_request':
+            response = await self._create_quick_help_response(session_id, language)
+        else:
+            # Fallback to basic response
+            response = {
+                "text": "I'd be happy to help you with Egypt tourism information!" if language == "en" else "سأسعد بمساعدتك في معلومات السياحة المصرية!",
+                "response_type": "quick_response",
+                "intent": intent,
+                "session_id": session_id,
+                "language": language
+            }
+        
+        # Ensure response has required fields
+        response = self._ensure_response_fields(response, session_id, language, "quick_response")
+        response["source"] = "fast_path"
+        response["fallback"] = False
+        
+        # Save session
+        await self._save_session(session_id, session)
+        
+        # Add messages to session history
+        try:
+            await self._add_message_to_session(session_id, "user", user_message)
+            await self._add_message_to_session(session_id, "assistant", response.get("text", ""))
+        except Exception as e:
+            logger.error(f"Error adding message to session: {str(e)}")
+        
+        processing_time = time.time() - start_time
+        logger.info(f"⚡ Quick response processed in {processing_time:.3f}s for intent: {intent}")
+        
+        return response
+    
+    async def _create_quick_pyramid_response(self, session_id: str, language: str) -> Dict[str, Any]:
+        """Create a quick response about pyramids."""
+        texts = {
+            "en": "The Pyramids of Giza are Egypt's most iconic monuments! Built over 4,500 years ago, these magnificent structures include the Great Pyramid of Khufu, one of the Seven Wonders of the Ancient World. Would you like to know more about visiting them?",
+            "ar": "أهرامات الجيزة هي أشهر المعالم المصرية! بُنيت منذ أكثر من 4500 عام، وتشمل الهرم الأكبر للملك خوفو، أحد عجائب الدنيا السبع القديمة. هل تريد معرفة المزيد عن زيارتها؟"
+        }
+        
+        return {
+            "text": texts.get(language, texts["en"]),
+            "response_type": "attraction_info",
+            "intent": "attraction_pyramids",
+            "entities": [{"type": "attraction", "value": "pyramids"}],
+            "suggestions": ["visiting hours", "ticket prices", "how to get there", "sphinx nearby"],
+            "session_id": session_id,
+            "language": language
+        }
+    
+    async def _create_quick_sphinx_response(self, session_id: str, language: str) -> Dict[str, Any]:
+        """Create a quick response about the sphinx."""
+        texts = {
+            "en": "The Great Sphinx of Giza is a magnificent limestone statue with a human head and lion's body, guarding the pyramids for over 4,500 years. It's 73 meters long and 20 meters high!",
+            "ar": "أبو الهول العظيم بالجيزة تمثال مهيب من الحجر الجيري برأس إنسان وجسم أسد، يحرس الأهرامات منذ أكثر من 4500 عام. يبلغ طوله 73 مترًا وارتفاعه 20 مترًا!"
+        }
+        
+        return {
+            "text": texts.get(language, texts["en"]),
+            "response_type": "attraction_info",
+            "intent": "attraction_sphinx",
+            "entities": [{"type": "attraction", "value": "sphinx"}],
+            "suggestions": ["pyramids nearby", "visiting hours", "photo opportunities"],
+            "session_id": session_id,
+            "language": language
+        }
+    
+    async def _create_quick_luxor_response(self, session_id: str, language: str) -> Dict[str, Any]:
+        """Create a quick response about Luxor."""
+        texts = {
+            "en": "Luxor is often called the world's greatest open-air museum! Home to the Valley of the Kings, Karnak Temple, and Luxor Temple. It's where ancient Thebes once stood as Egypt's powerful capital.",
+            "ar": "الأقصر تُسمى أعظم متحف مفتوح في العالم! موطن وادي الملوك ومعبد الكرنك ومعبد الأقصر. هنا كانت طيبة القديمة عاصمة مصر القوية."
+        }
+        
+        return {
+            "text": texts.get(language, texts["en"]),
+            "response_type": "attraction_info", 
+            "intent": "attraction_luxor",
+            "entities": [{"type": "attraction", "value": "luxor"}],
+            "suggestions": ["Valley of the Kings", "Karnak Temple", "hot air balloon", "Nile cruise"],
+            "session_id": session_id,
+            "language": language
+        }
+    
+    async def _create_quick_help_response(self, session_id: str, language: str) -> Dict[str, Any]:
+        """Create a quick help response."""
+        texts = {
+            "en": "I'm here to help with Egypt tourism information! I can tell you about attractions like the Pyramids, Sphinx, Luxor, Alexandria, the Red Sea, and much more. What interests you most?",
+            "ar": "أنا هنا لمساعدتك في معلومات السياحة المصرية! يمكنني إخبارك عن المعالم مثل الأهرامات وأبو الهول والأقصر والإسكندرية والبحر الأحمر وأكثر من ذلك. ما الذي يهمك أكثر؟"
+        }
+        
+        return {
+            "text": texts.get(language, texts["en"]),
+            "response_type": "help",
+            "intent": "help_request",
+            "suggestions": ["pyramids", "sphinx", "luxor", "alexandria", "red sea", "nile cruise"],
+            "session_id": session_id,
+            "language": language
+        }
 
     async def _save_session(self, session_id: str, session_data: Dict) -> None:
         """

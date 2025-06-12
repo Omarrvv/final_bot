@@ -41,7 +41,7 @@ class DatabaseManagerService:
     - Service health monitoring
     """
     
-    def __init__(self, database_uri: str = None, vector_dimension: int = 1536):
+    def __init__(self, database_uri: str = None, vector_dimension: int = 768):
         """
         Initialize the facade with both new services and legacy fallback.
         
@@ -124,7 +124,8 @@ class DatabaseManagerService:
             
             # AI/Embedding Service
             self._embedding_service = EmbeddingService(
-                db_manager=self._db_adapter
+                db_manager=self._db_adapter,
+                default_dimension=self.vector_dimension
             )
             
             # Unified Search Service
@@ -649,8 +650,14 @@ class DatabaseManagerService:
                     if where_conditions:
                         query += " WHERE " + " AND ".join(where_conditions)
                 
+                # Add LIMIT and OFFSET clauses
                 query += f" LIMIT %s OFFSET %s"
-                params.extend([limit, offset])
+                # Ensure limit and offset are integers to prevent SQL type errors
+                try:
+                    params.extend([int(limit), int(offset)])
+                except (TypeError, ValueError):
+                    logger.warning(f"Invalid limit/offset values: {limit}/{offset}, using defaults")
+                    params.extend([10, 0])  # Default values
                 
                 results = self._connection_manager.execute_query(query, tuple(params), fetchall=True)
                 
@@ -801,18 +808,113 @@ class DatabaseManagerService:
     
     def search_attractions(self, query: Optional[Dict[str, Any]] = None, filters: Optional[Dict[str, Any]] = None, 
                           limit: int = 10, offset: int = 0, language: str = "en") -> List[Dict[str, Any]]:
-        """Search attractions using the facade's generic search method."""
-        return self.generic_search("attractions", filters, limit, offset, ["name", "description"], language)
+        """Search attractions using the facade's generic search method with text query support."""
+        search_filters = filters or {}
+        if query:
+            if isinstance(query, dict):
+                if "text" in query:
+                    search_filters.update({k: v for k, v in query.items() if k != "text"})
+                else:
+                    search_filters.update(query)
+            else:
+                search_filters["text"] = str(query)
+        return self.generic_search("attractions", search_filters, limit, offset, ["name", "description"], language)
     
     def search_restaurants(self, query: Optional[Dict[str, Any]] = None, filters: Optional[Dict[str, Any]] = None, 
                           limit: int = 10, offset: int = 0, language: str = "en") -> List[Dict[str, Any]]:
-        """Search restaurants using the facade's generic search method."""
-        return self.generic_search("restaurants", filters, limit, offset, ["name", "description"], language)
+        """Search restaurants using the facade's generic search method with text query support."""
+        search_filters = filters or {}
+        if query:
+            if isinstance(query, dict):
+                if "text" in query:
+                    search_filters.update({k: v for k, v in query.items() if k != "text"})
+                else:
+                    search_filters.update(query)
+            else:
+                search_filters["text"] = str(query)
+        return self.generic_search("restaurants", search_filters, limit, offset, ["name", "description"], language)
     
     def search_accommodations(self, query: Optional[Dict[str, Any]] = None, filters: Optional[Dict[str, Any]] = None, 
                             limit: int = 10, offset: int = 0, language: str = "en") -> List[Dict[str, Any]]:
-        """Search accommodations using the facade's generic search method.""" 
-        return self.generic_search("accommodations", filters, limit, offset, ["name", "description"], language)
+        """Search accommodations using the facade's generic search method with text query support.""" 
+        search_filters = filters or {}
+        if query:
+            if isinstance(query, dict):
+                if "text" in query:
+                    search_filters.update({k: v for k, v in query.items() if k != "text"})
+                else:
+                    search_filters.update(query)
+            else:
+                search_filters["text"] = str(query)
+        return self.generic_search("accommodations", search_filters, limit, offset, ["name", "description"], language)
+    
+    # ============================================================================
+    # MISSING METHODS - ADDED TO FIX DATABASE QUERY FAILURES
+    # ============================================================================
+    
+    def search_practical_info(self, query: Optional[Dict[str, Any]] = None, category_id: Optional[str] = None,
+                             limit: int = 10, offset: int = 0, language: str = "en") -> List[Dict[str, Any]]:
+        """Search practical info using generic search method.
+        Maintains backward-compatible positional parameters: (query, category_id, limit, offset, language).
+        New code builds a filters dict internally based on optional category_id and any query text/fields.
+        """
+        # Initialise filters dict
+        search_filters: Dict[str, Any] = {}
+        if category_id:
+            search_filters["category_id"] = category_id
+        # Process query argument
+        if query:
+            if isinstance(query, dict):
+                if "text" in query:
+                    # For text queries, we keep text separate; remaining keys become filters
+                    search_filters.update({k: v for k, v in query.items() if k != "text"})
+                else:
+                    search_filters.update(query)
+            else:
+                # Treat string query as text search
+                search_filters["text"] = str(query)
+        return self.generic_search("practical_info", search_filters, limit, offset, ["title", "content"], language)
+    
+    def search_hotels(self, query: Optional[Dict[str, Any]] = None, filters: Optional[Dict[str, Any]] = None,
+                     limit: int = 10, offset: int = 0, language: str = "en") -> List[Dict[str, Any]]:
+        """Search hotels - alias for search_accommodations to maintain compatibility."""
+        return self.search_accommodations(query, filters, limit, offset, language)
+    
+    def search_faqs(self, query: Optional[Dict[str, Any]] = None, filters: Optional[Dict[str, Any]] = None,
+                   limit: int = 10, offset: int = 0, language: str = "en") -> List[Dict[str, Any]]:
+        """Search FAQs using generic search method."""
+        # Handle both query dict with 'text' and direct filters
+        search_filters = filters if isinstance(filters, dict) else {}
+        if query:
+            if isinstance(query, dict):
+                if "text" in query:
+                    # For text queries, search in question and answer fields
+                    search_filters.update({k: v for k, v in query.items() if k != "text"})
+                else:
+                    search_filters.update(query)
+            else:
+                # If query is a string, treat as text search
+                search_filters["text"] = str(query)
+        
+        return self.generic_search("tourism_faqs", search_filters, limit, offset, ["question", "answer"], language)
+    
+    def search_events(self, query: Optional[Dict[str, Any]] = None, filters: Optional[Dict[str, Any]] = None,
+                     limit: int = 10, offset: int = 0, language: str = "en") -> List[Dict[str, Any]]:
+        """Search events using generic search method."""
+        # Handle both query dict with 'text' and direct filters
+        search_filters = filters if isinstance(filters, dict) else {}
+        if query:
+            if isinstance(query, dict):
+                if "text" in query:
+                    # For text queries, search in name and description fields
+                    search_filters.update({k: v for k, v in query.items() if k != "text"})
+                else:
+                    search_filters.update(query)
+            else:
+                # If query is a string, treat as text search
+                search_filters["text"] = str(query)
+        
+        return self.generic_search("events_festivals", search_filters, limit, offset, ["name", "description"], language)
     
     # ============================================================================
     # DELEGATE ALL OTHER METHODS TO LEGACY DATABASE MANAGER

@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 # Phase 4: Using ComponentFactory instead of adapter
 from src.knowledge.factory import ComponentFactory
 from src.utils.dependencies import get_optional_user
-from src.models.user import User
+# FIXED: get_optional_user returns Dict, not User object
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -51,7 +51,7 @@ async def get_attraction(
     attraction_id: str,
     request: Request,
     kb = Depends(get_knowledge_base),
-    user: Optional[User] = Depends(get_optional_user)
+    user: Optional[Dict[str, Any]] = Depends(get_optional_user)
 ):
     """
     Get an attraction by its ID.
@@ -70,7 +70,7 @@ async def get_attraction(
             attraction_id, 
             attraction.get("name"), 
             session_id, 
-            user.id if user else None
+            user.get("user_id") if user else None
         )
         
         logger.info(f"✅ Retrieved attraction {attraction_id} via {type(kb).__name__}")
@@ -90,7 +90,7 @@ async def search_attractions(
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0, ge=0),
     kb = Depends(get_knowledge_base),
-    user: Optional[User] = Depends(get_optional_user)
+    user: Optional[Dict[str, Any]] = Depends(get_optional_user)
 ):
     """
     Search for attractions based on filters.
@@ -104,7 +104,7 @@ async def search_attractions(
         if type:
             filters['type'] = type
             
-        attractions = kb.search_attractions(name or "", filters, "en", limit)
+        attractions = kb.search_attractions(query=name or "", filters=filters, language="en", limit=limit)
         
         # Log the search for analytics
         session_id = get_session_id(request)
@@ -114,7 +114,7 @@ async def search_attractions(
             len(attractions), 
             search_filters, 
             session_id, 
-            user.id if user else None
+            user.get("user_id") if user else None
         )
         
         logger.info(f"✅ Searched attractions '{name}' via {type(kb).__name__}, found {len(attractions)}")
@@ -128,7 +128,7 @@ async def get_city(
     city_id: str,
     request: Request,
     kb = Depends(get_knowledge_base),
-    user: Optional[User] = Depends(get_optional_user)
+    user: Optional[Dict[str, Any]] = Depends(get_optional_user)
 ):
     """
     Get a city by its ID.
@@ -147,7 +147,7 @@ async def get_city(
             city_id, 
             city.get("name"), 
             session_id, 
-            user.id if user else None
+            user.get("user_id") if user else None
         )
         
         logger.info(f"✅ Retrieved city {city_id} via {type(kb).__name__}")
@@ -165,7 +165,7 @@ async def search_cities(
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0, ge=0),
     kb = Depends(get_knowledge_base),
-    user: Optional[User] = Depends(get_optional_user)
+    user: Optional[Dict[str, Any]] = Depends(get_optional_user)
 ):
     """
     Search for cities based on filters.
@@ -187,7 +187,7 @@ async def search_cities(
             len(cities), 
             search_filters, 
             session_id, 
-            user.id if user else None
+            user.get("user_id") if user else None
         )
         
         logger.info(f"✅ Searched cities '{name}' via {type(kb).__name__}, found {len(cities)}")
@@ -201,7 +201,7 @@ async def get_hotel(
     hotel_id: str,
     request: Request,
     kb = Depends(get_knowledge_base),
-    user: Optional[User] = Depends(get_optional_user)
+    user: Optional[Dict[str, Any]] = Depends(get_optional_user)
 ):
     """
     Get a hotel by its ID.
@@ -220,7 +220,7 @@ async def get_hotel(
             hotel_id, 
             hotel.get("name"), 
             session_id, 
-            user.id if user else None
+            user.get("user_id") if user else None
         )
         
         logger.info(f"✅ Retrieved hotel {hotel_id} via {type(kb).__name__}")
@@ -240,7 +240,7 @@ async def search_hotels(
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0, ge=0),
     kb = Depends(get_knowledge_base),
-    user: Optional[User] = Depends(get_optional_user)
+    user: Optional[Dict[str, Any]] = Depends(get_optional_user)
 ):
     """
     Search for hotels based on filters.
@@ -264,7 +264,7 @@ async def search_hotels(
             len(hotels), 
             search_filters, 
             session_id, 
-            user.id if user else None
+            user.get("user_id") if user else None
         )
         
         logger.info(f"✅ Searched hotels '{name}' via {type(kb).__name__}, found {len(hotels)}")
@@ -278,7 +278,7 @@ async def get_restaurant(
     restaurant_id: str,
     request: Request,
     kb = Depends(get_knowledge_base),
-    user: Optional[User] = Depends(get_optional_user)
+    user: Optional[Dict[str, Any]] = Depends(get_optional_user)
 ):
     """
     Get a restaurant by its ID.
@@ -297,7 +297,7 @@ async def get_restaurant(
             restaurant_id, 
             restaurant.get("name"), 
             session_id, 
-            user.id if user else None
+            user.get("user_id") if user else None
         )
         
         logger.info(f"✅ Retrieved restaurant {restaurant_id} via {type(kb).__name__}")
@@ -317,7 +317,7 @@ async def search_restaurants(
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0, ge=0),
     kb = Depends(get_knowledge_base),
-    user: Optional[User] = Depends(get_optional_user)
+    user: Optional[Dict[str, Any]] = Depends(get_optional_user)
 ):
     """
     Search for restaurants based on filters.
@@ -341,7 +341,7 @@ async def search_restaurants(
             len(restaurants), 
             search_filters, 
             session_id, 
-            user.id if user else None
+            user.get("user_id") if user else None
         )
         
         logger.info(f"✅ Searched restaurants '{name}' via {type(kb).__name__}, found {len(restaurants)}")
@@ -358,7 +358,7 @@ async def search_practical_info(
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0, ge=0),
     kb = Depends(get_knowledge_base),
-    user: Optional[User] = Depends(get_optional_user)
+    user: Optional[Dict[str, Any]] = Depends(get_optional_user)
 ):
     """
     Search practical information based on filters.
@@ -380,7 +380,7 @@ async def search_practical_info(
             len(practical_info), 
             search_filters, 
             session_id, 
-            user.id if user else None
+            user.get("user_id") if user else None
         )
         
         logger.info(f"✅ Searched practical info '{keyword}' via {type(kb).__name__}, found {len(practical_info)}")
@@ -397,7 +397,7 @@ async def search_faqs(
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0, ge=0),
     kb = Depends(get_knowledge_base),
-    user: Optional[User] = Depends(get_optional_user)
+    user: Optional[Dict[str, Any]] = Depends(get_optional_user)
 ):
     """
     Search FAQs based on filters.
@@ -419,7 +419,7 @@ async def search_faqs(
             len(faqs), 
             search_filters, 
             session_id, 
-            user.id if user else None
+            user.get("user_id") if user else None
         )
         
         logger.info(f"✅ Searched FAQs '{keyword}' via {type(kb).__name__}, found {len(faqs)}")

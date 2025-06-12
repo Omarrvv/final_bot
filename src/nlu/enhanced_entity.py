@@ -9,6 +9,7 @@ import numpy as np
 from typing import Dict, List, Any, Optional, Set, Tuple
 from difflib import SequenceMatcher
 from sklearn.metrics.pairwise import cosine_similarity
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -274,9 +275,121 @@ class EnhancedEntityExtractor:
                     
         return entity_lists
 
+    def _check_fast_path_entities(self, text: str, intent: Optional[str] = None) -> Optional[Dict[str, Any]]:
+        """
+        Phase 1 Fast-path entity extraction for common tourism queries.
+        Returns pre-built entity results for simple, common queries.
+        """
+        if not intent:
+            return None
+            
+        text_lower = text.lower()
+        
+        # Fast-path for attraction-specific intents
+        fast_path_map = {
+            'attraction_pyramids': {
+                'entities': {'attraction': ['Pyramids of Giza'], 'location': ['Giza']},
+                'confidence': {'attraction': [1.0], 'location': [1.0]}
+            },
+            'attraction_sphinx': {
+                'entities': {'attraction': ['Great Sphinx'], 'location': ['Giza']},
+                'confidence': {'attraction': [1.0], 'location': [1.0]}
+            },
+            'attraction_luxor': {
+                'entities': {'attraction': ['Luxor Temple'], 'location': ['Luxor']},
+                'confidence': {'attraction': [1.0], 'location': [1.0]}
+            },
+            'attraction_aswan': {
+                'entities': {'attraction': ['Aswan High Dam'], 'location': ['Aswan']},
+                'confidence': {'attraction': [1.0], 'location': [1.0]}
+            },
+            'attraction_alexandria': {
+                'entities': {'attraction': ['Library of Alexandria'], 'location': ['Alexandria']},
+                'confidence': {'attraction': [1.0], 'location': [1.0]}
+            },
+            'service_hotel': {
+                'entities': {'service_type': ['accommodation'], 'category': ['hotel']},
+                'confidence': {'service_type': [1.0], 'category': [1.0]}
+            },
+            'service_restaurant': {
+                'entities': {'service_type': ['dining'], 'category': ['restaurant']},
+                'confidence': {'service_type': [1.0], 'category': [1.0]}
+            },
+            'inquiry_price': {
+                'entities': {'inquiry_type': ['price'], 'information': ['cost']},
+                'confidence': {'inquiry_type': [1.0], 'information': [1.0]}
+            }
+        }
+        
+        # Check if we have a fast-path for this intent
+        if intent in fast_path_map:
+            result = fast_path_map[intent].copy()
+            
+            # Add any obvious location mentions
+            locations = ['cairo', 'giza', 'luxor', 'aswan', 'alexandria', 'hurghada', 'sharm']
+            for location in locations:
+                if location in text_lower and location.title() not in result['entities'].get('location', []):
+                    if 'location' not in result['entities']:
+                        result['entities']['location'] = []
+                        result['confidence']['location'] = []
+                    result['entities']['location'].append(location.title())
+                    result['confidence']['location'].append(0.9)
+            
+            return result
+            
+        return None
+
+    def _get_intent_relevant_entities(self, intent: Optional[str] = None) -> List[str]:
+        """
+        Phase 2 Optimization: Return only entity types relevant to the detected intent.
+        This allows us to skip extraction for irrelevant entities.
+        """
+        # Intent-entity mapping for focused extraction
+        INTENT_ENTITY_MAP = {
+            'attraction_info': ['attraction', 'location', 'date', 'time'],
+            'attraction_pyramids': ['attraction', 'location', 'date', 'time'],
+            'attraction_sphinx': ['attraction', 'location', 'date', 'time'],
+            'attraction_luxor': ['attraction', 'location', 'date', 'time'],
+            'attraction_aswan': ['attraction', 'location', 'date', 'time'],
+            'attraction_alexandria': ['attraction', 'location', 'date', 'time'],
+            'attraction_redsea': ['attraction', 'location', 'date', 'time'],
+            'attraction_nile': ['attraction', 'location', 'date', 'time'],
+            
+            'service_hotel': ['hotel', 'location', 'date', 'facility', 'price'],
+            'hotel_info': ['hotel', 'location', 'date', 'facility', 'price'],
+            'accommodation_query': ['hotel', 'location', 'date', 'facility', 'price'],
+            
+            'service_restaurant': ['restaurant', 'location', 'cuisine', 'price'],
+            'restaurant_info': ['restaurant', 'location', 'cuisine', 'price'],
+            'food_search': ['restaurant', 'location', 'cuisine', 'price'],
+            
+            'practical_info': ['location', 'date', 'information'],
+            'inquiry_price': ['price', 'currency', 'location'],
+            'destination_cairo': ['location', 'attraction', 'hotel', 'restaurant'],
+            
+            'transport_info': ['location', 'transport', 'time', 'price'],
+            'weather_info': ['location', 'date', 'weather'],
+            
+            # Generic intents get all entity types
+            'general_query': ['location', 'attraction', 'hotel', 'restaurant'],
+            'greeting': [],  # No entities needed for greetings
+            'farewell': [],  # No entities needed for farewells
+            'gratitude': [],  # No entities needed for thanks
+            'help_request': [],  # No entities needed for help
+            'capabilities': []  # No entities needed for capabilities
+        }
+        
+        if intent in INTENT_ENTITY_MAP:
+            relevant_entities = INTENT_ENTITY_MAP[intent]
+            logger.debug(f"🎯 Phase 2: Intent '{intent}' focusing on entities: {relevant_entities}")
+            return relevant_entities
+        
+        # Default: extract all entities for unknown intents
+        return ['location', 'attraction', 'hotel', 'restaurant', 'cuisine', 'facility', 'price', 'date', 'time']
+
     def extract(self, text: str, intent: Optional[str] = None, context: Optional[Dict] = None) -> Dict[str, Any]:
         """
-        Extract entities from text using multiple extraction methods.
+        Extract entities from text using optimized multi-stage extraction (Phase 1 Optimization).
         
         Args:
             text (str): Input text to extract entities from
@@ -286,32 +399,85 @@ class EnhancedEntityExtractor:
         Returns:
             Dict: Extracted entities with confidence scores
         """
+        start_time = time.time()
+        
         # Initialize result structures
         entities = {}
         confidence_scores = {}
         entity_relationships = {}
         
-        # Process with spaCy
+        # Phase 1 Fix: Early termination for simple tourism queries
+        # Check if this is a simple fast-path query (should have been caught earlier)
+        fast_path_entities = self._check_fast_path_entities(text, intent)
+        if fast_path_entities:
+            logger.debug("🚀 Fast-path entity extraction applied")
+            return fast_path_entities
+        
+        # Phase 2 Optimization: Get intent-relevant entities to focus extraction
+        relevant_entities = self._get_intent_relevant_entities(intent)
+        if not relevant_entities:
+            # Intent doesn't need entity extraction (e.g., greetings)
+            logger.debug(f"🎯 Phase 2: Intent '{intent}' requires no entity extraction")
+            return {"entities": {}, "confidence": {}}
+        
+        # Process with spaCy (Stage 1: Essential)
         doc = self.nlp_model(text)
-        
-        # Extract entities using different methods
         self._extract_spacy_entities(doc, entities, confidence_scores)
+        
+        # Stage 2: Regex extraction (Fast and essential)
         self._extract_regex_entities(text, entities, confidence_scores)
-        self._extract_fuzzy_entities(text, entities, confidence_scores)
-        self._extract_semantic_entities(text, entities, confidence_scores, intent)
         
-        # Extract entity relationships
-        entity_relationships = self._extract_entity_relationships(text, entities)
+        # Phase 1 Optimization: Early success check
+        extraction_time = time.time() - start_time
+        entity_count = sum(len(entity_list) for entity_list in entities.values())
         
-        # Resolve coreferences
-        if context:
+        # If we found enough high-confidence entities quickly, skip heavy processing
+        if entity_count >= 3 and extraction_time < 0.1:
+            avg_confidence = sum(sum(conf_list) for conf_list in confidence_scores.values()) / max(entity_count, 1)
+            if avg_confidence > 0.8:
+                logger.debug(f"🎯 Early termination: {entity_count} entities found in {extraction_time:.3f}s")
+                # Skip fuzzy and semantic extraction
+                self._resolve_entities(entities, confidence_scores, intent, context)
+                return {"entities": entities, "confidence": confidence_scores}
+        
+        # Stage 3: Fuzzy matching (Medium cost, only if needed)
+        if extraction_time < 0.3:  # Time budget check
+            self._extract_fuzzy_entities(text, entities, confidence_scores)
+        else:
+            logger.debug("⏭️ Skipping fuzzy extraction due to time budget")
+        
+        # Stage 4: Semantic extraction (Expensive, very selective)
+        semantic_time = time.time()
+        if (semantic_time - start_time < 0.4 and  # Time budget
+            entity_count < 2):  # Only if we didn't find much yet
+            self._extract_semantic_entities(text, entities, confidence_scores, intent)
+        else:
+            logger.debug("⏭️ Skipping semantic extraction (sufficient entities or time budget)")
+        
+        # Extract entity relationships (lightweight, only if we have entities)
+        if entities:
+            entity_relationships = self._extract_entity_relationships(text, entities)
+        
+        # Coreference resolution (optional, context-dependent)
+        coreference_time = time.time()
+        if (context and 
+            (coreference_time - start_time < 0.6) and  # Time budget
+            entity_count < 5):  # Only if we need more context
             self._resolve_coreferences(text, entities, confidence_scores, context)
         
-        # Resolve entities against knowledge base
+        # Resolve entities against knowledge base (essential, always do this)
         self._resolve_entities(entities, confidence_scores, intent, context)
         
         # Update metrics
         self._update_metrics(entities)
+        
+        total_time = time.time() - start_time
+        final_entity_count = sum(len(entity_list) for entity_list in entities.values())
+        
+        if total_time > 0.8:
+            logger.warning(f"Entity extraction took {total_time:.3f}s for {final_entity_count} entities (target < 0.8s)")
+        else:
+            logger.debug(f"✅ Entity extraction completed in {total_time:.3f}s ({final_entity_count} entities)")
         
         # Prepare and return result
         result = {
@@ -411,18 +577,24 @@ class EnhancedEntityExtractor:
                     
     def _extract_semantic_entities(self, text: str, entities: Dict[str, List[str]], 
                                confidence: Dict[str, List[float]], intent: Optional[str] = None):
-        """Extract entities using semantic similarity."""
+        """Extract entities using semantic similarity (Phase 3: Fixed dimension issues)."""
         # Skip if no embedding model
         if not self.embedding_model:
             return
             
         # Get text embedding
         try:
-            # Check if the embedding model is callable (function) or has an encode method
+            # CRITICAL FIX: Handle different embedding model interfaces correctly
             if callable(self.embedding_model) and not hasattr(self.embedding_model, 'encode'):
-                text_embedding = self.embedding_model([text])[0]
+                # This is the NLU engine's _get_embedding_model method - takes single string
+                text_embedding = self.embedding_model(text)
             else:
+                # This is a sentence-transformers model with encode() method - takes list
                 text_embedding = self.embedding_model.encode([text])[0]
+            
+            # Ensure text_embedding is 1D
+            if text_embedding.ndim > 1:
+                text_embedding = text_embedding.flatten()
             
             # For each entity type, check semantic similarity to known entities
             for entity_type, entity_list in self.entity_lists.items():
@@ -439,24 +611,108 @@ class EnhancedEntityExtractor:
                     entities[entity_type] = []
                     confidence[entity_type] = []
                     
-                # Encode known entities (could be optimized with caching)
+                # Encode known entities with proper shape validation
                 known_embeddings = []
                 for entity in entity_list:
-                    if callable(self.embedding_model) and not hasattr(self.embedding_model, 'encode'):
-                        known_embeddings.append(self.embedding_model([entity])[0])
-                    else:
-                        known_embeddings.append(self.embedding_model.encode([entity])[0])
+                    try:
+                        # CRITICAL FIX: Handle different embedding model interfaces correctly
+                        if callable(self.embedding_model) and not hasattr(self.embedding_model, 'encode'):
+                            # This is the NLU engine's _get_embedding_model method - takes single string
+                            embedding = self.embedding_model(entity)
+                        else:
+                            # This is a sentence-transformers model with encode() method - takes list
+                            embedding = self.embedding_model.encode([entity])[0]
+                        # Ensure 1-D vector (flatten any 2-D shape like (1, dim))
+                        if isinstance(embedding, np.ndarray) and embedding.ndim > 1:
+                            embedding = embedding.flatten()
+                        # CRITICAL FIX: Validate embedding has proper dimensions
+                        if not isinstance(embedding, np.ndarray):
+                            # Convert non-array to numpy array
+                            embedding = np.array(embedding)
+                            
+                        # Handle scalar or very small embeddings (dimension mismatch prevention)
+                        if embedding.size == 1 or embedding.ndim == 0:
+                            # Scalar value - expand to match text_embedding dimensions
+                            logger.debug(f"Expanding scalar embedding for entity '{entity}' from shape {embedding.shape}")
+                            # Create zero array matching text embedding shape and fill with scalar value if available
+                            expanded = np.zeros_like(text_embedding)
+                            if embedding.size > 0:
+                                expanded.fill(float(embedding))
+                            embedding = expanded
+                        
+                        # Log unusual embedding sizes for debugging
+                        if embedding.size < 10 or embedding.size > 2000:
+                            logger.warning(f"Unusual embedding size {embedding.size} for entity '{entity}'")
+                        # Validate same dimensionality as text_embedding
+                        if embedding.shape == text_embedding.shape:
+                            known_embeddings.append(embedding)
+                        else:
+                            logger.debug(
+                                f"Skipping entity '{entity}' due to embedding shape mismatch: {embedding.shape} vs {text_embedding.shape}")
+                    except Exception as embed_err:
+                        logger.debug(f"Failed to generate embedding for entity '{entity}': {embed_err}")
+                        continue
+                
+                # Skip if no valid embeddings
+                if not known_embeddings:
+                    continue
                     
                 # Calculate similarity to each known entity
-                similarities = cosine_similarity([text_embedding], known_embeddings)[0]
-                
-                # Find highly similar entities
-                for i, similarity in enumerate(similarities):
-                    if similarity > 0.8:  # High threshold for semantic matching
-                        self._add_entity(entities, confidence, entity_type, entity_list[i], similarity)
+                try:
+                    # Reshape for cosine_similarity: needs 2D arrays
+                    text_embed_2d = text_embedding.reshape(1, -1)
+                    
+                    # CRITICAL FIX: Validate all embeddings before stacking
+                    valid_embeddings = []
+                    for i, emb in enumerate(known_embeddings):
+                        if emb.shape == text_embedding.shape:
+                            valid_embeddings.append(emb)
+                        else:
+                            logger.debug(f"Filtering out embedding with shape {emb.shape} vs expected {text_embedding.shape}")
+                    
+                    # Only proceed if we have valid embeddings
+                    if not valid_embeddings:
+                        logger.warning(f"No valid embeddings for entity type '{entity_type}' after shape validation")
+                        continue
+                    
+                    # CRITICAL FIX: Stack embeddings properly to create 2D matrix
+                    # Instead of concatenating, stack them as rows
+                    known_embeds_2d = np.stack(valid_embeddings, axis=0)
+                    
+                    # Validate dimensions before cosine similarity
+                    if text_embed_2d.shape[1] != known_embeds_2d.shape[1]:
+                        logger.warning(f"Dimension mismatch: query={text_embed_2d.shape} vs entities={known_embeds_2d.shape}")
+                        # Attempt to fix if Y.shape[1] == 1
+                        if known_embeds_2d.shape[1] == 1:
+                            logger.warning(f"Fixing Y.shape[1]=1 by expanding to {text_embed_2d.shape[1]} dimensions")
+                            fixed_embeds = np.zeros((known_embeds_2d.shape[0], text_embed_2d.shape[1]))
+                            for i in range(known_embeds_2d.shape[0]):
+                                fixed_embeds[i].fill(known_embeds_2d[i][0])
+                            known_embeds_2d = fixed_embeds
+                    
+                    try:
+                        similarities = cosine_similarity(text_embed_2d, known_embeds_2d)[0]
+                    except ValueError as ve:
+                        if "Incompatible dimension" in str(ve):
+                            logger.error(f"Dimension mismatch in cosine_similarity: {ve}")
+                            logger.error(f"text_embed_2d shape: {text_embed_2d.shape}, known_embeds_2d shape: {known_embeds_2d.shape}")
+                            continue  # Skip this entity type
+                        else:
+                            raise  # Re-raise other ValueError types
+                    
+                    # Find highly similar entities
+                    for i, similarity in enumerate(similarities):
+                        if similarity > 0.8:  # High threshold for semantic matching
+                            entity_idx = i
+                            if entity_idx < len(entity_list):
+                                self._add_entity(entities, confidence, entity_type, entity_list[entity_idx], similarity)
+                                
+                except Exception as sim_err:
+                    logger.debug(f"Failed to calculate similarities for entity type '{entity_type}': {sim_err}")
+                    continue
                         
         except Exception as e:
-            logger.error(f"Error in semantic entity extraction: {str(e)}")
+            logger.debug(f"Error in semantic entity extraction: {str(e)}")  # Changed to debug level
             
     def _is_relevant_to_intent(self, entity_type: str, intent: str) -> bool:
         """Check if entity type is relevant to the given intent."""

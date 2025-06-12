@@ -1,12 +1,14 @@
 """
 Main FastAPI application entry point for the Egypt Tourism Chatbot.
+Phase 4: Added performance monitoring and comprehensive health checks.
 """
 import os
 import sys
 import logging
+import time
 from logging.handlers import RotatingFileHandler
 from datetime import datetime
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from dotenv import load_dotenv
@@ -20,6 +22,8 @@ from .middleware.core import add_core_middleware
 # Authentication middleware
 from .middleware.auth import add_auth_middleware
 from .middleware.security import add_csrf_middleware
+# Phase 4: Performance monitoring middleware
+from .middleware.performance import add_performance_middleware
 
 # Add this to handle imports properly
 if __name__ == "__main__":
@@ -51,6 +55,8 @@ from src.api.routes.db_routes import router as database_router
 # Import enhanced session manager
 from src.session.enhanced_session_manager import EnhancedSessionManager
 from src.session.integration import integrate_enhanced_session_manager
+# Phase 4: Health check router
+from .api.routes.health import router as health_router
 
 # --- Define Project Root Path ---
 # Get the absolute path of the directory containing this file (src/)
@@ -139,20 +145,91 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.error(f"Failed to set up enhanced session manager: {e}", exc_info=True)
         logger.warning("Falling back to standard session manager")
         try:
-            # Fallback to factory session manager
-            session_manager = component_factory.create_session_manager()
+            # Fallback to cached container session manager (Phase 1 optimization)
+            from src.utils.container import container
+            session_manager = container.get("session_manager")
             app.state.session_manager = session_manager
-            logger.info(f"Fallback session manager initialized: {type(session_manager).__name__}")
+            logger.info(f"Fallback session manager initialized via cached container: {type(session_manager).__name__}")
         except Exception as e2:
             logger.error(f"Failed to set up fallback session manager: {e2}", exc_info=True)
             logger.warning("Session management will use minimal implementation")
 
-    # Create chatbot with the session manager
-    logger.info("LIFESPAN: Attempting component_factory.create_chatbot()...")
-    chatbot_instance = component_factory.create_chatbot()
-    logger.info("LIFESPAN: component_factory.create_chatbot() finished.")
+    # PHASE 2: AI Model Preloading Optimization
+    logger.info("🚀 PHASE 2: Starting AI model preloading during startup...")
+    preload_start_time = time.time()
+    
+    # Create chatbot using cached container (Phase 1 optimization)
+    logger.info("LIFESPAN: Creating chatbot via cached container...")
+    from src.utils.container import container
+    chatbot_instance = container.get("chatbot")
+    logger.info("LIFESPAN: Chatbot created via cached container (Phase 1 optimized).")
+
+    # PHASE 3: Async Model Loading Optimization  
+    logger.info("🚀 PHASE 3: Starting async AI model loading optimization...")
+    model_load_start = time.time()
+    
+    try:
+        # Get NLU engine from container for async model loading
+        from src.utils.container import container
+        nlu_engine = container.get("nlu_engine")
+        
+        # Phase 3: Trigger async model loading in background
+        logger.info("⚡ Phase 3: Starting async model loading in background...")
+        
+        # Check if the engine supports async loading
+        if hasattr(nlu_engine, '_load_models_async'):
+            # Load models asynchronously for maximum speed
+            await nlu_engine._load_models_async()
+            logger.info("🎯 Phase 3: Async model loading completed successfully")
+        else:
+            logger.info("📚 Using synchronous model loading (models already loaded)")
+        
+        # Phase 3: Smart Model Warmup (only if models are loaded)
+        if hasattr(nlu_engine, '_models_loaded') and nlu_engine._models_loaded:
+            logger.info("🔥 Phase 3: Warming up models with strategic queries...")
+            warmup_start = time.time()
+            
+            # Strategic warmup queries for tourism chatbot
+            warmup_queries = [
+                ("hello", "Basic greeting pattern"),
+                ("pyramids", "Common attraction query"),
+                ("hotel in cairo", "Service + location query"),
+                ("مرحبا", "Arabic greeting"),
+                ("weather", "Practical information")
+            ]
+            
+            warmup_success = 0
+            for i, (query, description) in enumerate(warmup_queries, 1):
+                try:
+                    logger.info(f"  Warmup {i}/{len(warmup_queries)}: {description} - '{query}'")
+                    
+                    # Use async processing for warmup
+                    await nlu_engine.process_async(
+                        text=query,
+                        session_id="phase3_warmup",
+                        language="auto"
+                    )
+                    warmup_success += 1
+                    
+                except Exception as warmup_error:
+                    logger.warning(f"  ⚠️ Warmup {i} failed: {warmup_error}")
+            
+            warmup_time = time.time() - warmup_start
+            logger.info(f"🎯 Phase 3: Model warmup completed - {warmup_success}/{len(warmup_queries)} successful in {warmup_time:.2f}s")
+        
+        model_load_time = time.time() - model_load_start
+        logger.info(f"🏆 PHASE 3: Complete model optimization finished in {model_load_time:.2f}s")
+        
+    except Exception as e:
+        logger.error(f"❌ Phase 3 model optimization failed: {e}", exc_info=True)
+        logger.warning("⚠️ Falling back to on-demand model loading")
+
+    # Calculate total preload time
+    total_preload_time = time.time() - preload_start_time
+    logger.info(f"🚀 PHASE 2 COMPLETE: Total preload time {total_preload_time:.2f}s")
 
     app.state.chatbot = chatbot_instance # Assign to app.state
+    app.state.models_preloaded = True  # Flag to indicate models are ready
     logger.info("Chatbot components initialized successfully and attached to app state.")
 
 
@@ -189,6 +266,14 @@ logger.info("FastAPI app instance created.")
 # Add core middleware first so it captures all requests including those that might be rejected by CORS
 add_core_middleware(app, log_request_body=False, log_response_body=False, debug=settings.debug)
 logger.info("Core middleware (logging, error handling, request ID) added")
+
+# Phase 4: Add performance monitoring middleware
+try:
+    performance_middleware = add_performance_middleware(app, slow_request_threshold=1.0)
+    logger.info("✅ Phase 4: Performance monitoring middleware added")
+except Exception as e:
+    logger.error(f"Failed to add performance middleware: {e}", exc_info=True)
+    logger.warning("Performance monitoring will be disabled")
 
 # --- CORS Middleware Configuration ---
 try:
@@ -270,6 +355,8 @@ app.include_router(auth_router)
 logger.info("Session-based authentication routes enabled")
 # Add database router for direct DB access (debugging/testing only)
 app.include_router(database_router)
+# Phase 4: Include health check router
+app.include_router(health_router)
 logger.info("API routers included")
 
 # Basic health check endpoint

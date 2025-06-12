@@ -23,12 +23,7 @@ class SessionResponse(BaseModel):
     success: bool
     message: str
 
-# Dependency to get chatbot instance
-async def get_chatbot(request: Request):
-    """Dependency to get chatbot instance from app state."""
-    if not request.app.state.chatbot:
-        raise HTTPException(status_code=503, detail="Chatbot service unavailable")
-    return request.app.state.chatbot
+# Note: Using get_chatbot from chat module imported above
 
 @router.post("/reset", response_model=ResetResponse)
 async def reset_session(

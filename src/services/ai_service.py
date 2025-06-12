@@ -80,12 +80,15 @@ class EmbeddingService(BaseService):
         'openai_ada_002': 1536,
         'openai_text_embedding_3_small': 1536,
         'openai_text_embedding_3_large': 3072,
-        'sentence_transformers': 384
+        'sentence_transformers': 768
     }
 
     def __init__(self, db_manager=None, extension_manager=None, 
                  default_dimension: int = 1536, similarity_metric: SimilarityMetric = SimilarityMetric.COSINE):
         super().__init__(db_manager)
+        # BACKWARD COMPATIBILITY: some legacy code still refers to self.db_manager
+        # Ensure both attributes point to the same DB adapter
+        self.db_manager = db_manager
         self.extension_manager = extension_manager
         self.default_dimension = default_dimension
         self.similarity_metric = similarity_metric

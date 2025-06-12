@@ -401,7 +401,7 @@ class KnowledgeBaseService:
         """Log search operation."""
         try:
             # Delegate to database manager if it has search logging capability
-            if hasattr(self.db_manager, 'log_search'):
+            if hasattr(self.db_manager, 'log_search') and callable(getattr(self.db_manager, 'log_search', None)):
                 self.db_manager.log_search(query, results_count, filters, session_id, user_id)
             elif self.enable_logging:
                 logger.info(f"Search logged: query='{query}', results={results_count}, session={session_id}")
@@ -414,7 +414,7 @@ class KnowledgeBaseService:
         """Log item view."""
         try:
             # Delegate to database manager if it has view logging capability
-            if hasattr(self.db_manager, 'log_view'):
+            if hasattr(self.db_manager, 'log_view') and callable(getattr(self.db_manager, 'log_view', None)):
                 self.db_manager.log_view(item_type, item_id, item_name, session_id, user_id)
             elif self.enable_logging:
                 logger.info(f"View logged: type={item_type}, id={item_id}, name={item_name}, session={session_id}")

@@ -23,6 +23,7 @@ class ComponentFactory:
         """Initialize the component factory."""
         self.configs = {}
         self.env_vars = {}
+        self._shared_db_manager = None  # Add shared database manager instance
 
     def initialize(self):
         """Initialize the factory with environment variables and configurations."""
@@ -81,14 +82,14 @@ class ComponentFactory:
         container.register("configs", self.configs)
         container.register("settings", settings)
 
-        # Register factory methods for main components
-        container.register_factory("knowledge_base", self.create_knowledge_base)
-        container.register_factory("nlu_engine", self.create_nlu_engine)
-        container.register_factory("dialog_manager", self.create_dialog_manager)
-        container.register_factory("response_generator", self.create_response_generator)
-        container.register_factory("service_hub", self.create_service_hub)
-        container.register_factory("session_manager", self.create_session_manager)
-        container.register_factory("database_manager", self.create_database_manager)
+        # Register cached factory methods (singletons) for main components
+        container.register_cached_factory("knowledge_base", self.create_knowledge_base)
+        container.register_cached_factory("nlu_engine", self.create_nlu_engine)
+        container.register_cached_factory("dialog_manager", self.create_dialog_manager)
+        container.register_cached_factory("response_generator", self.create_response_generator)
+        container.register_cached_factory("service_hub", self.create_service_hub)
+        container.register_cached_factory("session_manager", self.create_session_manager)
+        container.register_cached_factory("database_manager", self.create_database_manager)
 
         # Create AnthropicService with API key from settings
         anthropic_api_key = settings.anthropic_api_key.get_secret_value() if settings.anthropic_api_key else ""
@@ -96,8 +97,8 @@ class ComponentFactory:
             "anthropic_api_key": anthropic_api_key
         }))
 
-        # Register Chatbot factory
-        container.register_factory("chatbot", self.create_chatbot)
+        # Register Chatbot cached factory (singleton)
+        container.register_cached_factory("chatbot", self.create_chatbot)
 
         logger.info("Service registration complete")
 
@@ -161,16 +162,19 @@ class ComponentFactory:
         )
 
     def create_database_manager(self) -> Any:
-        """Create the database manager component."""
+        """Create or return the shared database manager component (SINGLETON PATTERN)."""
         from src.knowledge.database import DatabaseManager
 
-        # Always use PostgreSQL now that we've standardized on it
-        logger.info("Creating DatabaseManager with PostgreSQL database")
-        db_manager = DatabaseManager()
+        # Return existing shared instance if available
+        if self._shared_db_manager is not None:
+            logger.info("🔄 Reusing shared DatabaseManager instance (connection pool sharing)")
+            return self._shared_db_manager
 
-        # Optional: Check connection or perform initial setup if needed
-        # db_manager.check_connection()
-        return db_manager
+        # Create new shared instance only once
+        logger.info("📊 Creating shared DatabaseManager with PostgreSQL database (SINGLETON)")
+        self._shared_db_manager = DatabaseManager()
+        logger.info("✅ Shared DatabaseManager created - all components will reuse this instance")
+        return self._shared_db_manager
 
     def create_knowledge_base(self) -> Any:
         """Create the knowledge base component."""
