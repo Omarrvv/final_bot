@@ -62,7 +62,7 @@ class VectorSearchService(BaseService):
 
     # Valid tables for vector search
     VALID_TABLES = {
-        'attractions', 'restaurants', 'accommodations', 'cities', 'regions'
+        'attractions', 'restaurants', 'accommodations', 'cities', 'regions', 'events_festivals', 'itineraries'
     }
 
     # Default search parameters
@@ -230,7 +230,8 @@ class UnifiedSearchService(BaseService):
     
     # Valid tables for search operations
     VALID_TABLES = {
-        'attractions', 'restaurants', 'accommodations', 'cities', 'regions', 'users', 'tourism_faqs'
+        'attractions', 'restaurants', 'accommodations', 'cities', 'regions', 'users', 'tourism_faqs', 'practical_info',
+        'transportation_types', 'transportation_routes', 'transportation_stations', 'events_festivals', 'itineraries'
     }
     
     # Search type weights for hybrid search
@@ -240,11 +241,188 @@ class UnifiedSearchService(BaseService):
         'geo': 0.2
     }
     
+    # Standardized keyword-to-table routing configuration
+    STANDARDIZED_SEARCH_ROUTING = {
+        # Practical Information
+        "tipping": {"table": "practical_info", "type_id": "tipping_customs"},
+        "currency": {"table": "practical_info", "type_id": "currency"},
+        "safety": {"table": "practical_info", "type_id": "safety"},
+        "water": {"table": "practical_info", "type_id": "drinking_water"},
+        "electricity": {"table": "practical_info", "type_id": "electricity_plugs"},
+
+        # Transportation - NOW PROPERLY MAPPED
+        "airport": {"table": "transportation_routes", "filters": {"text": "airport"}},
+        "taxi": {"table": "transportation_types", "filters": {"text": "taxi"}},
+        "bus": {"table": "transportation_types", "filters": {"text": "bus"}},
+        "train": {"table": "transportation_types", "filters": {"text": "train"}},
+        "transfer": {"table": "transportation_routes", "filters": {"text": "transfer"}},
+        "transport": {"table": "transportation_types", "filters": {"text": "transport"}},
+        "transportation": {"table": "transportation_types", "filters": {"text": "transportation"}},
+
+        # Attractions
+        "pyramid": {"table": "attractions", "filters": {"text": "pyramid"}},
+        "museum": {"table": "attractions", "filters": {"text": "museum"}},
+        "temple": {"table": "attractions", "filters": {"text": "temple"}},
+
+        # Accommodations
+        "hotel": {"table": "accommodations", "filters": {"text": "hotel"}},
+        "resort": {"table": "accommodations", "filters": {"text": "resort"}},
+
+        # Restaurants
+        "restaurant": {"table": "restaurants", "filters": {"text": "restaurant"}},
+        "food": {"table": "restaurants", "filters": {"text": "food"}},
+
+        # FAQs
+        "faq": {"table": "tourism_faqs", "filters": {"text": "general"}}
+    }
+    
     def __init__(self, db_manager=None):
-        super().__init__(db_manager)
+        """
+        Initialize the unified search service.
+        
+        Args:
+            db_manager: Database manager instance (optional but recommended)
+        """
+        if db_manager is not None:
+            super().__init__(db_manager)
+            self.db_manager = db_manager
+        else:
+            # For backwards compatibility, allow None but warn
+            logger.warning("UnifiedSearchService created without db_manager - database functionality limited")
+            self.db_manager = None
+        
+        self._search_stats = {
+            'total_searches': 0,
+            'successful_searches': 0,
+            'failed_searches': 0,
+            'avg_response_time_ms': 0
+        }
+        
         self.vector_search = VectorSearchService(db_manager)
         
         logger.info("UnifiedSearchService initialized")
+
+    def get_search_config(self, keyword: str) -> Dict[str, Any]:
+        """Get standardized search configuration for keyword."""
+        return self.STANDARDIZED_SEARCH_ROUTING.get(keyword.lower(), {
+            "table": "tourism_faqs",
+            "filters": {"text": keyword}
+        })
+
+    def keyword_search(self, keyword: str, language: str = "en", limit: int = 10) -> List[Dict[str, Any]]:
+        """
+        Perform keyword search across all relevant tables.
+        Returns a list of results from all matching tables.
+        """
+        # CRITICAL FIX: Check for None db_manager
+        if self.db_manager is None:
+            logger.error("Cannot perform keyword_search: db_manager is None")
+            return []
+        
+        config = self.get_search_config(keyword.lower())
+        all_results = []
+
+        for table_name in config['tables']:
+            try:
+                table_results = self.search_table(
+                    table_name=table_name,
+                    filters={'keyword': keyword},
+                    limit=limit,
+                    jsonb_fields=config.get('jsonb_fields', ['name_en', 'description_en']),
+                    language=language
+                )
+                
+                # Add metadata for source tracking
+                for result in table_results:
+                    result['_source_table'] = table_name
+                
+                all_results.extend(table_results)
+                
+            except Exception as e:
+                logger.error(f"Search failed for table {table_name}: {str(e)}")
+                continue
+
+        return all_results[:limit]
+
+    def search_table(self, table_name: str, filters: Optional[Dict[str, Any]] = None,
+                    limit: int = 10, offset: int = 0,
+                    jsonb_fields: Optional[List[str]] = None,
+                    language: str = "en") -> List[Dict[str, Any]]:
+        """
+        Main search method that DatabaseManagerService expects.
+        Routes to appropriate search method based on filters.
+        """
+        try:
+            self._validate_table(table_name)
+            
+            if not filters:
+                filters = {}
+            
+            # Check if this is a text search (has 'text' key)
+            if 'text' in filters:
+                text_query = filters.pop('text')  # Remove 'text' from filters
+                search_results = self.text_search(table_name, text_query, filters, limit)
+                
+                # Convert SearchResult objects to dict format
+                results = []
+                for search_result in search_results:
+                    record = search_result.record.copy()
+                    record['_search_score'] = search_result.score
+                    results.append(record)
+                
+                # Apply offset manually since text_search doesn't support it
+                return results[offset:offset + limit] if offset > 0 else results[:limit]
+            
+            # For non-text searches, fall back to direct database query
+            else:
+                return self._direct_database_search(table_name, filters, limit, offset, jsonb_fields)
+                
+        except Exception as e:
+            logger.error(f"Error in search_table for {table_name}: {e}")
+            return []
+    
+    def _direct_database_search(self, table_name: str, filters: Dict[str, Any],
+                               limit: int, offset: int, jsonb_fields: Optional[List[str]]) -> List[Dict[str, Any]]:
+        """Direct database search for non-text queries."""
+        try:
+            # Build query
+            query = f"SELECT * FROM {table_name}"
+            params = []
+            
+            if filters:
+                where_conditions = []
+                for field, value in filters.items():
+                    if value is not None:
+                        where_conditions.append(f"{field} = %s")
+                        params.append(value)
+                
+                if where_conditions:
+                    query += " WHERE " + " AND ".join(where_conditions)
+            
+            # Add LIMIT and OFFSET
+            query += f" LIMIT %s OFFSET %s"
+            params.extend([limit, offset])
+            
+            # Execute query using the database manager
+            results = self.db_manager.execute_postgres_query(query, tuple(params))
+            
+            # Parse JSONB fields if specified
+            if jsonb_fields:
+                for result in results:
+                    for field in jsonb_fields:
+                        if field in result and result[field]:
+                            import json
+                            try:
+                                if isinstance(result[field], str):
+                                    result[field] = json.loads(result[field])
+                            except (json.JSONDecodeError, TypeError):
+                                pass
+            
+            return results
+            
+        except Exception as e:
+            logger.error(f"Direct database search failed for {table_name}: {e}")
+            return []
 
     def vector_search(self, table: str, embedding: List[float], 
                      filters: Optional[Dict[str, Any]] = None,
@@ -281,6 +459,18 @@ class UnifiedSearchService(BaseService):
                 search_fields = ['name_en', 'name_ar', 'cuisine', 'description_en']
             elif table == 'accommodations':
                 search_fields = ['name_en', 'name_ar', 'type', 'description_en']
+            elif table == 'practical_info':
+                search_fields = ['title->>\'en\'', 'title->>\'ar\'', 'content->>\'en\'', 'content->>\'ar\'', 'tags']
+            elif table == 'transportation_types':
+                search_fields = ['name->>\'en\'', 'name->>\'ar\'', 'description->>\'en\'', 'description->>\'ar\'', 'type']
+            elif table == 'transportation_routes':
+                search_fields = ['name->>\'en\'', 'name->>\'ar\'', 'description->>\'en\'', 'description->>\'ar\'', 'transportation_type']
+            elif table == 'transportation_stations':
+                search_fields = ['name->>\'en\'', 'name->>\'ar\'', 'description->>\'en\'', 'description->>\'ar\'', 'station_type', 'address->>\'en\'', 'address->>\'ar\'']
+            elif table == 'events_festivals':
+                search_fields = ['name->>\'en\'', 'name->>\'ar\'', 'description->>\'en\'', 'description->>\'ar\'', 'location_description->>\'en\'', 'highlights->>\'en\'']
+            elif table == 'itineraries':
+                search_fields = ['name->>\'en\'', 'name->>\'ar\'', 'description->>\'en\'', 'description->>\'ar\'', 'highlights->>\'en\'', 'practical_tips->>\'en\'']
             else:
                 search_fields = ['name_en', 'name_ar']
             
@@ -289,7 +479,11 @@ class UnifiedSearchService(BaseService):
             params = []
             
             for field in search_fields:
-                conditions.append(f"{field} ILIKE %s")
+                if field in ['tags', 'types']:
+                    # Special handling for array fields
+                    conditions.append(f"EXISTS (SELECT 1 FROM unnest({field}) AS tag WHERE tag ILIKE %s)")
+                else:
+                    conditions.append(f"{field} ILIKE %s")
                 params.append(f"%{query}%")
             
             search_condition = " OR ".join(conditions)

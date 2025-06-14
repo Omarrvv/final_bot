@@ -354,7 +354,8 @@ async def search_restaurants(
 async def search_practical_info(
     request: Request,
     category: Optional[str] = None,
-    keyword: Optional[str] = None,
+    query: Optional[str] = None,
+    keyword: Optional[str] = None,  # Keep for backward compatibility
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0, ge=0),
     kb = Depends(get_knowledge_base),
@@ -365,25 +366,37 @@ async def search_practical_info(
     PHASE 4: Now using facade architecture.
     """
     try:
+        # Use query parameter, fallback to keyword for backward compatibility
+        search_term = query or keyword
+        
         # Build filters
         filters = {}
         if category:
             filters['category'] = category
             
-        practical_info = kb.search_practical_info({"keyword": keyword} if keyword else filters, limit, "en")
+        # Build query for KnowledgeBase (different signature than DatabaseManagerService)
+        query_dict = {}
+        if search_term:
+            query_dict["text"] = search_term
+        if category:
+            query_dict["category"] = category
+        if not query_dict:
+            query_dict = filters
+            
+        practical_info = kb.search_practical_info(query=query_dict, limit=limit, language="en")
         
         # Log the search for analytics
         session_id = get_session_id(request)
-        search_filters = {k: v for k, v in {"category": category, "keyword": keyword}.items() if v is not None}
+        search_filters = {k: v for k, v in {"category": category, "query": search_term}.items() if v is not None}
         kb.log_search(
-            keyword or f"practical info - {category}", 
+            search_term or f"practical info - {category}", 
             len(practical_info), 
             search_filters, 
             session_id, 
             user.get("user_id") if user else None
         )
         
-        logger.info(f"✅ Searched practical info '{keyword}' via {type(kb).__name__}, found {len(practical_info)}")
+        logger.info(f"✅ Searched practical info '{search_term}' via {type(kb).__name__}, found {len(practical_info)}")
         return {"data": practical_info, "total": len(practical_info), "offset": offset, "limit": limit}
     except Exception as e:
         logger.error(f"Error searching practical info: {e}")

@@ -1,0 +1,260 @@
+{
+  "model_loading": {
+    "preload_on_startup": true,
+    "warmup_queries": [
+      "hello",
+      "pyramids of giza",
+      "tourism information",
+      "مرحبا",
+      "معلومات سياحية"
+    ],
+    "cache_embeddings": true,
+    "batch_size": 32,
+    "progress_tracking": true
+  },
+  "language_detection": {
+    "model_path": "lid.176.bin",
+    "confidence_threshold": 0.8
+  },
+  "nlp_models": {
+    "en": "en_core_web_md",
+    "ar": "xx_ent_wiki_sm"
+  },
+  "transformer_models": {
+    "multilingual": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
+    "en": "sentence-transformers/all-mpnet-base-v2",
+    "ar": "asafaya/bert-base-arabic"
+  },
+  "intent_classification": {
+    "min_confidence": 0.65,
+    "intents": {
+      "greeting": {
+        "examples": [
+          "hello",
+          "hi",
+          "hey there",
+          "hello there",
+          "hi there",
+          "hey",
+          "good morning",
+          "good afternoon",
+          "how are you",
+          "what's up",
+          "howdy",
+          "greetings",
+          "مرحبا",
+          "اهلا",
+          "السلام عليكم",
+          "صباح الخير",
+          "مساء الخير"
+        ]
+      },
+      "farewell": {
+        "examples": [
+          "goodbye",
+          "bye",
+          "see you later",
+          "take care",
+          "quit",
+          "exit",
+          "مع السلامة",
+          "باي",
+          "اشوفك بعدين",
+          "الى اللقاء"
+        ]
+      },
+      "attraction_info": {
+        "examples": [
+          "tell me about the pyramids",
+          "tell me about pyramids",
+          "about the pyramids",
+          "pyramids information",
+          "pyramid details",
+          "what is luxor temple",
+          "info about valley of the kings",
+          "details about abu simbel",
+          "can you describe karnak?",
+          "what can you tell me about the egyptian museum?",
+          "describe the sphinx",
+          "information about the sphinx",
+          "tell me about giza pyramids",
+          "what are the pyramids",
+          "معلومات عن الاهرامات",
+          "ما هو معبد الاقصر",
+          "تفاصيل عن وادي الملوك",
+          "حدثني عن ابو سمبل",
+          "اوصف الكرنك",
+          "المتحف المصري"
+        ]
+      },
+      "location_query": {
+        "examples": [
+          "what is there to do in cairo?",
+          "things to see in luxor",
+          "attractions near aswan",
+          "what's famous in alexandria?",
+          "recommend places in hurghada",
+          "where should I stay in luxor?",
+          "where should I stay in cairo?",
+          "best hotels in aswan",
+          "accommodation in alexandria",
+          "where to stay in egypt",
+          "hotels near pyramids",
+          "best area to stay in cairo",
+          "recommended hotels in luxor",
+          "ماذا افعل في القاهرة",
+          "اشياء لرؤيتها في الاقصر",
+          "معالم قريبة من اسوان",
+          "اماكن مشهورة في الاسكندرية",
+          "اين اقيم في الاقصر",
+          "فنادق في القاهرة"
+        ]
+      },
+      "practical_info": {
+        "examples": [
+          "what should I tip in restaurants",
+          "how much to tip in egypt",
+          "tipping culture in egypt",
+          "baksheesh in egypt",
+          "electricity in egypt",
+          "power adapters egypt",
+          "internet connectivity",
+          "mobile network egypt",
+          "currency exchange",
+          "safety tips egypt",
+          "transportation egypt",
+          "practical travel advice",
+          "airport transfer options",
+          "how to get to airport",
+          "taxi from airport",
+          "bus to airport",
+          "airport shuttle",
+          "transportation from airport to hotel",
+          "uber in egypt",
+          "careem in egypt",
+          "metro cairo",
+          "public transport egypt",
+          "what's the weather like?",
+          "weather in egypt",
+          "climate in egypt",
+          "temperature in cairo",
+          "when to visit egypt",
+          "best time to travel to egypt",
+          "seasonal weather egypt",
+          "كم البقشيش في المطاعم",
+          "ثقافة البقشيش في مصر",
+          "الكهرباء في مصر",
+          "محولات الكهرباء",
+          "الانترنت في مصر",
+          "شبكة المحمول",
+          "تبديل العملة",
+          "نصائح السلامة",
+          "المواصلات في مصر",
+          "خيارات النقل من المطار",
+          "تاكسي من المطار",
+          "باص للمطار",
+          "كيف الطقس",
+          "الطقس في مصر",
+          "أفضل وقت لزيارة مصر"
+        ]
+      },
+      "general_query": {
+        "examples": [
+          "what is the capital of egypt",
+          "how big is the nile",
+          "who was cleopatra",
+          "general information",
+          "help",
+          "what can you do",
+          "ما هي عاصمة مصر",
+          "ما حجم النيل",
+          "من هي كليوباترا",
+          "معلومات عامة",
+          "مساعدة"
+        ]
+      },
+      "event_query": {
+        "examples": [
+          "what festivals are there in egypt",
+          "when is the abu simbel sun festival",
+          "cultural events in cairo",
+          "music festivals in egypt",
+          "religious celebrations in egypt",
+          "what's happening in cairo this month",
+          "are there any events in luxor in december",
+          "tell me about the cairo film festival",
+          "when is the next festival in egypt",
+          "what events are happening during ramadan",
+          "popular festivals in egypt",
+          "annual events in alexandria",
+          "art exhibitions in cairo",
+          "music concerts in egypt",
+          "traditional egyptian celebrations",
+          "food festivals in egypt",
+          "sporting events in cairo",
+          "cultural festivals in aswan",
+          "مهرجانات في مصر",
+          "متى مهرجان شمس أبو سمبل",
+          "فعاليات ثقافية في القاهرة",
+          "معارض فنية في القاهرة",
+          "حفلات موسيقية في مصر"
+        ]
+      },
+      "faq_query": {
+        "examples": [
+          "what language is spoken in egypt",
+          "how much does it cost to visit the pyramids",
+          "is egypt safe for tourists",
+          "what is the weather like in egypt",
+          "how to get from cairo to luxor",
+          "do I need to cover my head in egypt",
+          "can I use credit cards in egypt",
+          "what should I tip in restaurants?",
+          "how much to tip in restaurants",
+          "restaurant tipping guide egypt",
+          "tipping in egyptian restaurants",
+          "how much baksheesh for waiters",
+          "restaurant service charge egypt",
+          "ما هي اللغة المتحدثة في مصر",
+          "كم تكلفة زيارة الأهرامات",
+          "هل مصر آمنة للسياح",
+          "كم اعطي بقشيش في المطعم",
+          "البقشيش في المطاعم المصرية"
+        ]
+      },
+      "itinerary_query": {
+        "examples": [
+          "suggest an itinerary for egypt",
+          "7 day egypt tour",
+          "what to do in 3 days in cairo",
+          "two week egypt itinerary",
+          "family itinerary for egypt",
+          "adventure itinerary for egypt",
+          "budget travel plan for egypt",
+          "luxury egypt tour",
+          "plan for visiting cairo and luxor",
+          "best way to see egypt in 5 days",
+          "itinerary for first time visitors to egypt",
+          "cultural tour of egypt",
+          "historical sites tour in egypt",
+          "nile cruise itinerary",
+          "red sea vacation plan",
+          "desert safari itinerary",
+          "egypt honeymoon itinerary",
+          "solo traveler itinerary for egypt",
+          "backpacking route through egypt",
+          "egypt with kids itinerary",
+          "senior-friendly egypt tour",
+          "photography tour of egypt",
+          "foodie tour of egypt",
+          "اقترح مسار رحلة لمصر",
+          "جولة مصر لمدة 7 أيام",
+          "ماذا أفعل في 3 أيام في القاهرة",
+          "خطة لزيارة القاهرة والأقصر",
+          "أفضل طريقة لرؤية مصر في 5 أيام"
+        ]
+      }
+    }
+  },
+  "entity_extraction": {}
+}

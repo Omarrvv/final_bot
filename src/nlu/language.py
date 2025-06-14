@@ -4,10 +4,15 @@ Language detection module for the Egypt Tourism Chatbot.
 """
 import os
 import logging
+import warnings
 from typing import Tuple, Optional
 import fasttext
 import requests
 from pathlib import Path
+
+# Suppress NumPy 2.0 warnings from fasttext
+warnings.filterwarnings("ignore", message="Unable to avoid copy while creating an array")
+warnings.filterwarnings("ignore", category=FutureWarning, module="numpy")
 
 logger = logging.getLogger(__name__)
 

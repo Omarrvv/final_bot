@@ -1,0 +1,42 @@
+{
+  "validate_database_search": {
+    "search_working": true,
+    "results_count": 5,
+    "duration_ms": 5.388975143432617,
+    "search_type": "legacy"
+  },
+  "validate_database_content": {
+    "tipping_records_count": 7,
+    "has_main_guide": true,
+    "guide_quality": {
+      "restaurant_info": true,
+      "percentage_info": true,
+      "baksheesh_info": true
+    }
+  },
+  "validate_configuration": {
+    "flags": {
+      "USE_NEW_UNIFIED_SEARCH": "NOT_SET",
+      "USE_LLM_FIRST": "NOT_SET",
+      "USE_ANTHROPIC": "NOT_SET",
+      "USE_NEW_API": "true",
+      "USE_NEW_NLU": "true"
+    },
+    "unexpected_working": true
+  },
+  "validate_api_endpoints": {
+    "api_working": false,
+    "server_running": false
+  },
+  "validate_root_cause": {
+    "root_cause": "NLU_ROUTING_FAILURE",
+    "explanation": "Database search works and has data, but NLU/routing prevents proper query flow",
+    "components": {
+      "db_search_working": true,
+      "has_quality_data": true,
+      "flag_not_set": true,
+      "api_has_specific_info": false,
+      "api_is_generic": true
+    }
+  }
+}

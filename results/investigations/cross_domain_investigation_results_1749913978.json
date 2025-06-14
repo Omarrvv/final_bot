@@ -1,0 +1,96 @@
+{
+  "investigation_metadata": {
+    "start_time": "2025-06-14T18:12:35.175724",
+    "total_domains_tested": 9,
+    "phase": "A - Domain Coverage & Pattern Identification",
+    "end_time": "2025-06-14T18:12:58.948935",
+    "duration_seconds": 23.773218154907227
+  },
+  "domain_results": {
+    "attractions": {
+      "domain_name": "ATTRACTIONS DOMAIN",
+      "domain_key": "attractions",
+      "expected_records": 400,
+      "investigation_timestamp": "2025-06-14T18:12:52.501397",
+      "fast_path_analysis": {
+        "domain": "attractions",
+        "total_queries": 5,
+        "fast_path_hijacked": 0,
+        "properly_routed": 5,
+        "query_results": [
+          {
+            "query": "Hello! Tell me about museums in Cairo",
+            "test_type": "Fast-path hijacking test",
+            "duration": 0.8481259346008301,
+            "source": "database",
+            "is_fast_path": false,
+            "is_hijacked": false,
+            "has_substantial_content": true,
+            "response_length": 464,
+            "status": "✅ PROPERLY ROUTED"
+          },
+          {
+            "query": "museums in Cairo",
+            "test_type": "Direct attraction search",
+            "duration": 0.15030503273010254,
+            "source": "database",
+            "is_fast_path": false,
+            "is_hijacked": false,
+            "has_substantial_content": true,
+            "response_length": 464,
+            "status": "✅ PROPERLY ROUTED"
+          },
+          {
+            "query": "pyramids",
+            "test_type": "Popular attraction keyword",
+            "duration": 0.0018951892852783203,
+            "source": "database_routed",
+            "is_fast_path": true,
+            "is_hijacked": false,
+            "has_substantial_content": false,
+            "response_length": 85,
+            "status": "✅ PROPERLY ROUTED"
+          },
+          {
+            "query": "historical sites",
+            "test_type": "Category mapping test",
+            "duration": 0.13388800621032715,
+            "source": "dialog_manager",
+            "is_fast_path": false,
+            "is_hijacked": false,
+            "has_substantial_content": false,
+            "response_length": 85,
+            "status": "✅ PROPERLY ROUTED"
+          },
+          {
+            "query": "ancient sites near Luxor",
+            "test_type": "Location + category filter",
+            "duration": 0.13011670112609863,
+            "source": "database_routed",
+            "is_fast_path": false,
+            "is_hijacked": false,
+            "has_substantial_content": false,
+            "response_length": 85,
+            "status": "✅ PROPERLY ROUTED"
+          }
+        ],
+        "hijack_rate_percentage": 0.0
+      },
+      "database_access_analysis": {
+        "domain": "attractions",
+        "search_method": "search_attractions",
+        "method_exists": true,
+        "method_works": true,
+        "sql_errors": [],
+        "parameter_errors": [],
+        "search_results": [
+          {
+            "type": "bazaar",
+            "data": {
+              "popularity": 5,
+              "year_built": -2579,
+              "entrance_fee": 495,
+              "opening_hours": "9:00 - 20:00"
+            },
+            "geom": "0101000020E6100000425D7F65C0F43D400B76A33AF1303F40",
+            "created_at": 

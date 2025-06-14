@@ -178,7 +178,7 @@ class HybridSearchEngine:
                     # Normalize text scores to 0-1 range if we have multiple scores
                     if len(text_scores) > 1 and max(text_scores) > min(text_scores):
                         scaler = MinMaxScaler()
-                        normalized_text_scores = scaler.fit_transform(np.array(text_scores).reshape(-1, 1)).flatten()
+                        normalized_text_scores = scaler.fit_transform(np.asarray(text_scores).reshape(-1, 1)).flatten()
                         for i, result in enumerate(results):
                             result["text_score_normalized"] = float(normalized_text_scores[i])
                     else:

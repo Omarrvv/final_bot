@@ -90,14 +90,26 @@ class VectorSearchCache:
 
         # Only include a few dimensions to avoid excessively long keys
         # This is a tradeoff between collision prevention and key size
-        embedding_sample = embedding[:10] if isinstance(embedding, list) else []
+        # Handle numpy arrays properly
+        if isinstance(embedding, np.ndarray):
+            embedding_sample = embedding[:10].tolist()
+            embedding_len = len(embedding)
+            embedding_sum = float(np.sum(embedding))
+        elif isinstance(embedding, list):
+            embedding_sample = embedding[:10]
+            embedding_len = len(embedding)
+            embedding_sum = sum(embedding)
+        else:
+            embedding_sample = []
+            embedding_len = 0
+            embedding_sum = 0
 
         # Create a dictionary of the parameters for stable serialization
         params = {
             "table": table_name,
             "embedding_sample": embedding_sample,
-            "embedding_len": len(embedding) if hasattr(embedding, '__len__') else 0,  # Include full length for uniqueness
-            "embedding_sum": sum(embedding) if isinstance(embedding, list) else 0,  # Include sum for uniqueness
+            "embedding_len": embedding_len,
+            "embedding_sum": embedding_sum,
             "filters": filters or {},
             "limit": limit
         }

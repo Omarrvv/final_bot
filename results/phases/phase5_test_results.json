@@ -1,0 +1,303 @@
+{
+  "summary": {
+    "total_queries": 25,
+    "successful": 6,
+    "failed": 19,
+    "success_rate": 24.0,
+    "avg_response_time": 110.22
+  },
+  "categories": [
+    {
+      "category": "practical_info",
+      "success_rate": 0.0,
+      "avg_response_time": 426.48,
+      "successful": 0,
+      "failed": 5
+    },
+    {
+      "category": "attractions",
+      "success_rate": 80.0,
+      "avg_response_time": 3.4799999999999995,
+      "successful": 4,
+      "failed": 1
+    },
+    {
+      "category": "accommodations",
+      "success_rate": 0.0,
+      "avg_response_time": 35.4,
+      "successful": 0,
+      "failed": 5
+    },
+    {
+      "category": "restaurants",
+      "success_rate": 20.0,
+      "avg_response_time": 60.11999999999999,
+      "successful": 1,
+      "failed": 4
+    },
+    {
+      "category": "transportation",
+      "success_rate": 20.0,
+      "avg_response_time": 25.619999999999997,
+      "successful": 1,
+      "failed": 4
+    }
+  ],
+  "detailed_results": [
+    {
+      "category": "practical_info",
+      "queries_tested": 5,
+      "results": [
+        {
+          "query": "What should I tip in Egypt?",
+          "response_time_ms": 1569.7,
+          "intent": "general_query",
+          "response_type": "general",
+          "text_preview": "I'm here to help with your questions about Egypt tourism. How can I assist you today?",
+          "has_suggestions": false,
+          "success": false
+        },
+        {
+          "query": "What is the currency in Egypt?",
+          "response_time_ms": 156.7,
+          "intent": "general_query",
+          "response_type": "general",
+          "text_preview": "I'm here to help with your questions about Egypt tourism. How can I assist you today?",
+          "has_suggestions": false,
+          "success": false
+        },
+        {
+          "query": "Do I need a visa for Egypt?",
+          "response_time_ms": 116.8,
+          "intent": "general_query",
+          "response_type": "general",
+          "text_preview": "I'm here to help with your questions about Egypt tourism. How can I assist you today?",
+          "has_suggestions": false,
+          "success": false
+        },
+        {
+          "query": "Is Egypt safe for tourists?",
+          "response_time_ms": 129.0,
+          "intent": "general_query",
+          "response_type": "general",
+          "text_preview": "I'm here to help with your questions about Egypt tourism. How can I assist you today?",
+          "has_suggestions": false,
+          "success": false
+        },
+        {
+          "query": "What are the health requirements?",
+          "response_time_ms": 160.2,
+          "intent": "general_query",
+          "response_type": "general",
+          "text_preview": "I'm here to help with your questions about Egypt tourism. How can I assist you today?",
+          "has_suggestions": false,
+          "success": false
+        }
+      ]
+    },
+    {
+      "category": "attractions",
+      "queries_tested": 5,
+      "results": [
+        {
+          "query": "Tell me about the pyramids",
+          "response_time_ms": 10.2,
+          "intent": "attraction_pyramids",
+          "response_type": "attraction_info",
+          "text_preview": "The Pyramids of Giza are Egypt's most iconic monuments! Built over 4,500 years ago, these magnificen...",
+          "has_suggestions": true,
+          "success": true
+        },
+        {
+          "query": "Information about the Sphinx",
+          "response_time_ms": 1.5,
+          "intent": "help_request",
+          "response_type": "help",
+          "text_preview": "I'm here to help with Egypt tourism information! I can tell you about attractions like the Pyramids,...",
+          "has_suggestions": true,
+          "success": false
+        },
+        {
+          "query": "Luxor temple details",
+          "response_time_ms": 1.4,
+          "intent": "attraction_luxor",
+          "response_type": "attraction_info",
+          "text_preview": "Luxor is often called the world's greatest open-air museum! Home to the Valley of the Kings, Karnak ...",
+          "has_suggestions": true,
+          "success": true
+        },
+        {
+          "query": "What can I see in Aswan?",
+          "response_time_ms": 1.9,
+          "intent": "attraction_aswan",
+          "response_type": "quick_response",
+          "text_preview": "I'd be happy to help you with Egypt tourism information!",
+          "has_suggestions": false,
+          "success": true
+        },
+        {
+          "query": "Alexandria attractions",
+          "response_time_ms": 2.4,
+          "intent": "attraction_alexandria",
+          "response_type": "quick_response",
+          "text_preview": "I'd be happy to help you with Egypt tourism information!",
+          "has_suggestions": false,
+          "success": true
+        }
+      ]
+    },
+    {
+      "category": "accommodations",
+      "queries_tested": 5,
+      "results": [
+        {
+          "query": "Hotels in Cairo",
+          "response_time_ms": 3.0,
+          "intent": "destination_cairo",
+          "response_type": "quick_response",
+          "text_preview": "I'd be happy to help you with Egypt tourism information!",
+          "has_suggestions": false,
+          "success": false
+        },
+        {
+          "query": "Best places to stay in Luxor",
+          "response_time_ms": 4.2,
+          "intent": "attraction_luxor",
+          "response_type": "attraction_info",
+          "text_preview": "Luxor is often called the world's greatest open-air museum! Home to the Valley of the Kings, Karnak ...",
+          "has_suggestions": true,
+          "success": false
+        },
+        {
+          "query": "Accommodation near pyramids",
+          "response_time_ms": 2.8,
+          "intent": "attraction_pyramids",
+          "response_type": "attraction_info",
+          "text_preview": "The Pyramids of Giza are Egypt's most iconic monuments! Built over 4,500 years ago, these magnificen...",
+          "has_suggestions": true,
+          "success": false
+        },
+        {
+          "query": "Budget hotels in Egypt",
+          "response_time_ms": 166.0,
+          "intent": "general_query",
+          "response_type": "general",
+          "text_preview": "I'm here to help with your questions about Egypt tourism. How can I assist you today?",
+          "has_suggestions": false,
+          "success": false
+        },
+        {
+          "query": "Luxury resorts Red Sea",
+          "response_time_ms": 1.0,
+          "intent": "attraction_redsea",
+          "response_type": "quick_response",
+          "text_preview": "I'd be happy to help you with Egypt tourism information!",
+          "has_suggestions": false,
+          "success": false
+        }
+      ]
+    },
+    {
+      "category": "restaurants",
+      "queries_tested": 5,
+      "results": [
+        {
+          "query": "Best restaurants in Cairo",
+          "response_time_ms": 1.3,
+          "intent": "destination_cairo",
+          "response_type": "quick_response",
+          "text_preview": "I'd be happy to help you with Egypt tourism information!",
+          "has_suggestions": false,
+          "success": false
+        },
+        {
+          "query": "Traditional Egyptian food",
+          "response_time_ms": 1.6,
+          "intent": "service_restaurant",
+          "response_type": "quick_response",
+          "text_preview": "I'd be happy to help you with Egypt tourism information!",
+          "has_suggestions": false,
+          "success": true
+        },
+        {
+          "query": "Where to eat in Alexandria?",
+          "response_time_ms": 1.9,
+          "intent": "attraction_alexandria",
+          "response_type": "quick_response",
+          "text_preview": "I'd be happy to help you with Egypt tourism information!",
+          "has_suggestions": false,
+          "success": false
+        },
+        {
+          "query": "Vegetarian restaurants Egypt",
+          "response_time_ms": 166.7,
+          "intent": "general_query",
+          "response_type": "general",
+          "text_preview": "I'm here to help with your questions about Egypt tourism. How can I assist you today?",
+          "has_suggestions": false,
+          "success": false
+        },
+        {
+          "query": "Local cuisine recommendations",
+          "response_time_ms": 129.1,
+          "intent": "general_query",
+          "response_type": "general",
+          "text_preview": "I'm here to help with your questions about Egypt tourism. How can I assist you today?",
+          "has_suggestions": false,
+          "success": false
+        }
+      ]
+    },
+    {
+      "category": "transportation",
+      "queries_tested": 5,
+      "results": [
+        {
+          "query": "How to get around Cairo?",
+          "response_time_ms": 0.9,
+          "intent": "destination_cairo",
+          "response_type": "quick_response",
+          "text_preview": "I'd be happy to help you with Egypt tourism information!",
+          "has_suggestions": false,
+          "success": false
+        },
+        {
+          "query": "Airport transfer options",
+          "response_time_ms": 123.3,
+          "intent": "general_query",
+          "response_type": "general",
+          "text_preview": "I'm here to help with your questions about Egypt tourism. How can I assist you today?",
+          "has_suggestions": false,
+          "success": false
+        },
+        {
+          "query": "Train from Cairo to Luxor",
+          "response_time_ms": 0.9,
+          "intent": "attraction_luxor",
+          "response_type": "attraction_info",
+          "text_preview": "Luxor is often called the world's greatest open-air museum! Home to the Valley of the Kings, Karnak ...",
+          "has_suggestions": true,
+          "success": false
+        },
+        {
+          "query": "Taxi services in Egypt",
+          "response_time_ms": 1.3,
+          "intent": "service_transport",
+          "response_type": "quick_response",
+          "text_preview": "I'd be happy to help you with Egypt tourism information!",
+          "has_suggestions": false,
+          "success": true
+        },
+        {
+          "query": "Transportation to pyramids",
+          "response_time_ms": 1.7,
+          "intent": "attraction_pyramids",
+          "response_type": "attraction_info",
+          "text_preview": "The Pyramids of Giza are Egypt's most iconic monuments! Built over 4,500 years ago, these magnificen...",
+          "has_suggestions": true,
+          "success": false
+        }
+      ]
+    }
+  ]
+}

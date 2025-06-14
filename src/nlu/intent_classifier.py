@@ -15,17 +15,17 @@ class AdvancedIntentClassifier:
     Uses semantic similarity with pre-defined intent examples.
     """
     
-    def __init__(self, config=None, embedding_model=None, knowledge_base=None):
+    def __init__(self, config=None, embedding_service=None, knowledge_base=None):
         """
         Initialize the intent classifier.
         
         Args:
             config (Dict): Configuration dictionary
-            embedding_model: Model for embedding text
+            embedding_service: StandardizedEmbeddingService for generating embeddings
             knowledge_base: Knowledge base for context
         """
         self.config = config or {}
-        self.embedding_model = embedding_model
+        self.embedding_service = embedding_service
         self.knowledge_base = knowledge_base
         
         # Intent definitions with examples
@@ -45,8 +45,8 @@ class AdvancedIntentClassifier:
         self._prepare_intent_examples()
         
     def _prepare_intent_examples(self):
-        """Process and prepare intent examples for classification."""
-        logger.info("Preparing intent examples")
+        """Process and prepare intent examples for classification with retry logic."""
+        logger.info("🧠 Preparing intent examples with standardized embedding service")
         
         for intent_name, intent_data in self.intents.items():
             examples = intent_data.get("examples", [])
@@ -57,18 +57,71 @@ class AdvancedIntentClassifier:
                 
             self.intent_examples[intent_name] = examples
             
-            # Cache embeddings if embedding model is available
-            if self.embedding_model:
-                try:
-                    embeddings = self.embedding_model.encode(examples)
-                    self.intent_embeddings[intent_name] = embeddings
-                    logger.debug(f"Cached {len(embeddings)} embeddings for intent '{intent_name}'")
-                except Exception as e:
-                    logger.error(f"Failed to generate embeddings for '{intent_name}': {str(e)}")
+            # Cache embeddings if embedding service is available
+            if self.embedding_service and self.embedding_service.is_ready():
+                self._generate_intent_embeddings_with_retry(intent_name, examples)
+            else:
+                logger.warning(f"⚠️ Embedding service not ready for intent '{intent_name}' - will retry later")
+                
+    def _generate_intent_embeddings_with_retry(self, intent_name: str, examples: List[str], max_retries: int = 3):
+        """Generate embeddings for intent examples with retry logic."""
+        for attempt in range(max_retries):
+            try:
+                logger.info(f"🔄 Generating embeddings for intent '{intent_name}' (attempt {attempt + 1}/{max_retries})")
+                
+                # Use batch generation for efficiency
+                embedding_results = self.embedding_service.generate_batch_embeddings(examples, language='en')
+                
+                # Convert to numpy array for similarity calculations
+                embeddings = []
+                for example in examples:
+                    if example in embedding_results:
+                        embeddings.append(embedding_results[example])
+                    else:
+                        logger.warning(f"Missing embedding for example: {example}")
+                        # Generate fallback embedding
+                        fallback = self.embedding_service.generate_embedding(example, language='en')
+                        embeddings.append(fallback)
+                
+                if embeddings:
+                    embeddings_array = np.stack(embeddings, axis=0)
+                    self.intent_embeddings[intent_name] = embeddings_array
+                    logger.info(f"✅ Cached {len(embeddings)} embeddings for intent '{intent_name}' (shape: {embeddings_array.shape})")
+                    return True
+                else:
+                    logger.error(f"❌ No valid embeddings generated for intent '{intent_name}'")
+                    
+            except Exception as e:
+                logger.error(f"❌ Attempt {attempt + 1} failed for intent '{intent_name}': {str(e)}")
+                if attempt < max_retries - 1:
+                    logger.info(f"🔄 Retrying in 1 second...")
+                    import time
+                    time.sleep(1)
+                else:
+                    logger.error(f"❌ All attempts failed for intent '{intent_name}' - skipping")
+                    return False
+        
+        return False
+                    
+    def force_regenerate_embeddings(self):
+        """Force regeneration of all intent embeddings after models are loaded."""
+        if not self.embedding_service or not self.embedding_service.is_ready():
+            logger.warning("⚠️ Cannot regenerate embeddings - service not ready")
+            return False
+            
+        logger.info("🔄 Force regenerating all intent embeddings...")
+        success_count = 0
+        
+        for intent_name, examples in self.intent_examples.items():
+            if self._generate_intent_embeddings_with_retry(intent_name, examples):
+                success_count += 1
+                
+        logger.info(f"✅ Successfully regenerated embeddings for {success_count}/{len(self.intent_examples)} intents")
+        return success_count == len(self.intent_examples)
     
     def classify(self, text: str, embedding=None, language=None, context=None) -> Dict[str, Any]:
         """
-        Classify the intent of user text input.
+        Classify the intent of user text input with transportation debugging.
         
         Args:
             text (str): User input text
@@ -83,9 +136,9 @@ class AdvancedIntentClassifier:
             return self._get_empty_result()
             
         # Get embedding for input text
-        if embedding is None and self.embedding_model:
+        if embedding is None and self.embedding_service and self.embedding_service.is_ready():
             try:
-                embedding = self.embedding_model.encode([text])[0]
+                embedding = self.embedding_service.generate_embedding(text, language)
             except Exception as e:
                 logger.error(f"Failed to generate embedding: {str(e)}")
                 return self._get_fallback_result()
@@ -93,6 +146,18 @@ class AdvancedIntentClassifier:
         if embedding is None:
             logger.warning("No embedding available for intent classification")
             return self._get_fallback_result()
+            
+        # DEBUG: Check embedding quality
+        is_fallback = len(np.unique(embedding)) == 1
+        logger.debug(f"Query embedding quality - Fallback: {is_fallback}, Shape: {embedding.shape}")
+        
+        # DEBUG: Log transportation queries specifically
+        is_transport_query = any(word in text.lower() for word in 
+                               ['airport', 'transfer', 'transport', 'taxi', 'bus', 'train'])
+        
+        if is_transport_query:
+            logger.warning(f"🚌 Transportation query detected: '{text}'")
+            logger.warning(f"🚌 Using {'fallback' if is_fallback else 'real'} embedding")
             
         # Calculate similarity with all intent examples
         intent_scores = self._calculate_intent_scores(embedding, context)
@@ -119,6 +184,16 @@ class AdvancedIntentClassifier:
         if len(top_intents) > 1:
             confidence_diff = top_score - top_intents[1][1]
         
+        # DEBUG: Log transportation query results
+        if is_transport_query:
+            logger.warning(f"🚌 Transportation query result: {top_intent} ({top_score:.3f})")
+            
+            if top_intent != 'practical_info':
+                logger.error(f"❌ TRANSPORTATION MISCLASSIFIED: '{text}' → {top_intent}")
+                logger.error(f"❌ Expected: practical_info, Got: {top_intent}")
+            else:
+                logger.info(f"✅ Transportation query correctly classified as practical_info")
+        
         # Return classification result
         return {
             "intent": top_intent,
@@ -132,15 +207,6 @@ class AdvancedIntentClassifier:
         """
         Calculate similarity scores for all intents.
         
-        # Ensure embedding has proper dimensions
-                                if embedding.ndim == 0 or (embedding.ndim == 1 and embedding.size == 1):
-                                    logger.warning(f"Detected scalar embedding in intent classifier, expanding to standard dimension")
-                                    standard_dim = 768  # Standard embedding dimension
-                                    expanded = np.zeros(standard_dim)
-                                    if embedding.size > 0:
-                                        scalar_value = float(embedding.item() if hasattr(embedding, 'item') else embedding)
-                                        expanded.fill(scalar_value)
-                                    embedding = expanded
         Args:
             embedding (np.ndarray): Input text embedding
             context (Dict): Conversation context
@@ -243,12 +309,12 @@ class AdvancedIntentClassifier:
         self.intent_examples[intent].append(example)
         
         # Update embedding
-        if self.embedding_model:
+        if self.embedding_service and self.embedding_service.is_ready():
             try:
-                new_embedding = self.embedding_model.encode([example])[0]
+                new_embedding = self.embedding_service.generate_embedding(example, 'en')  # Default to English
                 
                 if intent not in self.intent_embeddings:
-                    self.intent_embeddings[intent] = np.array([new_embedding])
+                    self.intent_embeddings[intent] = np.asarray([new_embedding])
                 else:
                     self.intent_embeddings[intent] = np.vstack([self.intent_embeddings[intent], new_embedding])
                     

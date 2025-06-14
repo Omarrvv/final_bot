@@ -1,0 +1,4662 @@
+{
+  "test_metadata": {
+    "timestamp": "2025-06-14T18:37:29.382731",
+    "test_type": "comprehensive_deep_testing",
+    "total_queries_planned": 180,
+    "domains_tested": 9,
+    "testing_categories": [
+      "basic_functionality",
+      "complex_scenarios",
+      "edge_cases",
+      "multilingual",
+      "multi_domain_interactions",
+      "error_boundary_testing"
+    ]
+  },
+  "domain_results": {
+    "attractions": {
+      "domain_name": "attractions",
+      "categories_tested": {
+        "basic_functionality": {
+          "category_name": "basic_functionality",
+          "queries_tested": [
+            {
+              "query": "Tell me about pyramids in Giza",
+              "domain": "attractions",
+              "category": "basic_functionality",
+              "response_time_ms": 10.615825653076172,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.6,
+                "response_completeness": 0.9,
+                "user_experience_score": 0.75
+              },
+              "response_details": {
+                "text_length": 187,
+                "response_type": "attraction_info",
+                "source": "unknown",
+                "intent": "attraction_info",
+                "entities_found": 1
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Museums in Cairo with Egyptian artifacts",
+              "domain": "attractions",
+              "category": "basic_functionality",
+              "response_time_ms": 2.3458003997802734,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Historical sites near Luxor",
+              "domain": "attractions",
+              "category": "basic_functionality",
+              "response_time_ms": 2.7849674224853516,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Ancient temples in Aswan",
+              "domain": "attractions",
+              "category": "basic_functionality",
+              "response_time_ms": 2.092123031616211,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Beach attractions in Red Sea",
+              "domain": "attractions",
+              "category": "basic_functionality",
+              "response_time_ms": 2.254962921142578,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 4.018735885620117,
+            "quality_score": 0.0
+          }
+        },
+        "complex_scenarios": {
+          "category_name": "complex_scenarios",
+          "queries_tested": [
+            {
+              "query": "Free outdoor attractions in Cairo open after 6pm",
+              "domain": "attractions",
+              "category": "complex_scenarios",
+              "response_time_ms": 3.511190414428711,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Ancient temples built before 1000 BC with guided tours",
+              "domain": "attractions",
+              "category": "complex_scenarios",
+              "response_time_ms": 3.946065902709961,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Museums with photography allowed and air conditioning",
+              "domain": "attractions",
+              "category": "complex_scenarios",
+              "response_time_ms": 3.1888484954833984,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Family-friendly attractions near hotels in downtown Cairo",
+              "domain": "attractions",
+              "category": "complex_scenarios",
+              "response_time_ms": 2.973318099975586,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Attractions accessible by public transportation from airport",
+              "domain": "attractions",
+              "category": "complex_scenarios",
+              "response_time_ms": 3.4818649291992188,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Historical sites with English-speaking guides under $20 entrance",
+              "domain": "attractions",
+              "category": "complex_scenarios",
+              "response_time_ms": 7.488012313842773,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Monuments within walking distance of the Egyptian Museum",
+              "domain": "attractions",
+              "category": "complex_scenarios",
+              "response_time_ms": 2.7790069580078125,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Archaeological sites offering overnight camping experiences",
+              "domain": "attractions",
+              "category": "complex_scenarios",
+              "response_time_ms": 3.0279159545898438,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 3.799527883529663,
+            "quality_score": 0.0
+          }
+        },
+        "edge_cases": {
+          "category_name": "edge_cases",
+          "queries_tested": [
+            {
+              "query": "Attractions open during Ramadan with special hours",
+              "domain": "attractions",
+              "category": "edge_cases",
+              "response_time_ms": 4.489898681640625,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Underground sites suitable for people with claustrophobia",
+              "domain": "attractions",
+              "category": "edge_cases",
+              "response_time_ms": 3.422260284423828,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Attractions with wheelchair accessibility and parking",
+              "domain": "attractions",
+              "category": "edge_cases",
+              "response_time_ms": 4.277944564819336,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Sites closed for renovation but reopening this year",
+              "domain": "attractions",
+              "category": "edge_cases",
+              "response_time_ms": 5.943775177001953,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 4.5334696769714355,
+            "quality_score": 0.0
+          }
+        },
+        "multilingual": {
+          "category_name": "multilingual",
+          "queries_tested": [
+            {
+              "query": "أهرامات الجيزة وساعات الزيارة",
+              "domain": "attractions",
+              "category": "multilingual",
+              "response_time_ms": 3.1249523162841797,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 72,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Hello! Tell me about الأهرامات في الجيزة",
+              "domain": "attractions",
+              "category": "multilingual",
+              "response_time_ms": 2.9010772705078125,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "مواقع أثرية في الأقصر مع مرشدين",
+              "domain": "attractions",
+              "category": "multilingual",
+              "response_time_ms": 4.888057708740234,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 72,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 3.638029098510742,
+            "quality_score": 0.0
+          }
+        },
+        "multi_domain_interactions": {
+          "category_name": "multi_domain_interactions",
+          "queries_tested": [
+            {
+              "query": "Hotels near pyramids with good restaurants and attractions nearby",
+              "domain": "attractions",
+              "category": "multi_domain_interactions",
+              "response_time_ms": 3.798961639404297,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Transportation to Valley of Kings and nearby accommodation options",
+              "domain": "attractions",
+              "category": "multi_domain_interactions",
+              "response_time_ms": 3.3130645751953125,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Complete day trip: attractions, lunch spots, and return transport to Cairo",
+              "domain": "attractions",
+              "category": "multi_domain_interactions",
+              "response_time_ms": 3.6919116973876953,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 3.6013126373291016,
+            "quality_score": 0.0
+          }
+        },
+        "error_boundary_testing": {
+          "category_name": "error_boundary_testing",
+          "queries_tested": [
+            {
+              "query": "Attractions in Atlantis Egypt",
+              "domain": "attractions",
+              "category": "error_boundary_testing",
+              "response_time_ms": 2.1429061889648438,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Pyramid tours for 500 people tomorrow",
+              "domain": "attractions",
+              "category": "error_boundary_testing",
+              "response_time_ms": 7.08770751953125,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.6,
+                "response_completeness": 0.9,
+                "user_experience_score": 0.75
+              },
+              "response_details": {
+                "text_length": 187,
+                "response_type": "attraction_info",
+                "source": "unknown",
+                "intent": "attraction_info",
+                "entities_found": 1
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 4.615306854248047,
+            "quality_score": 0.0
+          }
+        }
+      },
+      "performance_metrics": {
+        "total_queries": 25,
+        "successful_queries": 25,
+        "average_response_time": 3.9828968048095703,
+        "intent_accuracy_rate": 100.0,
+        "search_effectiveness_score": 0.0
+      },
+      "findings": []
+    },
+    "accommodations": {
+      "domain_name": "accommodations",
+      "categories_tested": {
+        "basic_functionality": {
+          "category_name": "basic_functionality",
+          "queries_tested": [
+            {
+              "query": "Hotels in Cairo with good reviews",
+              "domain": "accommodations",
+              "category": "basic_functionality",
+              "response_time_ms": 1.8131732940673828,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Luxury resorts in Hurghada near beach",
+              "domain": "accommodations",
+              "category": "basic_functionality",
+              "response_time_ms": 2.413034439086914,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Budget accommodation in Luxor under $50",
+              "domain": "accommodations",
+              "category": "basic_functionality",
+              "response_time_ms": 1.7879009246826172,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Business hotels in New Cairo with conference rooms",
+              "domain": "accommodations",
+              "category": "basic_functionality",
+              "response_time_ms": 2.9060840606689453,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Family resorts in Sharm El Sheikh with kids activities",
+              "domain": "accommodations",
+              "category": "basic_functionality",
+              "response_time_ms": 3.4029483795166016,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 2.464628219604492,
+            "quality_score": 0.0
+          }
+        },
+        "complex_scenarios": {
+          "category_name": "complex_scenarios",
+          "queries_tested": [
+            {
+              "query": "5-star hotels near pyramids with spa, pool, and breakfast under $200",
+              "domain": "accommodations",
+              "category": "complex_scenarios",
+              "response_time_ms": 8.481025695800781,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Pet-friendly hotels in Alexandria with beach access and parking",
+              "domain": "accommodations",
+              "category": "complex_scenarios",
+              "response_time_ms": 2.864837646484375,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Hotels with rooftop restaurants and Nile views in central Cairo",
+              "domain": "accommodations",
+              "category": "complex_scenarios",
+              "response_time_ms": 5.214929580688477,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Eco-friendly resorts in desert with camel riding and stargazing",
+              "domain": "accommodations",
+              "category": "complex_scenarios",
+              "response_time_ms": 3.055095672607422,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Hotels within 2km of airport with 24-hour shuttle service",
+              "domain": "accommodations",
+              "category": "complex_scenarios",
+              "response_time_ms": 2.5479793548583984,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Romantic hotels with private balconies for anniversary in Aswan",
+              "domain": "accommodations",
+              "category": "complex_scenarios",
+              "response_time_ms": 3.863096237182617,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Business hotels with meeting rooms, wifi, and Egyptian breakfast",
+              "domain": "accommodations",
+              "category": "complex_scenarios",
+              "response_time_ms": 3.4422874450683594,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Hotels with diving centers and coral reef access in Red Sea",
+              "domain": "accommodations",
+              "category": "complex_scenarios",
+              "response_time_ms": 3.518819808959961,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 4.123508930206299,
+            "quality_score": 0.0
+          }
+        },
+        "edge_cases": {
+          "category_name": "edge_cases",
+          "queries_tested": [
+            {
+              "query": "Hotels with kosher food options and prayer facilities",
+              "domain": "accommodations",
+              "category": "edge_cases",
+              "response_time_ms": 5.426168441772461,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Accommodation for large groups of 50+ students with meals",
+              "domain": "accommodations",
+              "category": "edge_cases",
+              "response_time_ms": 2.9282569885253906,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Hotels open during major holidays with special celebrations",
+              "domain": "accommodations",
+              "category": "edge_cases",
+              "response_time_ms": 3.0472278594970703,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Last-minute booking for tonight in fully booked Cairo",
+              "domain": "accommodations",
+              "category": "edge_cases",
+              "response_time_ms": 4.703998565673828,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 4.0264129638671875,
+            "quality_score": 0.0
+          }
+        },
+        "multilingual": {
+          "category_name": "multilingual",
+          "queries_tested": [
+            {
+              "query": "فنادق فاخرة في القاهرة مع إطلالة على النيل",
+              "domain": "accommodations",
+              "category": "multilingual",
+              "response_time_ms": 2.7081966400146484,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 72,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Hi! أريد فندق قريب من الأهرامات",
+              "domain": "accommodations",
+              "category": "multilingual",
+              "response_time_ms": 2.521991729736328,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 72,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Hotels with مسبح وسبا in Hurghada",
+              "domain": "accommodations",
+              "category": "multilingual",
+              "response_time_ms": 3.031015396118164,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 2.753734588623047,
+            "quality_score": 0.0
+          }
+        },
+        "multi_domain_interactions": {
+          "category_name": "multi_domain_interactions",
+          "queries_tested": [
+            {
+              "query": "Hotels near Egyptian Museum with good restaurants and taxi service",
+              "domain": "accommodations",
+              "category": "multi_domain_interactions",
+              "response_time_ms": 3.5278797149658203,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Accommodation in Luxor with tour packages to Valley of Kings",
+              "domain": "accommodations",
+              "category": "multi_domain_interactions",
+              "response_time_ms": 2.377033233642578,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Hotels in Aswan with Nile cruise bookings and airport transfers",
+              "domain": "accommodations",
+              "category": "multi_domain_interactions",
+              "response_time_ms": 2.61688232421875,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 2.8405984242757163,
+            "quality_score": 0.0
+          }
+        },
+        "error_boundary_testing": {
+          "category_name": "error_boundary_testing",
+          "queries_tested": [
+            {
+              "query": "Hotels in Cairo for -5 people",
+              "domain": "accommodations",
+              "category": "error_boundary_testing",
+              "response_time_ms": 3.8900375366210938,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Accommodation on Mars with pyramid views",
+              "domain": "accommodations",
+              "category": "error_boundary_testing",
+              "response_time_ms": 7.577180862426758,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.6,
+                "response_completeness": 0.9,
+                "user_experience_score": 0.75
+              },
+              "response_details": {
+                "text_length": 187,
+                "response_type": "attraction_info",
+                "source": "unknown",
+                "intent": "attraction_info",
+                "entities_found": 1
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 5.733609199523926,
+            "quality_score": 0.0
+          }
+        }
+      },
+      "performance_metrics": {
+        "total_queries": 25,
+        "successful_queries": 25,
+        "average_response_time": 3.5866832733154297,
+        "intent_accuracy_rate": 100.0,
+        "search_effectiveness_score": 0.0
+      },
+      "findings": []
+    },
+    "restaurants": {
+      "domain_name": "restaurants",
+      "categories_tested": {
+        "basic_functionality": {
+          "category_name": "basic_functionality",
+          "queries_tested": [
+            {
+              "query": "Traditional Egyptian restaurants in Cairo",
+              "domain": "restaurants",
+              "category": "basic_functionality",
+              "response_time_ms": 2.319812774658203,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Seafood restaurants in Alexandria near harbor",
+              "domain": "restaurants",
+              "category": "basic_functionality",
+              "response_time_ms": 2.6040077209472656,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Fine dining with Nile views in Aswan",
+              "domain": "restaurants",
+              "category": "basic_functionality",
+              "response_time_ms": 2.3827552795410156,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Street food places in Khan El Khalili market",
+              "domain": "restaurants",
+              "category": "basic_functionality",
+              "response_time_ms": 2.7561187744140625,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "International cuisine restaurants in New Cairo",
+              "domain": "restaurants",
+              "category": "basic_functionality",
+              "response_time_ms": 4.315853118896484,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 2.8757095336914062,
+            "quality_score": 0.0
+          }
+        },
+        "complex_scenarios": {
+          "category_name": "complex_scenarios",
+          "queries_tested": [
+            {
+              "query": "Vegetarian restaurants near pyramids with outdoor seating under $25",
+              "domain": "restaurants",
+              "category": "complex_scenarios",
+              "response_time_ms": 3.0808448791503906,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Family restaurants with kids menu and playground in Hurghada",
+              "domain": "restaurants",
+              "category": "complex_scenarios",
+              "response_time_ms": 2.691030502319336,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Romantic dinner spots with live music and belly dancing shows",
+              "domain": "restaurants",
+              "category": "complex_scenarios",
+              "response_time_ms": 6.039142608642578,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Halal restaurants open after midnight with delivery service",
+              "domain": "restaurants",
+              "category": "complex_scenarios",
+              "response_time_ms": 4.017353057861328,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Rooftop restaurants with city views and hookah in downtown Cairo",
+              "domain": "restaurants",
+              "category": "complex_scenarios",
+              "response_time_ms": 3.023862838745117,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Traditional cooking classes with meal included near hotels",
+              "domain": "restaurants",
+              "category": "complex_scenarios",
+              "response_time_ms": 2.7861595153808594,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 3.606398900349935,
+            "quality_score": 0.0
+          }
+        },
+        "edge_cases": {
+          "category_name": "edge_cases",
+          "queries_tested": [
+            {
+              "query": "Restaurants with gluten-free options and allergy-friendly menus",
+              "domain": "restaurants",
+              "category": "edge_cases",
+              "response_time_ms": 1.7893314361572266,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "24-hour dining near hospital with healthy food options",
+              "domain": "restaurants",
+              "category": "edge_cases",
+              "response_time_ms": 2.187013626098633,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Restaurants accepting foreign currency with English menus",
+              "domain": "restaurants",
+              "category": "edge_cases",
+              "response_time_ms": 2.665996551513672,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 2.2141138712565103,
+            "quality_score": 0.0
+          }
+        },
+        "multilingual": {
+          "category_name": "multilingual",
+          "queries_tested": [
+            {
+              "query": "مطاعم شعبية في القاهرة بأسعار معقولة",
+              "domain": "restaurants",
+              "category": "multilingual",
+              "response_time_ms": 2.6578903198242188,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 72,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Traditional مطاعم مصرية with authentic food",
+              "domain": "restaurants",
+              "category": "multilingual",
+              "response_time_ms": 2.7060508728027344,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "أفضل مطاعم for seafood in Alexandria",
+              "domain": "restaurants",
+              "category": "multilingual",
+              "response_time_ms": 3.026247024536133,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 2.796729405721029,
+            "quality_score": 0.0
+          }
+        },
+        "multi_domain_interactions": {
+          "category_name": "multi_domain_interactions",
+          "queries_tested": [
+            {
+              "query": "Restaurants near Egyptian Museum with parking and attractions nearby",
+              "domain": "restaurants",
+              "category": "multi_domain_interactions",
+              "response_time_ms": 4.961967468261719,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Dinner places in Luxor with transportation from hotels included",
+              "domain": "restaurants",
+              "category": "multi_domain_interactions",
+              "response_time_ms": 2.8429031372070312,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Food tours combining multiple restaurants with guide service",
+              "domain": "restaurants",
+              "category": "multi_domain_interactions",
+              "response_time_ms": 2.814054489135742,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 3.5396416982014975,
+            "quality_score": 0.0
+          }
+        }
+      },
+      "performance_metrics": {
+        "total_queries": 20,
+        "successful_queries": 20,
+        "average_response_time": 3.0834197998046875,
+        "intent_accuracy_rate": 100.0,
+        "search_effectiveness_score": 0.0
+      },
+      "findings": []
+    },
+    "events_festivals": {
+      "domain_name": "events_festivals",
+      "categories_tested": {
+        "basic_functionality": {
+          "category_name": "basic_functionality",
+          "queries_tested": [
+            {
+              "query": "Cultural festivals in Cairo this month",
+              "domain": "events_festivals",
+              "category": "basic_functionality",
+              "response_time_ms": 3.041982650756836,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Religious celebrations in Egypt during winter",
+              "domain": "events_festivals",
+              "category": "basic_functionality",
+              "response_time_ms": 2.7098655700683594,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Music events and concerts in Alexandria",
+              "domain": "events_festivals",
+              "category": "basic_functionality",
+              "response_time_ms": 2.649068832397461,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Traditional festivals in Upper Egypt",
+              "domain": "events_festivals",
+              "category": "basic_functionality",
+              "response_time_ms": 3.4570693969726562,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Art exhibitions and cultural events in Cairo",
+              "domain": "events_festivals",
+              "category": "basic_functionality",
+              "response_time_ms": 3.490924835205078,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 3.069782257080078,
+            "quality_score": 0.0
+          }
+        },
+        "complex_scenarios": {
+          "category_name": "complex_scenarios",
+          "queries_tested": [
+            {
+              "query": "Family-friendly festivals with children activities and food stalls",
+              "domain": "events_festivals",
+              "category": "complex_scenarios",
+              "response_time_ms": 2.8772354125976562,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Free cultural events in downtown Cairo with English translations",
+              "domain": "events_festivals",
+              "category": "complex_scenarios",
+              "response_time_ms": 4.0340423583984375,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Traditional festivals celebrating harvest season with local crafts",
+              "domain": "events_festivals",
+              "category": "complex_scenarios",
+              "response_time_ms": 3.9908885955810547,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Music festivals featuring Egyptian artists with international performers",
+              "domain": "events_festivals",
+              "category": "complex_scenarios",
+              "response_time_ms": 3.0770301818847656,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Religious celebrations open to tourists with guided explanations",
+              "domain": "events_festivals",
+              "category": "complex_scenarios",
+              "response_time_ms": 3.9129257202148438,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Cultural events combining traditional dance, music, and food",
+              "domain": "events_festivals",
+              "category": "complex_scenarios",
+              "response_time_ms": 2.456188201904297,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 3.391385078430176,
+            "quality_score": 0.0
+          }
+        },
+        "edge_cases": {
+          "category_name": "edge_cases",
+          "queries_tested": [
+            {
+              "query": "Events during political holidays with security considerations",
+              "domain": "events_festivals",
+              "category": "edge_cases",
+              "response_time_ms": 3.023862838745117,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Festivals accessible for people with mobility challenges",
+              "domain": "events_festivals",
+              "category": "edge_cases",
+              "response_time_ms": 3.2379627227783203,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Cultural events with photography permissions for tourists",
+              "domain": "events_festivals",
+              "category": "edge_cases",
+              "response_time_ms": 4.123926162719727,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 3.461917241414388,
+            "quality_score": 0.0
+          }
+        },
+        "multilingual": {
+          "category_name": "multilingual",
+          "queries_tested": [
+            {
+              "query": "مهرجانات ثقافية في القاهرة هذا الشهر",
+              "domain": "events_festivals",
+              "category": "multilingual",
+              "response_time_ms": 4.277944564819336,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Traditional احتفالات دينية for tourists",
+              "domain": "events_festivals",
+              "category": "multilingual",
+              "response_time_ms": 2.5000572204589844,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "فعاليات فنية in Alexandria with exhibitions",
+              "domain": "events_festivals",
+              "category": "multilingual",
+              "response_time_ms": 3.7240982055664062,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 3.500699996948242,
+            "quality_score": 0.0
+          }
+        },
+        "multi_domain_interactions": {
+          "category_name": "multi_domain_interactions",
+          "queries_tested": [
+            {
+              "query": "Festivals near hotels with restaurant recommendations and transportation",
+              "domain": "events_festivals",
+              "category": "multi_domain_interactions",
+              "response_time_ms": 3.1461715698242188,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Cultural events in Luxor with accommodation packages and guided tours",
+              "domain": "events_festivals",
+              "category": "multi_domain_interactions",
+              "response_time_ms": 2.646923065185547,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Music festivals with nearby hotels and dining options included",
+              "domain": "events_festivals",
+              "category": "multi_domain_interactions",
+              "response_time_ms": 2.472400665283203,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 2.7551651000976562,
+            "quality_score": 0.0
+          }
+        }
+      },
+      "performance_metrics": {
+        "total_queries": 20,
+        "successful_queries": 20,
+        "average_response_time": 3.2425284385681152,
+        "intent_accuracy_rate": 100.0,
+        "search_effectiveness_score": 0.0
+      },
+      "findings": []
+    },
+    "transportation": {
+      "domain_name": "transportation",
+      "categories_tested": {
+        "basic_functionality": {
+          "category_name": "basic_functionality",
+          "queries_tested": [
+            {
+              "query": "Transportation from Cairo to Luxor with schedules",
+              "domain": "transportation",
+              "category": "basic_functionality",
+              "response_time_ms": 3.240346908569336,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Airport transfers from Cairo airport to downtown hotels",
+              "domain": "transportation",
+              "category": "basic_functionality",
+              "response_time_ms": 2.0711421966552734,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Public transport routes in Alexandria with costs",
+              "domain": "transportation",
+              "category": "basic_functionality",
+              "response_time_ms": 2.6891231536865234,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Train connections between major Egyptian cities",
+              "domain": "transportation",
+              "category": "basic_functionality",
+              "response_time_ms": 2.4220943450927734,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Bus services from Cairo to Red Sea resorts",
+              "domain": "transportation",
+              "category": "basic_functionality",
+              "response_time_ms": 3.206968307495117,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 2.7259349822998047,
+            "quality_score": 0.0
+          }
+        },
+        "complex_scenarios": {
+          "category_name": "complex_scenarios",
+          "queries_tested": [
+            {
+              "query": "Direct flights from Cairo to Aswan departing after 6pm under $150",
+              "domain": "transportation",
+              "category": "complex_scenarios",
+              "response_time_ms": 3.833770751953125,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Transportation for large groups with luggage to multiple hotels",
+              "domain": "transportation",
+              "category": "complex_scenarios",
+              "response_time_ms": 3.650188446044922,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Night transportation options from Luxor to Cairo with sleeper cars",
+              "domain": "transportation",
+              "category": "complex_scenarios",
+              "response_time_ms": 3.2689571380615234,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Combined transport: flight to Aswan + cruise to Luxor + return bus",
+              "domain": "transportation",
+              "category": "complex_scenarios",
+              "response_time_ms": 2.9439926147460938,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Airport pickup with child seats and wheelchair accessibility",
+              "domain": "transportation",
+              "category": "complex_scenarios",
+              "response_time_ms": 3.5181045532226562,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Express transportation to pyramids with return trip and waiting time",
+              "domain": "transportation",
+              "category": "complex_scenarios",
+              "response_time_ms": 7.605075836181641,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.6,
+                "response_completeness": 0.9,
+                "user_experience_score": 0.75
+              },
+              "response_details": {
+                "text_length": 187,
+                "response_type": "attraction_info",
+                "source": "unknown",
+                "intent": "attraction_info",
+                "entities_found": 1
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 4.13668155670166,
+            "quality_score": 0.0
+          }
+        },
+        "edge_cases": {
+          "category_name": "edge_cases",
+          "queries_tested": [
+            {
+              "query": "Emergency transportation during sandstorms with safety measures",
+              "domain": "transportation",
+              "category": "edge_cases",
+              "response_time_ms": 2.719879150390625,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Transport options during strikes or service disruptions",
+              "domain": "transportation",
+              "category": "edge_cases",
+              "response_time_ms": 4.244804382324219,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Special transport for medical emergencies to nearest hospitals",
+              "domain": "transportation",
+              "category": "edge_cases",
+              "response_time_ms": 3.799915313720703,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 3.5881996154785156,
+            "quality_score": 0.0
+          }
+        },
+        "multilingual": {
+          "category_name": "multilingual",
+          "queries_tested": [
+            {
+              "query": "نقل من مطار القاهرة إلى وسط المدينة",
+              "domain": "transportation",
+              "category": "multilingual",
+              "response_time_ms": 3.9048194885253906,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 72,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "مواصلات عامة in Alexandria with schedules",
+              "domain": "transportation",
+              "category": "multilingual",
+              "response_time_ms": 4.69517707824707,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "رحلات جوية من القاهرة إلى الأقصر",
+              "domain": "transportation",
+              "category": "multilingual",
+              "response_time_ms": 2.9997825622558594,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 72,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 3.86659304300944,
+            "quality_score": 0.0
+          }
+        },
+        "multi_domain_interactions": {
+          "category_name": "multi_domain_interactions",
+          "queries_tested": [
+            {
+              "query": "Transportation to pyramids with hotel pickup and restaurant stops",
+              "domain": "transportation",
+              "category": "multi_domain_interactions",
+              "response_time_ms": 2.9680728912353516,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Complete travel package: flights, hotel transfers, and tour transport",
+              "domain": "transportation",
+              "category": "multi_domain_interactions",
+              "response_time_ms": 4.722833633422852,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Transport between cities with accommodation booking assistance",
+              "domain": "transportation",
+              "category": "multi_domain_interactions",
+              "response_time_ms": 3.946065902709961,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 3.878990809122721,
+            "quality_score": 0.0
+          }
+        }
+      },
+      "performance_metrics": {
+        "total_queries": 20,
+        "successful_queries": 20,
+        "average_response_time": 3.622555732727051,
+        "intent_accuracy_rate": 100.0,
+        "search_effectiveness_score": 0.0
+      },
+      "findings": []
+    },
+    "practical_info": {
+      "domain_name": "practical_info",
+      "categories_tested": {
+        "basic_functionality": {
+          "category_name": "basic_functionality",
+          "queries_tested": [
+            {
+              "query": "Visa requirements for US citizens visiting Egypt",
+              "domain": "practical_info",
+              "category": "basic_functionality",
+              "response_time_ms": 3.055095672607422,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Currency exchange rates and banking information",
+              "domain": "practical_info",
+              "category": "basic_functionality",
+              "response_time_ms": 4.11224365234375,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Weather conditions and best time to visit Egypt",
+              "domain": "practical_info",
+              "category": "basic_functionality",
+              "response_time_ms": 3.4759044647216797,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Safety tips for tourists in major Egyptian cities",
+              "domain": "practical_info",
+              "category": "basic_functionality",
+              "response_time_ms": 3.7610530853271484,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Tipping customs and local etiquette guidelines",
+              "domain": "practical_info",
+              "category": "basic_functionality",
+              "response_time_ms": 2.877950668334961,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 3.456449508666992,
+            "quality_score": 0.0
+          }
+        },
+        "complex_scenarios": {
+          "category_name": "complex_scenarios",
+          "queries_tested": [
+            {
+              "query": "Complete travel checklist for 2-week Egypt tour with vaccinations",
+              "domain": "practical_info",
+              "category": "complex_scenarios",
+              "response_time_ms": 5.041837692260742,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Business visa requirements with invitation letters and documentation",
+              "domain": "practical_info",
+              "category": "complex_scenarios",
+              "response_time_ms": 2.758026123046875,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Weather gear recommendations for desert trips and Nile cruises",
+              "domain": "practical_info",
+              "category": "complex_scenarios",
+              "response_time_ms": 2.567291259765625,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Safety protocols for solo female travelers in rural areas",
+              "domain": "practical_info",
+              "category": "complex_scenarios",
+              "response_time_ms": 2.5370121002197266,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Cultural etiquette for visiting religious sites with dress codes",
+              "domain": "practical_info",
+              "category": "complex_scenarios",
+              "response_time_ms": 2.9649734497070312,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Health insurance requirements and medical facility locations",
+              "domain": "practical_info",
+              "category": "complex_scenarios",
+              "response_time_ms": 2.5577545166015625,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 3.0711491902669272,
+            "quality_score": 0.0
+          }
+        },
+        "edge_cases": {
+          "category_name": "edge_cases",
+          "queries_tested": [
+            {
+              "query": "Emergency procedures for lost passports at embassies",
+              "domain": "practical_info",
+              "category": "edge_cases",
+              "response_time_ms": 3.2281875610351562,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Medical emergency protocols for chronic conditions in remote areas",
+              "domain": "practical_info",
+              "category": "edge_cases",
+              "response_time_ms": 7.4748992919921875,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Legal procedures for tourist disputes and police assistance",
+              "domain": "practical_info",
+              "category": "edge_cases",
+              "response_time_ms": 2.9778480529785156,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 4.560311635335286,
+            "quality_score": 0.0
+          }
+        },
+        "multilingual": {
+          "category_name": "multilingual",
+          "queries_tested": [
+            {
+              "query": "متطلبات الفيزا للسياح العرب",
+              "domain": "practical_info",
+              "category": "multilingual",
+              "response_time_ms": 3.4689903259277344,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 72,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "نصائح السلامة للسياح في مصر",
+              "domain": "practical_info",
+              "category": "multilingual",
+              "response_time_ms": 4.745006561279297,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 72,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "العادات والتقاليد المحلية",
+              "domain": "practical_info",
+              "category": "multilingual",
+              "response_time_ms": 3.0057430267333984,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 72,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 3.73991330464681,
+            "quality_score": 0.0
+          }
+        },
+        "multi_domain_interactions": {
+          "category_name": "multi_domain_interactions",
+          "queries_tested": [
+            {
+              "query": "Complete travel preparation: visas, hotels, transport, and health tips",
+              "domain": "practical_info",
+              "category": "multi_domain_interactions",
+              "response_time_ms": 4.403829574584961,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Safety guidelines for specific attractions with emergency contacts",
+              "domain": "practical_info",
+              "category": "multi_domain_interactions",
+              "response_time_ms": 6.361722946166992,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Cultural preparation for festivals with appropriate behavior guidelines",
+              "domain": "practical_info",
+              "category": "multi_domain_interactions",
+              "response_time_ms": 3.134012222290039,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 4.633188247680664,
+            "quality_score": 0.0
+          }
+        }
+      },
+      "performance_metrics": {
+        "total_queries": 20,
+        "successful_queries": 20,
+        "average_response_time": 3.7254691123962402,
+        "intent_accuracy_rate": 100.0,
+        "search_effectiveness_score": 0.0
+      },
+      "findings": []
+    },
+    "tourism_faqs": {
+      "domain_name": "tourism_faqs",
+      "categories_tested": {
+        "basic_functionality": {
+          "category_name": "basic_functionality",
+          "queries_tested": [
+            {
+              "query": "What's the best time to visit pyramids?",
+              "domain": "tourism_faqs",
+              "category": "basic_functionality",
+              "response_time_ms": 2.4089813232421875,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "How much should I tip in Egyptian restaurants?",
+              "domain": "tourism_faqs",
+              "category": "basic_functionality",
+              "response_time_ms": 4.281044006347656,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "database_routed",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "What languages are spoken in tourist areas?",
+              "domain": "tourism_faqs",
+              "category": "basic_functionality",
+              "response_time_ms": 2.6810169219970703,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "How to bargain in Egyptian markets effectively?",
+              "domain": "tourism_faqs",
+              "category": "basic_functionality",
+              "response_time_ms": 3.247976303100586,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "What's the dress code for visiting mosques?",
+              "domain": "tourism_faqs",
+              "category": "basic_functionality",
+              "response_time_ms": 4.636287689208984,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 3.451061248779297,
+            "quality_score": 0.0
+          }
+        },
+        "complex_scenarios": {
+          "category_name": "complex_scenarios",
+          "queries_tested": [
+            {
+              "query": "Complete guide to visiting Egypt during Ramadan with etiquette tips",
+              "domain": "tourism_faqs",
+              "category": "complex_scenarios",
+              "response_time_ms": 3.0946731567382812,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Photography rules at historical sites with permitted areas",
+              "domain": "tourism_faqs",
+              "category": "complex_scenarios",
+              "response_time_ms": 2.624034881591797,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Food safety guidelines for street food with stomach precautions",
+              "domain": "tourism_faqs",
+              "category": "complex_scenarios",
+              "response_time_ms": 4.080772399902344,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Transportation etiquette and safety for using local services",
+              "domain": "tourism_faqs",
+              "category": "complex_scenarios",
+              "response_time_ms": 2.454042434692383,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Cultural sensitivity guide for interacting with local communities",
+              "domain": "tourism_faqs",
+              "category": "complex_scenarios",
+              "response_time_ms": 2.7179718017578125,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Budget planning for 10-day Egypt trip including hidden costs",
+              "domain": "tourism_faqs",
+              "category": "complex_scenarios",
+              "response_time_ms": 3.329753875732422,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 3.05020809173584,
+            "quality_score": 0.0
+          }
+        },
+        "edge_cases": {
+          "category_name": "edge_cases",
+          "queries_tested": [
+            {
+              "query": "What to do if caught in political demonstrations as tourist?",
+              "domain": "tourism_faqs",
+              "category": "edge_cases",
+              "response_time_ms": 5.965948104858398,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Emergency medical procedures for serious allergic reactions",
+              "domain": "tourism_faqs",
+              "category": "edge_cases",
+              "response_time_ms": 3.155946731567383,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Legal rights of tourists and complaint procedures",
+              "domain": "tourism_faqs",
+              "category": "edge_cases",
+              "response_time_ms": 3.3092498779296875,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 4.143714904785156,
+            "quality_score": 0.0
+          }
+        },
+        "multilingual": {
+          "category_name": "multilingual",
+          "queries_tested": [
+            {
+              "query": "أفضل وقت لزيارة مصر للسياحة",
+              "domain": "tourism_faqs",
+              "category": "multilingual",
+              "response_time_ms": 3.5409927368164062,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 72,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "نصائح للتسوق في الأسواق المصرية",
+              "domain": "tourism_faqs",
+              "category": "multilingual",
+              "response_time_ms": 2.9120445251464844,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 72,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "آداب زيارة المساجد والمواقع الدينية",
+              "domain": "tourism_faqs",
+              "category": "multilingual",
+              "response_time_ms": 3.679990768432617,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 72,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 3.377676010131836,
+            "quality_score": 0.0
+          }
+        },
+        "multi_domain_interactions": {
+          "category_name": "multi_domain_interactions",
+          "queries_tested": [
+            {
+              "query": "Complete FAQ for first-time visitors: hotels, transport, and attractions",
+              "domain": "tourism_faqs",
+              "category": "multi_domain_interactions",
+              "response_time_ms": 2.9931068420410156,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Common questions about Luxor tours with practical arrangements",
+              "domain": "tourism_faqs",
+              "category": "multi_domain_interactions",
+              "response_time_ms": 3.023862838745117,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "FAQ for Red Sea vacations covering diving, hotels, and activities",
+              "domain": "tourism_faqs",
+              "category": "multi_domain_interactions",
+              "response_time_ms": 2.880096435546875,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 2.965688705444336,
+            "quality_score": 0.0
+          }
+        }
+      },
+      "performance_metrics": {
+        "total_queries": 20,
+        "successful_queries": 20,
+        "average_response_time": 3.3508896827697754,
+        "intent_accuracy_rate": 100.0,
+        "search_effectiveness_score": 0.0
+      },
+      "findings": []
+    },
+    "tour_packages": {
+      "domain_name": "tour_packages",
+      "categories_tested": {
+        "basic_functionality": {
+          "category_name": "basic_functionality",
+          "queries_tested": [
+            {
+              "query": "5-day Cairo and Giza tour packages with hotels",
+              "domain": "tour_packages",
+              "category": "basic_functionality",
+              "response_time_ms": 4.440784454345703,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Luxury Nile cruise packages from Aswan to Luxor",
+              "domain": "tour_packages",
+              "category": "basic_functionality",
+              "response_time_ms": 12.749671936035156,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Budget tour packages covering major historical sites",
+              "domain": "tour_packages",
+              "category": "basic_functionality",
+              "response_time_ms": 22.448062896728516,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Adventure tour packages in desert with camping",
+              "domain": "tour_packages",
+              "category": "basic_functionality",
+              "response_time_ms": 1.5101432800292969,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Cultural tour packages focusing on Islamic Cairo",
+              "domain": "tour_packages",
+              "category": "basic_functionality",
+              "response_time_ms": 1.5430450439453125,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 8.538341522216797,
+            "quality_score": 0.0
+          }
+        },
+        "complex_scenarios": {
+          "category_name": "complex_scenarios",
+          "queries_tested": [
+            {
+              "query": "Customizable 10-day packages combining historical sites and beach resorts",
+              "domain": "tour_packages",
+              "category": "complex_scenarios",
+              "response_time_ms": 1.8000602722167969,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Family tour packages with child-friendly activities and educational components",
+              "domain": "tour_packages",
+              "category": "complex_scenarios",
+              "response_time_ms": 2.457857131958008,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Photography tour packages with professional guides and special access",
+              "domain": "tour_packages",
+              "category": "complex_scenarios",
+              "response_time_ms": 2.277851104736328,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Spiritual tour packages visiting Coptic sites and ancient monasteries",
+              "domain": "tour_packages",
+              "category": "complex_scenarios",
+              "response_time_ms": 2.6710033416748047,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Adventure packages combining diving, desert safaris, and cultural sites",
+              "domain": "tour_packages",
+              "category": "complex_scenarios",
+              "response_time_ms": 2.897977828979492,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 2.420949935913086,
+            "quality_score": 0.0
+          }
+        },
+        "multi_domain_interactions": {
+          "category_name": "multi_domain_interactions",
+          "queries_tested": [
+            {
+              "query": "Complete tour packages with accommodation, meals, transport, and guides",
+              "domain": "tour_packages",
+              "category": "multi_domain_interactions",
+              "response_time_ms": 4.684925079345703,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Luxury packages including spa treatments, fine dining, and private guides",
+              "domain": "tour_packages",
+              "category": "multi_domain_interactions",
+              "response_time_ms": 3.144979476928711,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Budget packages with group tours, shared transport, and basic accommodation",
+              "domain": "tour_packages",
+              "category": "multi_domain_interactions",
+              "response_time_ms": 5.423784255981445,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 4.417896270751953,
+            "quality_score": 0.0
+          }
+        },
+        "error_boundary_testing": {
+          "category_name": "error_boundary_testing",
+          "queries_tested": [
+            {
+              "query": "Tour packages for 1000 people with same-day booking",
+              "domain": "tour_packages",
+              "category": "error_boundary_testing",
+              "response_time_ms": 3.017902374267578,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Packages including visits to restricted military areas",
+              "domain": "tour_packages",
+              "category": "error_boundary_testing",
+              "response_time_ms": 2.741098403930664,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 2.879500389099121,
+            "quality_score": 0.0
+          }
+        }
+      },
+      "performance_metrics": {
+        "total_queries": 15,
+        "successful_queries": 15,
+        "average_response_time": 4.920609792073567,
+        "intent_accuracy_rate": 100.0,
+        "search_effectiveness_score": 0.0
+      },
+      "findings": []
+    },
+    "custom_itineraries": {
+      "domain_name": "custom_itineraries",
+      "categories_tested": {
+        "basic_functionality": {
+          "category_name": "basic_functionality",
+          "queries_tested": [
+            {
+              "query": "Create custom 7-day itinerary for Cairo and Alexandria",
+              "domain": "custom_itineraries",
+              "category": "basic_functionality",
+              "response_time_ms": 4.517078399658203,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Personal itinerary for photography enthusiast visiting temples",
+              "domain": "custom_itineraries",
+              "category": "basic_functionality",
+              "response_time_ms": 2.775907516479492,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Custom family itinerary with educational activities for children",
+              "domain": "custom_itineraries",
+              "category": "basic_functionality",
+              "response_time_ms": 2.6721954345703125,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Romantic itinerary for couples with luxury experiences",
+              "domain": "custom_itineraries",
+              "category": "basic_functionality",
+              "response_time_ms": 2.5069713592529297,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Adventure itinerary combining desert and water activities",
+              "domain": "custom_itineraries",
+              "category": "basic_functionality",
+              "response_time_ms": 3.9091110229492188,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 3.2762527465820312,
+            "quality_score": 0.0
+          }
+        },
+        "complex_scenarios": {
+          "category_name": "complex_scenarios",
+          "queries_tested": [
+            {
+              "query": "Custom itinerary for historian studying ancient Egyptian civilization",
+              "domain": "custom_itineraries",
+              "category": "complex_scenarios",
+              "response_time_ms": 2.705097198486328,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Accessible itinerary for travelers with mobility challenges",
+              "domain": "custom_itineraries",
+              "category": "complex_scenarios",
+              "response_time_ms": 2.8040409088134766,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Culinary-focused itinerary with cooking classes and market tours",
+              "domain": "custom_itineraries",
+              "category": "complex_scenarios",
+              "response_time_ms": 4.086017608642578,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Business itinerary combining meetings with cultural experiences",
+              "domain": "custom_itineraries",
+              "category": "complex_scenarios",
+              "response_time_ms": 2.340078353881836,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Spiritual journey itinerary visiting sacred sites across Egypt",
+              "domain": "custom_itineraries",
+              "category": "complex_scenarios",
+              "response_time_ms": 2.541065216064453,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 2.8952598571777344,
+            "quality_score": 0.0
+          }
+        },
+        "multi_domain_interactions": {
+          "category_name": "multi_domain_interactions",
+          "queries_tested": [
+            {
+              "query": "Complete custom planning: transport, hotels, restaurants, and attractions",
+              "domain": "custom_itineraries",
+              "category": "multi_domain_interactions",
+              "response_time_ms": 3.7078857421875,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Personal itinerary with local guide arrangements and special access",
+              "domain": "custom_itineraries",
+              "category": "multi_domain_interactions",
+              "response_time_ms": 2.988100051879883,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Custom itinerary optimizing travel time between multiple destinations",
+              "domain": "custom_itineraries",
+              "category": "multi_domain_interactions",
+              "response_time_ms": 2.7997493743896484,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 3.1652450561523438,
+            "quality_score": 0.0
+          }
+        },
+        "error_boundary_testing": {
+          "category_name": "error_boundary_testing",
+          "queries_tested": [
+            {
+              "query": "Itinerary visiting all of Egypt in 2 days",
+              "domain": "custom_itineraries",
+              "category": "error_boundary_testing",
+              "response_time_ms": 3.3941268920898438,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            },
+            {
+              "query": "Custom plan with unlimited budget and impossible requests",
+              "domain": "custom_itineraries",
+              "category": "error_boundary_testing",
+              "response_time_ms": 6.181001663208008,
+              "success": true,
+              "quality_metrics": {
+                "intent_accuracy": 0.8,
+                "search_effectiveness": 0.4,
+                "response_completeness": 0.6,
+                "user_experience_score": 0.5800000000000001
+              },
+              "response_details": {
+                "text_length": 85,
+                "response_type": "general",
+                "source": "dialog_manager",
+                "intent": "fallback",
+                "entities_found": 0
+              },
+              "performance_category": "excellent"
+            }
+          ],
+          "category_performance": {
+            "success_rate": 100.0,
+            "average_response_time": 4.787564277648926,
+            "quality_score": 0.0
+          }
+        }
+      },
+      "performance_metrics": {
+        "total_queries": 15,
+        "successful_queries": 15,
+        "average_response_time": 3.328561782836914,
+        "intent_accuracy_rate": 100.0,
+        "search_effectiveness_score": 0.0
+      },
+      "findings": []
+    }
+  },
+  "performance_analytics": {
+    "response_times": [
+      10.615825653076172,
+      2.3458003997802734,
+      2.7849674224853516,
+      2.092123031616211,
+      2.254962921142578,
+      3.511190414428711,
+      3.946065902709961,
+      3.1888484954833984,
+      2.973318099975586,
+      3.4818649291992188,
+      7.488012313842773,
+      2.7790069580078125,
+      3.0279159545898438,
+      4.489898681640625,
+      3.422260284423828,
+      4.277944564819336,
+      5.943775177001953,
+      3.1249523162841797,
+      2.9010772705078125,
+      4.888057708740234,
+      3.798961639404297,
+      3.3130645751953125,
+      3.6919116973876953,
+      2.1429061889648438,
+      7.08770751953125,
+      1.8131732940673828,
+      2.413034439086914,
+      1.7879009246826172,
+      2.9060840606689453,
+      3.4029483795166016,
+      8.481025695800781,
+      2.864837646484375,
+      5.214929580688477,
+      3.055095672607422,
+      2.5479793548583984,
+      3.863096237182617,
+      3.4422874450683594,
+      3.518819808959961,
+      5.426168441772461,
+      2.9282569885253906,
+      3.0472278594970703,
+      4.703998565673828,
+      2.7081966400146484,
+      2.521991729736328,
+      3.031015396118164,
+      3.5278797149658203,
+      2.377033233642578,
+      2.61688232421875,
+      3.8900375366210938,
+      7.577180862426758,
+      2.319812774658203,
+      2.6040077209472656,
+      2.3827552795410156,
+      2.7561187744140625,
+      4.315853118896484,
+      3.0808448791503906,
+      2.691030502319336,
+      6.039142608642578,
+      4.017353057861328,
+      3.023862838745117,
+      2.7861595153808594,
+      1.7893314361572266,
+      2.187013626098633,
+      2.665996551513672,
+      2.6578903198242188,
+      2.7060508728027344,
+      3.026247024536133,
+      4.961967468261719,
+      2.8429031372070312,
+      2.814054489135742,
+      3.041982650756836,
+      2.7098655700683594,
+      2.649068832397461,
+      3.4570693969726562,
+      3.490924835205078,
+      2.8772354125976562,
+      4.0340423583984375,
+      3.9908885955810547,
+      3.0770301818847656,
+      3.9129257202148438,
+      2.456188201904297,
+      3.023862838745117,
+      3.2379627227783203,
+      4.123926162719727,
+      4.277944564819336,
+      2.5000572204589844,
+      3.7240982055664062,
+      3.1461715698242188,
+      2.646923065185547,
+      2.472400665283203,
+      3.240346908569336,
+      2.0711421966552734,
+      2.6891231536865234,
+      2.4220943450927734,
+      3.206968307495117,
+      3.833770751953125,
+      3.650188446044922,
+      3.2689571380615234,
+      2.9439926147460938,
+      3.5181045532226562,
+      7.605075836181641,
+      2.719879150390625,
+      4.244804382324219,
+      3.799915313720703,
+      3.9048194885253906,
+      4.69517707824707,
+      2.9997825622558594,
+      2.9680728912353516,
+      4.722833633422852,
+      3.946065902709961,
+      3.055095672607422,
+      4.11224365234375,
+      3.4759044647216797,
+      3.7610530853271484,
+      2.877950668334961,
+      5.041837692260742,
+      2.758026123046875,
+      2.567291259765625,
+      2.5370121002197266,
+      2.9649734497070312,
+      2.5577545166015625,
+      3.2281875610351562,
+      7.4748992919921875,
+      2.9778480529785156,
+      3.4689903259277344,
+      4.745006561279297,
+      3.0057430267333984,
+      4.403829574584961,
+      6.361722946166992,
+      3.134012222290039,
+      2.4089813232421875,
+      4.281044006347656,
+      2.6810169219970703,
+      3.247976303100586,
+      4.636287689208984,
+      3.0946731567382812,
+      2.624034881591797,
+      4.080772399902344,
+      2.454042434692383,
+      2.7179718017578125,
+      3.329753875732422,
+      5.965948104858398,
+      3.155946731567383,
+      3.3092498779296875,
+      3.5409927368164062,
+      2.9120445251464844,
+      3.679990768432617,
+      2.9931068420410156,
+      3.023862838745117,
+      2.880096435546875,
+      4.440784454345703,
+      12.749671936035156,
+      22.448062896728516,
+      1.5101432800292969,
+      1.5430450439453125,
+      1.8000602722167969,
+      2.457857131958008,
+      2.277851104736328,
+      2.6710033416748047,
+      2.897977828979492,
+      4.684925079345703,
+      3.144979476928711,
+      5.423784255981445,
+      3.017902374267578,
+      2.741098403930664,
+      4.517078399658203,
+      2.775907516479492,
+      2.6721954345703125,
+      2.5069713592529297,
+      3.9091110229492188,
+      2.705097198486328,
+      2.8040409088134766,
+      4.086017608642578,
+      2.340078353881836,
+      2.541065216064453,
+      3.7078857421875,
+      2.988100051879883,
+      2.7997493743896484,
+      3.3941268920898438,
+      6.181001663208008
+    ],
+    "intent_accuracy": [],
+    "search_effectiveness": [],
+    "error_handling_quality": [],
+    "overall_metrics": {
+      "total_queries": 180,
+      "average_response_time": 3.630412949456109,
+      "median_response_time": 3.0770301818847656,
+      "fastest_response": 1.5101432800292969,
+      "slowest_response": 22.448062896728516,
+      "sub_100ms_queries": 180,
+      "sub_500ms_queries": 180
+    }
+  },
+  "optimization_recommendations": [],
+  "production_readiness_assessment": {
+    "overall_readiness": "ready",
+    "performance_grade": "A",
+    "reliability_score": 100.0,
+    "scalability_concerns": [],
+    "security_considerations": [],
+    "deployment_recommendations": []
+  },
+  "domain_insights": {
+    "attractions": {
+      "domain_name": "attractions",
+      "performance_rating": "excellent",
+      "strengths": [
+        "High success rate",
+        "Fast response times"
+      ],
+      "areas_for_improvement": [],
+      "optimization_priority": "low"
+    },
+    "accommodations": {
+      "domain_name": "accommodations",
+      "performance_rating": "excellent",
+      "strengths": [
+        "High success rate",
+        "Fast response times"
+      ],
+      "areas_for_improvement": [],
+      "optimization_priority": "low"
+    },
+    "restaurants": {
+      "domain_name": "restaurants",
+      "performance_rating": "excellent",
+      "strengths": [
+        "High success rate",
+        "Fast response times"
+      ],
+      "areas_for_improvement": [],
+      "optimization_priority": "low"
+    },
+    "events_festivals": {
+      "domain_name": "events_festivals",
+      "performance_rating": "excellent",
+      "strengths": [
+        "High success rate",
+        "Fast response times"
+      ],
+      "areas_for_improvement": [],
+      "optimization_priority": "low"
+    },
+    "transportation": {
+      "domain_name": "transportation",
+      "performance_rating": "excellent",
+      "strengths": [
+        "High success rate",
+        "Fast response times"
+      ],
+      "areas_for_improvement": [],
+      "optimization_priority": "low"
+    },
+    "practical_info": {
+      "domain_name": "practical_info",
+      "performance_rating": "excellent",
+      "strengths": [
+        "High success rate",
+        "Fast response times"
+      ],
+      "areas_for_improvement": [],
+      "optimization_priority": "low"
+    },
+    "tourism_faqs": {
+      "domain_name": "tourism_faqs",
+      "performance_rating": "excellent",
+      "strengths": [
+        "High success rate",
+        "Fast response times"
+      ],
+      "areas_for_improvement": [],
+      "optimization_priority": "low"
+    },
+    "tour_packages": {
+      "domain_name": "tour_packages",
+      "performance_rating": "excellent",
+      "strengths": [
+        "High success rate",
+        "Fast response times"
+      ],
+      "areas_for_improvement": [],
+      "optimization_priority": "low"
+    },
+    "custom_itineraries": {
+      "domain_name": "custom_itineraries",
+      "performance_rating": "excellent",
+      "strengths": [
+        "High success rate",
+        "Fast response times"
+      ],
+      "areas_for_improvement": [],
+      "optimization_priority": "low"
+    }
+  }
+}

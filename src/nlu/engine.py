@@ -13,7 +13,12 @@ from typing import Dict, List, Any, Optional, Tuple
 # Fix tokenizer parallelism warning (Phase 3 optimization)
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
+import warnings
 import numpy as np
+
+# Suppress NumPy 2.0 warnings from dependencies
+warnings.filterwarnings("ignore", message="Unable to avoid copy while creating an array")
+warnings.filterwarnings("ignore", category=FutureWarning, module="numpy")
 import spacy
 from transformers import AutoTokenizer, AutoModel
 import torch
@@ -23,6 +28,7 @@ from src.nlu.intent import IntentClassifier
 from src.nlu.entity import EntityExtractor
 from src.nlu.language import LanguageDetector
 from src.utils.cache import LRUCache
+from src.utils.embedding_service import StandardizedEmbeddingService
 from src.nlu.enhanced_entity import EnhancedEntityExtractor
 from src.nlu.continuous_learning import EntityLearner, FeedbackCollector
 
@@ -79,27 +85,11 @@ class NLUEngine:
         self.nlp_models = {}
         self._load_nlp_models()
         
-        # Initialize transformer models for embeddings
-        self.transformer_models = {}
-        self.transformer_tokenizers = {}
-        self._load_transformer_models()
-        
-        # Initialize intent classifier (Phase 1 Fix: Use AdvancedIntentClassifier)
-        from .intent_classifier import AdvancedIntentClassifier
-        self.intent_classifier = AdvancedIntentClassifier(
-            config=self.models_config.get("intent_classification", {}),
-            embedding_model=self._get_embedding_model,
-            knowledge_base=knowledge_base
-        )
-        
-        # Initialize entity extractors
-        self.entity_extractors = {}
-        self._load_entity_extractors()
-        
-        # Initialize enhanced embedding cache (Phase 2 optimization)
+        # Initialize enhanced embedding cache FIRST (Phase 2 optimization)
         cache_config = self.models_config.get("cache", {})
         model_loading_config = self.models_config.get("model_loading", {})
         
+        # Initialize embedding cache before anything that needs it
         self.embedding_cache = LRUCache(
             max_size=cache_config.get("embedding_cache_size", 10000)  # Increased from 1000 to 10000
         )
@@ -111,6 +101,30 @@ class NLUEngine:
         # Load persistent cache if enabled
         if self.persistent_cache_enabled:
             self._load_persistent_cache()
+        
+        # Initialize transformer models for embeddings
+        self.transformer_models = {}
+        self.transformer_tokenizers = {}
+        self._load_transformer_models()
+        
+        # Initialize standardized embedding service AFTER models and cache are loaded
+        self.embedding_service = StandardizedEmbeddingService(
+            models=self.transformer_models,
+            tokenizers=self.transformer_tokenizers,
+            cache=self.embedding_cache
+        )
+        
+        # Initialize intent classifier (Phase 1 Fix: Use AdvancedIntentClassifier)
+        from .intent_classifier import AdvancedIntentClassifier
+        self.intent_classifier = AdvancedIntentClassifier(
+            config=self.models_config.get("intent_classification", {}),
+            embedding_service=self.embedding_service,  # Use standardized service instead of function
+            knowledge_base=knowledge_base
+        )
+        
+        # Initialize entity extractors
+        self.entity_extractors = {}
+        self._load_entity_extractors()
         
         # Initialize main result cache (Phase 3.1: Enhanced caching)
         self.cache = LRUCache(
@@ -137,6 +151,9 @@ class NLUEngine:
         
         # Phase 3: Mark models as loaded (for synchronous initialization)
         self._models_loaded = True
+        
+        # Force regenerate intent embeddings if models are ready
+        self._ensure_intent_embeddings_ready()
         
         logger.info("🚀 NLU Engine initialized successfully with Phase 4 optimizations")
     
@@ -465,6 +482,16 @@ class NLUEngine:
         logger.info(f"🏆 Phase 3: Complete async model loading finished in {total_load_time:.2f}s")
         logger.info(f"🚀 Performance boost: All models loaded in parallel instead of sequential!")
         
+        # Update embedding service with newly loaded models
+        if hasattr(self, 'embedding_service'):
+            self.embedding_service.models = self.transformer_models
+            self.embedding_service.tokenizers = self.transformer_tokenizers
+            logger.info("🔄 Updated embedding service with loaded models")
+            
+            # Force regenerate intent embeddings now that models are ready
+            logger.info("🔄 Force regenerating intent embeddings after model loading...")
+            self._ensure_intent_embeddings_ready()
+        
         # Mark initialization as complete
         self._models_loaded = True
     
@@ -486,81 +513,8 @@ class NLUEngine:
     
     def _get_embedding_model(self, text, language=None):
         """Get embeddings for text using optimized model with Phase 2 batch processing."""
-        # Check cache first (Phase 2: Enhanced caching)
-        cache_key = f"{text}_{language}"
-        if cache_key in self.embedding_cache:
-            logger.debug(f"🎯 Cache hit for embedding: {text[:50]}...")
-            return self.embedding_cache[cache_key]
-        
-        # Select appropriate model based on language
-        model_key = language if language in self.transformer_models else "multilingual"
-        if model_key not in self.transformer_models:
-            if self.transformer_models:
-                model_key = next(iter(self.transformer_models.keys()))
-            else:
-                logger.error("No transformer models loaded!")
-                return np.random.rand(768)  # Fallback random embedding
-        
-        model = self.transformer_models[model_key]
-        tokenizer = self.transformer_tokenizers[model_key]
-        
-        # Generate embedding with performance tracking
-        start_time = time.time()
-        logger.debug(f"🧠 Generating embedding for: {text[:50]}... using {model_key}")
-        
-        try:
-            inputs = tokenizer(text, return_tensors="pt", padding=True, truncation=True, max_length=512)
-            with torch.no_grad():
-                outputs = model(**inputs)
-            
-            # Use CLS token embedding or mean pooling depending on model type - CRITICAL FIX: Move to CPU first
-            if hasattr(outputs, "pooler_output"):
-                embedding = outputs.pooler_output.cpu().numpy()
-            else:
-                # Mean pooling
-                attention_mask = inputs["attention_mask"]
-                token_embeddings = outputs.last_hidden_state
-                input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
-                sum_embeddings = torch.sum(token_embeddings * input_mask_expanded, 1)
-                sum_mask = torch.clamp(input_mask_expanded.sum(1), min=1e-9)
-                embedding = (sum_embeddings / sum_mask).cpu().numpy()
-            
-            # Ensure embedding is a 2D numpy array [1, embedding_dim]
-            embedding = np.array(embedding)
-            if embedding.ndim == 1:
-                embedding = embedding.reshape(1, -1)
-            elif embedding.ndim > 2:
-                embedding = embedding.reshape(1, -1)
-            
-            # Return only the first row to ensure consistent shape
-            embedding = embedding[0] if embedding.shape[0] > 0 else embedding.flatten()
-            
-            # CRITICAL FIX: Ensure embedding has proper dimensions (not scalar)
-            if embedding.size == 1 or embedding.ndim == 0:
-                # Single value - expand to standard dimension
-                logger.warning(f"Detected scalar embedding in _get_embedding_model, expanding to standard 768D")
-                standard_dim = 768  # Standard embedding dimension
-                expanded = np.zeros(standard_dim)
-                if embedding.size > 0:
-                    expanded.fill(float(embedding))
-                embedding = expanded
-            
-            embedding_time = time.time() - start_time
-            logger.debug(f"✅ Embedding generated in {embedding_time:.3f}s, shape: {embedding.shape}")
-            
-            # Cache the result (Phase 2: Enhanced caching)
-            self.embedding_cache[cache_key] = embedding
-            
-            # Periodically save to persistent cache (every 100 new embeddings)
-            if self.persistent_cache_enabled and len(self.embedding_cache) % 100 == 0:
-                self._save_persistent_cache()
-            
-            return embedding
-            
-        except Exception as e:
-            logger.error(f"Error generating embedding: {str(e)}")
-            # Return a fallback embedding with standard shape
-            return np.random.rand(768)
+        # Use StandardizedEmbeddingService for consistent embedding handling
+        return self.embedding_service.generate_embedding(text, language)
     
     async def get_embedding_async(self, text: str, language: str = None):
         """Generate embeddings asynchronously (Phase 3.3: Async processing)."""
@@ -569,11 +523,12 @@ class NLUEngine:
             logger.debug(f"🎯 Async cache hit for embedding: {text[:50]}...")
             return self.embedding_cache[cache_key]
 
+        # CRITICAL FIX: Use StandardizedEmbeddingService instead of broken _generate_embedding_sync
         # Run in thread pool to avoid blocking
         loop = asyncio.get_event_loop()
         embedding = await loop.run_in_executor(
             None,
-            self._generate_embedding_sync,
+            self.embedding_service.generate_embedding,  # Use StandardizedEmbeddingService
             text,
             language
         )
@@ -586,180 +541,6 @@ class NLUEngine:
             
         return embedding
     
-    def _generate_embedding_sync(self, text: str, language: str = None):
-        """Synchronous embedding generation for thread pool execution."""
-        # Select appropriate model based on language
-        model_key = language if language in self.transformer_models else "multilingual"
-        if model_key not in self.transformer_models:
-            if self.transformer_models:
-                model_key = next(iter(self.transformer_models.keys()))
-            else:
-                logger.error("No transformer models loaded!")
-                return np.random.rand(768)  # Fallback random embedding
-        
-        model = self.transformer_models[model_key]
-        tokenizer = self.transformer_tokenizers[model_key]
-        
-        # Generate embedding with performance tracking
-        start_time = time.time()
-        logger.debug(f"🧠 Async generating embedding for: {text[:50]}... using {model_key}")
-        
-        try:
-            inputs = tokenizer(text, return_tensors="pt", padding=True, truncation=True, max_length=512)
-            with torch.no_grad():
-                outputs = model(**inputs)
-            
-            # Use CLS token embedding or mean pooling depending on model type - CRITICAL FIX: Move to CPU first
-            if hasattr(outputs, "pooler_output"):
-                embedding = outputs.pooler_output.cpu().numpy()
-            else:
-                # Mean pooling
-                attention_mask = inputs["attention_mask"]
-                token_embeddings = outputs.last_hidden_state
-                input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
-                sum_embeddings = torch.sum(token_embeddings * input_mask_expanded, 1)
-                sum_mask = torch.clamp(input_mask_expanded.sum(1), min=1e-9)
-                embedding = (sum_embeddings / sum_mask).cpu().numpy()
-            
-            # Ensure embedding is a 2D numpy array [1, embedding_dim]
-            embedding = np.array(embedding)
-            if embedding.ndim == 1:
-                embedding = embedding.reshape(1, -1)
-            elif embedding.ndim > 2:
-                embedding = embedding.reshape(1, -1)
-            
-            # Return only the first row to ensure consistent shape
-            embedding = embedding[0] if embedding.shape[0] > 0 else embedding.flatten()
-            
-            # CRITICAL FIX: Ensure embedding has proper dimensions (not scalar)
-            if embedding.size == 1 or embedding.ndim == 0:
-                # Single value - expand to standard dimension
-                logger.warning(f"Detected scalar embedding in _generate_embedding_sync, expanding to standard 768D")
-                standard_dim = 768  # Standard embedding dimension
-                expanded = np.zeros(standard_dim)
-                if embedding.size > 0:
-                    scalar_value = float(embedding.item() if hasattr(embedding, 'item') else embedding)
-                    expanded.fill(scalar_value)
-                embedding = expanded
-            
-            embedding_time = time.time() - start_time
-            logger.debug(f"✅ Async embedding generated in {embedding_time:.3f}s, shape: {embedding.shape}")
-            
-            return embedding
-            
-        except Exception as e:
-            logger.error(f"Error generating embedding: {str(e)}")
-            # Return a fallback embedding with standard shape
-            return np.random.rand(768)
-
-    def _batch_embeddings(self, texts: List[str], language: str = None) -> Dict[str, np.ndarray]:
-        """
-        Phase 2 Optimization: Generate embeddings in single batch call for efficiency.
-        
-        Args:
-            texts: List of texts to embed
-            language: Language for model selection
-            
-        Returns:
-            Dict mapping texts to their embeddings
-        """
-        if not texts:
-            return {}
-        
-        # Check cache for all texts first
-        results = {}
-        uncached_texts = []
-        
-        for text in texts:
-            cache_key = f"{text}_{language}"
-            if cache_key in self.embedding_cache:
-                results[text] = self.embedding_cache[cache_key]
-                logger.debug(f"🎯 Batch cache hit: {text[:30]}...")
-            else:
-                uncached_texts.append(text)
-        
-        # If all texts are cached, return immediately
-        if not uncached_texts:
-            logger.debug(f"🚀 All {len(texts)} embeddings served from cache")
-            return results
-        
-        # Generate embeddings for uncached texts in batch
-        logger.info(f"🔥 Phase 2: Batch generating {len(uncached_texts)} embeddings (cached: {len(results)})")
-        start_time = time.time()
-        
-        # Select appropriate model
-        model_key = language if language in self.transformer_models else "multilingual"
-        if model_key not in self.transformer_models:
-            if self.transformer_models:
-                model_key = next(iter(self.transformer_models.keys()))
-            else:
-                logger.error("No transformer models loaded for batch processing!")
-                # Return fallback embeddings
-                for text in uncached_texts:
-                    results[text] = np.random.rand(768)
-                return results
-        
-        model = self.transformer_models[model_key]
-        tokenizer = self.transformer_tokenizers[model_key]
-        
-        try:
-            # Batch tokenization (much more efficient)
-            inputs = tokenizer(
-                uncached_texts,
-                return_tensors="pt",
-                padding=True,
-                truncation=True,
-                max_length=512
-            )
-            
-            with torch.no_grad():
-                outputs = model(**inputs)
-            
-            # Process batch outputs - CRITICAL FIX: Move tensors to CPU before numpy conversion
-            if hasattr(outputs, "pooler_output"):
-                batch_embeddings = outputs.pooler_output.cpu().numpy()
-            else:
-                # Mean pooling for the batch
-                attention_mask = inputs["attention_mask"]
-                token_embeddings = outputs.last_hidden_state
-                input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
-                sum_embeddings = torch.sum(token_embeddings * input_mask_expanded, 1)
-                sum_mask = torch.clamp(input_mask_expanded.sum(1), min=1e-9)
-                batch_embeddings = (sum_embeddings / sum_mask).cpu().numpy()
-            
-            # Ensure proper embedding shapes and cache results
-            for i, text in enumerate(uncached_texts):
-                embedding = batch_embeddings[i]
-                
-                # Ensure embedding has proper dimensions
-                if embedding.size == 1 or embedding.ndim == 0:
-                    logger.warning(f"Detected scalar embedding in batch processing, expanding to 768D")
-                    expanded = np.zeros(768)
-                    if embedding.size > 0:
-                        expanded.fill(float(embedding))
-                    embedding = expanded
-                
-                results[text] = embedding
-                
-                # Cache the embedding
-                cache_key = f"{text}_{language}"
-                self.embedding_cache[cache_key] = embedding
-            
-            batch_time = time.time() - start_time
-            logger.info(f"✅ Phase 2: Batch generated {len(uncached_texts)} embeddings in {batch_time:.3f}s ({batch_time/len(uncached_texts):.4f}s/embedding)")
-            
-            # Save to persistent cache if enabled
-            if self.persistent_cache_enabled and len(uncached_texts) >= 10:
-                self._save_persistent_cache()
-            
-        except Exception as e:
-            logger.error(f"Batch embedding generation failed: {str(e)}")
-            # Fallback to individual generation
-            for text in uncached_texts:
-                results[text] = self._get_embedding_model(text, language)
-        
-        return results
-
     def _precompute_common_embeddings(self):
         """
         Phase 2 Optimization: Precompute embeddings for common tourism queries.
@@ -807,8 +588,8 @@ class NLUEngine:
         total_precomputed = 0
         for language, queries in common_queries.items():
             if language in self.transformer_models or 'multilingual' in self.transformer_models:
-                # Use batch processing for efficiency
-                embeddings = self._batch_embeddings(queries, language)
+                # Use StandardizedEmbeddingService batch processing for efficiency
+                embeddings = self.embedding_service.generate_batch_embeddings(queries, language)
                 total_precomputed += len(embeddings)
                 logger.debug(f"Precomputed {len(embeddings)} {language} embeddings")
         
@@ -830,7 +611,8 @@ class NLUEngine:
             dict: Processed NLU result including intent, entities, and other metadata
         """
         start_time = time.time()
-        cache_key = f"{text}_{language or 'auto'}_{session_id}"
+        # Create a safe cache key that won't include numpy arrays
+        cache_key = f"{hash(text)}_{language or 'auto'}_{hash(session_id)}"
         
         # Check cache first
         cached_result = self.cache.get(cache_key)
@@ -948,7 +730,8 @@ class NLUEngine:
             dict: Processed NLU result including intent, entities, and other metadata
         """
         start_time = time.time()
-        cache_key = f"{text}_{language or 'auto'}_{session_id}"
+        # Create a safe cache key that won't include numpy arrays
+        cache_key = f"{hash(text)}_{language or 'auto'}_{hash(session_id)}"
         
         # Check cache first
         cached_result = self.cache.get(cache_key)
@@ -1263,6 +1046,34 @@ class NLUEngine:
         except Exception as e:
             logger.error(f"❌ Error shutting down Phase 4 components: {e}")
     
+    def _ensure_intent_embeddings_ready(self):
+        """Ensure intent embeddings are properly generated after model loading."""
+        try:
+            if self.embedding_service and self.embedding_service.is_ready():
+                logger.info("🔄 Verifying intent embeddings are ready...")
+                
+                # Check if intent classifier has embeddings
+                if hasattr(self.intent_classifier, 'intent_embeddings') and not self.intent_classifier.intent_embeddings:
+                    logger.info("⚠️ Intent embeddings missing - force regenerating...")
+                    success = self.intent_classifier.force_regenerate_embeddings()
+                    if success:
+                        logger.info("✅ Intent embeddings successfully regenerated")
+                    else:
+                        logger.error("❌ Failed to regenerate intent embeddings")
+                else:
+                    embedding_count = sum(len(embs) for embs in self.intent_classifier.intent_embeddings.values())
+                    logger.info(f"✅ Intent embeddings already available ({embedding_count} total embeddings)")
+            else:
+                logger.warning("⚠️ Embedding service not ready - cannot verify intent embeddings")
+        except Exception as e:
+            logger.error(f"❌ Error ensuring intent embeddings ready: {str(e)}")
+    
+    def force_regenerate_intent_embeddings(self):
+        """Public method to force regeneration of intent embeddings."""
+        if hasattr(self.intent_classifier, 'force_regenerate_embeddings'):
+            return self.intent_classifier.force_regenerate_embeddings()
+        return False
+
     def __del__(self):
         """Cleanup when NLU engine is destroyed"""
         try:

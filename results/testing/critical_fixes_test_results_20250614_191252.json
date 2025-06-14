@@ -1,0 +1,54 @@
+{
+  "timestamp": "2025-06-14T19:12:52.353404",
+  "success_rate": 40.0,
+  "successful_queries": 2,
+  "total_queries": 5,
+  "fixes_working": false,
+  "results": [
+    {
+      "query": "Hotels in Cairo",
+      "response_length": 85,
+      "intent": null,
+      "source": "database_routed",
+      "is_generic": true,
+      "success": false,
+      "response_preview": "I'm here to help with your questions about Egypt tourism. How can I assist you today?"
+    },
+    {
+      "query": "Restaurants near pyramids",
+      "response_length": 85,
+      "intent": "location_query",
+      "source": "database_routed",
+      "is_generic": true,
+      "success": false,
+      "response_preview": "I'm here to help with your questions about Egypt tourism. How can I assist you today?"
+    },
+    {
+      "query": "Transportation to Luxor",
+      "response_length": 261,
+      "intent": "faq_query",
+      "source": "database",
+      "is_generic": false,
+      "success": true,
+      "response_preview": "Yes, tipping (known as 'baksheesh') is an important part of Egyptian culture. It's customary to tip service workers like waiters (10-15%), hotel staff"
+    },
+    {
+      "query": "Attractions in Alexandria",
+      "response_length": 464,
+      "intent": "event_query",
+      "source": "database",
+      "is_generic": false,
+      "success": true,
+      "response_preview": "Sham El-Nessim: Sham El-Nessim is an ancient Egyptian spring festival celebrated by Egyptians regardless of religion. Dating back to pharaonic times, "
+    },
+    {
+      "query": "Tourist information about visas",
+      "response_length": 85,
+      "intent": "general_query",
+      "source": "dialog_manager",
+      "is_generic": true,
+      "success": false,
+      "response_preview": "I'm here to help with your questions about Egypt tourism. How can I assist you today?"
+    }
+  ]
+}

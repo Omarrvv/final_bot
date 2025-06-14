@@ -12,13 +12,19 @@ import time
 import asyncio
 import uuid
 import random
-from datetime import datetime
+import warnings
+from datetime import datetime, timedelta
 
 from src.utils.container import container
 from src.utils.exceptions import ChatbotError, ResourceNotFoundError, ServiceError, ConfigurationError
 from src.utils.factory import component_factory
 from src.knowledge.database import DatabaseManager # Import DatabaseManager - NEW
 from src.utils.llm_config import use_llm_first, toggle_llm_first, get_config # Import LLM configuration
+
+# Professional polish: suppress dependency warnings for clean output
+warnings.filterwarnings("ignore", message="Unable to avoid copy while creating an array")
+warnings.filterwarnings("ignore", category=FutureWarning, module="numpy")
+warnings.filterwarnings("ignore", category=UserWarning, module="transformers")
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +69,7 @@ class Chatbot:
         resp.setdefault("response_type", default_type)
         resp.setdefault("session_id", session_id or str(uuid.uuid4()))
         resp.setdefault("language", language or "en")
+        resp.setdefault("source", "unknown")  # Ensure source field is preserved
         return resp
 
     async def process_message(self, user_message: str, session_id: str = None, language: str = None) -> Dict[str, Any]:
@@ -80,38 +87,41 @@ class Chatbot:
         start_time = time.time()
         logger.info(f"Processing message: '{user_message}'")
 
-        # Phase 1 Fix: Enhanced Fast-Path with Tourism Patterns
+        # PHASE 4: DATABASE-FIRST LOGIC - Check for queries that should go to database immediately
+        if self._should_use_database_first(user_message):
+            logger.info(f"🎯 Database-first routing for: '{user_message}'")
+            return await self._route_to_database_search(user_message, session_id, language)
+
+        # Phase 1 Fix: Minimal Fast-Path for Basic Interactions Only - IMPROVED
         simple_patterns = {
-            # Greetings & Social
-            r'\b(hi|hello|hey|greetings|مرحبا|أهلا|السلام عليكم)\b': 'greeting',
-            r'\b(bye|goodbye|farewell|وداعا|مع السلامة|إلى اللقاء)\b': 'farewell',
-            r'\b(thanks?|thank you|شكرا|متشكر|ممنون)\b': 'gratitude',
+            # Basic Social Interactions (Keep these for speed) - BUT CHECK FOR CONTENT
+            # Only match if greeting is the ONLY content (not followed by questions)
+            r'^(hi|hello|hey|greetings|مرحبا|أهلا|السلام عليكم)[\.!]?$': 'greeting',
+            r'^(bye|goodbye|farewell|وداعا|مع السلامة|إلى اللقاء)[\.!]?$': 'farewell', 
+            r'^(thanks?|thank you|شكرا|متشكر|ممنون)[\.!]?$': 'gratitude',
             
-            # Help & Information
-            r'\b(help|info|information|معلومات|مساعدة|إزاي|كيف)\b': 'help_request',
-            r'\b(what can you do|what do you know|ايه اللي تقدر|ايه خدماتك)\b': 'capabilities',
+            # Essential Help (Keep for UX)
+            r'^(help|معلومات|مساعدة)$': 'help_request',  # Only exact matches
             
-            # Popular Tourism Fast-Path (Phase 1 Critical Optimization)
-            r'\b(pyramid|pyramids|giza|الأهرام|هرم|أهرامات)\b': 'attraction_pyramids',
-            r'\b(sphinx|abu el hol|أبو الهول|تمثال الهول)\b': 'attraction_sphinx',
-            r'\b(luxor|الأقصر|معابد الأقصر)\b': 'attraction_luxor',
-            r'\b(aswan|أسوان|سد أسوان)\b': 'attraction_aswan',
-            r'\b(alexandria|الإسكندرية|مكتبة الإسكندرية)\b': 'attraction_alexandria',
-            r'\b(red sea|البحر الأحمر|شرم|hurghada|الغردقة)\b': 'attraction_redsea',
-            r'\b(nile|النيل|نهر النيل|رحلة نيلية)\b': 'attraction_nile',
-            r'\b(cairo|القاهرة|العاصمة)\b': 'destination_cairo',
-            
-            # Quick Tourism Services
-            r'\b(hotel|accommodation|فندق|إقامة|مكان نوم)\b': 'service_hotel',
-            r'\b(restaurant|food|طعام|مطعم|أكل)\b': 'service_restaurant',
-            r'\b(transport|taxi|موصلات|تاكسي|قطر)\b': 'service_transport',
-            r'\b(price|cost|how much|سعر|كام|تكلفة|فلوس)\b': 'inquiry_price'
+            # REMOVED: All attraction, hotel, restaurant, location patterns
+            # These should use database for rich responses instead of fast-path
         }
 
-        for pattern, intent in simple_patterns.items():
-            if re.search(pattern, user_message.lower()):
-                logger.info(f"🚀 Fast-path processing for intent: {intent}")
-                return await self._handle_quick_response(intent, user_message, session_id, language)
+        # CHECK: Don't use fast-path if message contains substantial content beyond greeting
+        message_lower = user_message.lower().strip()
+        
+        # If message contains question words or substantial content, skip fast-path
+        question_indicators = ['what', 'how', 'where', 'when', 'why', 'which', 'who', 'can you', 'tell me', 'about', 'information', 'ماذا', 'كيف', 'أين', 'متى', 'لماذا', 'من']
+        has_substantial_content = any(indicator in message_lower for indicator in question_indicators)
+        
+        if has_substantial_content:
+            logger.info(f"🧠 Skipping fast-path due to substantial content in: '{user_message}'")
+        else:
+            # Only check patterns if no substantial content detected
+            for pattern, intent in simple_patterns.items():
+                if re.search(pattern, user_message.lower()):
+                    logger.info(f"🚀 Fast-path processing for intent: {intent}")
+                    return await self._handle_quick_response(intent, user_message, session_id, language)
 
         # Full NLU processing for complex queries
         logger.info("🧠 Full NLU processing required")
@@ -839,6 +849,22 @@ class Chatbot:
                     context=session_data
                 )
 
+            # PHASE 3.3: Add confidence debugging for transportation queries
+            if any(word in text.lower() for word in ["airport", "transfer", "transport", "taxi", "bus", "uber", "careem", "metro", "shuttle"]):
+                logger.warning(f"Transportation query classification: {nlu_result.get('intent')} "
+                              f"(confidence: {nlu_result.get('confidence', 0):.3f}) "
+                              f"for query: '{text}'")
+
+                if nlu_result.get('intent') != 'practical_info':
+                    logger.error(f"❌ MISCLASSIFICATION: Transportation query classified as "
+                                f"{nlu_result.get('intent')} instead of practical_info")
+                    logger.error(f"   Query: '{text}'")
+                    logger.error(f"   Expected: practical_info")
+                    logger.error(f"   Actual: {nlu_result.get('intent')}")
+                    logger.error(f"   Confidence: {nlu_result.get('confidence', 0):.3f}")
+                else:
+                    logger.info(f"✅ CORRECT CLASSIFICATION: Transportation query correctly classified as practical_info")
+
             logger.info(f"NLU result: {nlu_result}")
             return nlu_result
         except Exception as e:
@@ -921,6 +947,8 @@ class Chatbot:
                     "params": {},
                     "state": "event_query"
                 }
+
+
 
             # Get next action from dialog manager for other intents
             if hasattr(self.dialog_manager.next_action, "__await__"):
@@ -1008,19 +1036,47 @@ class Chatbot:
                     "drink": "drinking_water",
                     "currency": "currency",
                     "money": "currency",
-                    "visa": "visa_requirements",
+                    "exchange": "currency",
+                    "visa": "embassies_consulates",
+                    "embassy": "embassies_consulates",
+                    "consulate": "embassies_consulates",
                     "safety": "safety",
                     "safe": "safety",
-                    "weather": "weather",
-                    "dress": "dress_code",
-                    "wear": "dress_code",
-                    "clothing": "dress_code",
-                    "tip": "tipping",
-                    "tipping": "tipping",
-                    "health": "health_safety",
-                    "medical": "health_safety",
+                    "secure": "safety",
+                    "weather": "public_holidays",
+                    "holiday": "public_holidays",
+                    "electricity": "electricity_plugs",
+                    "plug": "electricity_plugs",
+                    "adapter": "electricity_plugs",
+                    "internet": "internet_connectivity",
+                    "wifi": "internet_connectivity",
+                    "mobile": "internet_connectivity",
+                    "phone": "internet_connectivity",
+                    "tip": "tipping_customs",
+                    "tipping": "tipping_customs",
+                    "baksheesh": "tipping_customs",
+                    "photography": "photography_rules",
+                    "photo": "photography_rules",
+                    "camera": "photography_rules",
+                    "business": "business_hours",
+                    "hours": "business_hours",
+                    "emergency": "emergency_contacts",
+                    "contact": "emergency_contacts",
+                    "police": "emergency_contacts",
+                    # Transportation keywords - map to transportation table queries
                     "transport": "transportation",
-                    "travel": "transportation"
+                    "transportation": "transportation", 
+                    "airport": "transportation",
+                    "transfer": "transportation",
+                    "taxi": "transportation",
+                    "bus": "transportation",
+                    "train": "transportation",
+                    "metro": "transportation",
+                    "flight": "transportation",
+                    "car": "transportation",
+                    "rental": "transportation",
+                    "cruise": "transportation",
+                    "ferry": "transportation"
                 }
 
                 # Check for keywords in the message
@@ -1036,32 +1092,82 @@ class Chatbot:
                 # Search for practical info in the database
                 logger.info(f"Searching for practical info with topics: {topics}")
                 for topic in topics:
-                    practical_info = self.knowledge_base.search_practical_info(
-                        query={"category_id": topic, "text": user_message},
-                        limit=1,
-                        language=language
-                    )
+                    # Handle transportation queries specially - use transportation table
+                    if topic == "transportation":
+                        logger.info("Processing transportation query from practical_info intent")
+                        # Extract search terms for transportation
+                        search_terms = self._extract_search_terms(user_message, "transportation")
+                        logger.info(f"Extracted transportation search terms: {search_terms}")
+                        
+                        # Search transportation table
+                        transportation_results = self.knowledge_base.search_transportation(
+                            query={"text": search_terms},
+                            limit=3,
+                            language=language
+                        )
+                        
+                        if transportation_results and len(transportation_results) > 0:
+                            logger.info(f"Found {len(transportation_results)} transportation options")
+                            
+                            # Format transportation response
+                            result = transportation_results[0]  # Use first result
+                            
+                            # Extract name and description from JSONB fields
+                            if isinstance(result.get("name"), dict):
+                                name = result["name"].get(language, result["name"].get("en", "Transportation"))
+                            else:
+                                name = result.get("name", "Transportation")
+                                
+                            if isinstance(result.get("description"), dict):
+                                description = result["description"].get(language, result["description"].get("en", ""))
+                            else:
+                                description = result.get("description", "")
+                            
+                            response_text = f"{name}: {description}"
+                            
+                            return {
+                                "text": response_text,
+                                "response_type": "transportation_info",
+                                "suggestions": [],
+                                "intent": "practical_info",
+                                "entities": nlu_result.get("entities", {}),
+                                "source": "database"
+                            }
+                        else:
+                            logger.info("No transportation options found, continuing to practical_info fallback")
+                    
+                    # Regular practical_info search for non-transportation topics
+                    else:
+                        # Extract key terms for search instead of using full message
+                        search_terms = self._extract_search_terms(user_message, topic)
+                        logger.info(f"Extracted search terms for {topic}: {search_terms}")
+                        
+                        practical_info = self.knowledge_base.search_practical_info(
+                            query={"category_id": topic, "text": search_terms},
+                            limit=1,
+                            language=language
+                        )
 
-                    if practical_info and len(practical_info) > 0:
-                        logger.info(f"Found practical info for topic: {topic}")
+                        if practical_info and len(practical_info) > 0:
+                            logger.info(f"Found practical info for topic: {topic}")
 
-                        # Use the first result
-                        info = practical_info[0]
+                            # Use the first result
+                            info = practical_info[0]
 
-                        # Format the response
-                        title = info["title"][language] if isinstance(info["title"], dict) and language in info["title"] else info.get("title", topic)
-                        content = info["content"][language] if isinstance(info["content"], dict) and language in info["content"] else info.get("content", "")
+                            # Format the response
+                            title = info["title"][language] if isinstance(info["title"], dict) and language in info["title"] else info.get("title", topic)
+                            content = info["content"][language] if isinstance(info["content"], dict) and language in info["content"] else info.get("content", "")
 
-                        response_text = f"{title}: {content}"
+                            response_text = f"{title}: {content}"
 
-                        return {
-                            "text": response_text,
-                            "response_type": "practical_info",
-                            "suggestions": [],
-                            "intent": "practical_info",
-                            "entities": nlu_result.get("entities", {}),
-                            "source": "database"
-                        }
+                            return {
+                                "text": response_text,
+                                "response_type": "practical_info",
+                                "suggestions": [],
+                                "intent": "practical_info",
+                                "entities": nlu_result.get("entities", {}),
+                                "source": "database"
+                            }
 
                 logger.info("No practical info found in database, will use fallback")
                 # Continue with normal flow to use fallback
@@ -1116,14 +1222,17 @@ class Chatbot:
                 # Extract potential event types from the message
                 event_types = []
                 event_keywords = {
-                    "food": "food",
-                    "culinary": "food",
-                    "music": "music",
-                    "festival": "cultural",
-                    "cultural": "cultural",
-                    "religious": "religious",
-                    "celebration": "cultural",
-                    "art": "art"
+                    "food": "food_festivals",
+                    "culinary": "food_festivals",
+                    "music": "music_festivals",
+                    "festival": "cultural_festivals",
+                    "cultural": "cultural_festivals",
+                    "religious": "religious_festivals",
+                    "celebration": "seasonal_celebrations",
+                    "art": "art_exhibitions",
+                    "film": "film_festivals",
+                    "movie": "film_festivals",
+                    "historical": "historical_commemorations"
                 }
 
                 # Check for keywords in the message
@@ -1168,6 +1277,49 @@ class Chatbot:
                 else:
                     logger.info("No events found in database, will use fallback")
                     # Continue with normal flow to use fallback
+
+            # Handle transportation queries
+            elif dialog_action.get("query_type") == "transportation" or nlu_result.get("intent") == "transportation_query":
+                logger.info("Processing transportation knowledge query")
+
+                # Extract query parameters
+                user_message = nlu_result.get("text", "")
+                language = session.get("language", "en")
+
+                # Search for transportation options in the database
+                logger.info(f"Searching for transportation with query: {user_message}")
+                transportation = self.knowledge_base.search_transportation(
+                    query={"text": user_message},
+                    limit=3,
+                    language=language
+                )
+
+                if transportation and len(transportation) > 0:
+                    logger.info(f"Found {len(transportation)} transportation options in database")
+
+                    # Use the first transportation option
+                    transport = transportation[0]
+
+                    # Format the response
+                    route_name = transport.get("route_name", "Transportation Route")
+                    description = transport.get("description", "")
+                    transport_type = transport.get("transport_type", "")
+
+                    response_text = f"{route_name} ({transport_type}): {description}"
+
+                    return {
+                        "text": response_text,
+                        "response_type": "transportation_info",
+                        "suggestions": [],
+                        "intent": "transportation_query",
+                        "entities": nlu_result.get("entities", {}),
+                        "source": "database"
+                    }
+                else:
+                    logger.info("No transportation found in database, will use fallback")
+                    # Continue with normal flow to use fallback
+
+
 
             if dialog_action.get("action_type") == "knowledge_query":
                 query_params = dialog_action.get("query_params", {})
@@ -1430,6 +1582,50 @@ class Chatbot:
 
         return text
 
+    def _extract_search_terms(self, user_message: str, topic: str) -> str:
+        """
+        Extract key search terms from user message for database search.
+        Instead of searching for the full message, extract relevant keywords.
+        """
+        try:
+            message_lower = user_message.lower()
+            
+            # Topic-specific key terms to extract
+            topic_keywords = {
+                'tipping_customs': ['tip', 'tipping', 'baksheesh', 'service', 'restaurant', 'hotel', 'taxi', 'guide'],
+                'currency': ['currency', 'money', 'exchange', 'egyptian', 'pound', 'egp', 'atm', 'bank'],
+                'visa_requirements': ['visa', 'passport', 'entry', 'immigration', 'requirements', 'border'],
+                'safety': ['safe', 'safety', 'security', 'crime', 'dangerous', 'travel', 'advice'],
+                'weather': ['weather', 'temperature', 'climate', 'season', 'rain', 'hot', 'cold'],
+                'dress_code': ['dress', 'clothing', 'wear', 'appropriate', 'conservative', 'mosque'],
+                'health_safety': ['health', 'medical', 'hospital', 'medicine', 'vaccination', 'doctor'],
+                'transportation': ['transport', 'bus', 'taxi', 'metro', 'train', 'uber', 'car']
+            }
+            
+            # Extract relevant keywords for this topic
+            relevant_terms = []
+            if topic in topic_keywords:
+                for keyword in topic_keywords[topic]:
+                    if keyword in message_lower:
+                        relevant_terms.append(keyword)
+            
+            # If no specific terms found, extract general keywords
+            if not relevant_terms:
+                # Remove common question words and extract content words
+                stop_words = {'what', 'how', 'where', 'when', 'why', 'should', 'i', 'in', 'to', 'the', 'a', 'an', 'and', 'or', 'but'}
+                words = message_lower.split()
+                content_words = [word.strip('?.,!') for word in words if word not in stop_words and len(word) > 2]
+                relevant_terms = content_words[:3]  # Take first 3 content words
+            
+            # Return the most relevant term or the topic itself
+            search_term = relevant_terms[0] if relevant_terms else topic.replace('_', ' ')
+            logger.info(f"Extracted search term '{search_term}' from '{user_message}' for topic '{topic}'")
+            return search_term
+            
+        except Exception as e:
+            logger.warning(f"Search term extraction failed: {e}")
+            return topic.replace('_', ' ')  # Fallback to topic name
+
     def _detect_language(self, text: str) -> str:
         """
         Detect the language of a text string.
@@ -1443,11 +1639,14 @@ class Chatbot:
         try:
             # Try to use the NLU engine's language detector
             if hasattr(self.nlu_engine, 'language_detector'):
-                language, confidence = self.nlu_engine.language_detector.detect(text)
-                if confidence > 0.5:
-                    return language
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", category=UserWarning)
+                    language, confidence = self.nlu_engine.language_detector.detect(text)
+                    if confidence > 0.5:
+                        return language
         except Exception as e:
-            logger.warning(f"Language detection failed: {str(e)}")
+            # Don't log every language detection error - it's expected to fall back
+            logger.debug(f"Language detection failed, using fallback: {str(e)}")
         
         # Fallback: check for Arabic characters
         arabic_pattern = r'[\u0600-\u06FF]'
@@ -1639,6 +1838,7 @@ class Chatbot:
                 session = {
                     "session_id": session_id,
                     "created_at": datetime.now().isoformat(),
+                    "expires_at": (datetime.now() + timedelta(seconds=3600)).isoformat(),  # Add missing expires_at field
                     "state": "greeting",
                     "history": [],
                     "entities": {},
@@ -1656,6 +1856,7 @@ class Chatbot:
             return {
                 "session_id": session_id,
                 "created_at": datetime.now().isoformat(),
+                "expires_at": (datetime.now() + timedelta(seconds=3600)).isoformat(),  # Add missing expires_at field  
                 "state": "greeting",
                 "history": [],
                 "entities": {},
@@ -1732,4 +1933,213 @@ class Chatbot:
             "session_id": session_id,
             "language": language,
             "intent": "farewell"
+        }
+
+    def _should_use_database_first(self, query: str) -> bool:
+        """
+        Determine if query should check database before fast-path.
+        
+        This implements the database-first logic for queries that need rich content
+        from the database rather than fast-path responses.
+        
+        Args:
+            query: User query string
+            
+        Returns:
+            bool: True if query should go to database first
+        """
+        query_lower = query.lower().strip()
+        
+        # 1. Transportation queries - Always use database for rich content
+        transportation_patterns = [
+            r".*airport.*transfer.*",
+            r".*transfer.*airport.*", 
+            r".*taxi.*airport.*",
+            r".*airport.*taxi.*",
+            r".*bus.*airport.*",
+            r".*airport.*bus.*",
+            r".*transport.*egypt.*",
+            r".*egypt.*transport.*",
+            r".*how to get.*airport.*",
+            r".*airport.*options.*",
+            r".*airport.*shuttle.*",
+            r".*metro.*cairo.*",
+            r".*cairo.*metro.*",
+        ]
+        
+        # 2. Accommodation queries - Always use database for specific hotels/locations
+        accommodation_patterns = [
+            r".*hotel.*in (cairo|luxor|aswan|alexandria|hurghada|sharm).*",
+            r".*accommodation.*in (cairo|luxor|aswan|alexandria|hurghada|sharm).*",
+            r".*places to stay.*in (cairo|luxor|aswan|alexandria|hurghada|sharm).*",
+            r".*resort.*in (cairo|luxor|aswan|alexandria|hurghada|sharm).*",
+            r".*where to stay.*in (cairo|luxor|aswan|alexandria|hurghada|sharm).*",
+            r".*best hotel.*",
+            r".*hotel.*near.*",
+            r".*accommodation.*near.*",
+        ]
+        
+        # 3. Complex attraction queries - Database for detailed info
+        complex_attraction_patterns = [
+            r".*opening hours.*",
+            r".*ticket prices.*",
+            r".*entry fee.*",
+            r".*how to get.*",
+            r".*how much.*cost.*",
+            r".*price.*ticket.*",
+            r".*visiting hours.*",
+            r".*entrance fee.*",
+            r".*near (pyramid|sphinx|luxor|temple|museum).*",
+            r".*(pyramid|sphinx|luxor|temple|museum).*near.*",
+            r".*best time.*visit.*",
+            r".*guided tour.*",
+            # Add standalone attraction queries for database routing
+            r"^(pyramid|pyramids)$",
+            r"^(sphinx)$",
+            r"^(luxor)$",
+            r"^(temple|temples)$",
+            r"^(museum|museums)$",
+        ]
+        
+        # 4. Restaurant/food queries with location specificity
+        restaurant_patterns = [
+            r".*restaurant.*in (cairo|luxor|aswan|alexandria|hurghada|sharm).*",
+            r".*food.*in (cairo|luxor|aswan|alexandria|hurghada|sharm).*",
+            r".*eat.*in (cairo|luxor|aswan|alexandria|hurghada|sharm).*",
+            r".*dining.*in (cairo|luxor|aswan|alexandria|hurghada|sharm).*",
+            r".*restaurant.*near.*",
+            r".*traditional.*food.*",
+            r".*local.*cuisine.*",
+            r".*best.*restaurant.*",
+        ]
+        
+        # 5. Practical info with location/specificity
+        practical_patterns = [
+            r".*tip.*restaurant.*",
+            r".*tipping.*egypt.*",
+            r".*currency.*exchange.*",
+            r".*money.*egypt.*",
+            r".*safety.*egypt.*",
+            r".*visa.*egypt.*",
+            r".*weather.*in (cairo|luxor|aswan|alexandria|hurghada|sharm).*",
+            # Add standalone practical queries for database routing
+            r"^(weather)$",
+            r"^(climate)$",
+            r"^(temperature)$",
+            r"^(visa)$",
+            r"^(currency)$",
+            r"^(money)$",
+            r"^(safety)$",
+        ]
+        
+        # Check all patterns
+        all_patterns = (transportation_patterns + accommodation_patterns + 
+                       complex_attraction_patterns + restaurant_patterns + practical_patterns)
+        
+        for pattern in all_patterns:
+            if re.search(pattern, query_lower):
+                logger.info(f"🎯 Database-first match: '{pattern}' for query: '{query}'")
+                return True
+        
+        return False
+
+    async def _route_to_database_search(self, query: str, session_id: str, language: str) -> Dict[str, Any]:
+        """
+        Route query directly to database search, bypassing fast-path.
+        
+        This method processes the query through full NLU and database search
+        to get rich, detailed responses from the database.
+        
+        Args:
+            query: User query
+            session_id: Session identifier
+            language: Language code
+            
+        Returns:
+            Response from database search
+        """
+        try:
+            # Create session if needed
+            if not session_id:
+                session_id = str(uuid.uuid4())
+                logger.info(f"Created new session for database routing: {session_id}")
+            
+            # Get or create session
+            session = await self.get_or_create_session(session_id)
+            
+            # Detect language if not provided
+            if not language:
+                language = session.get("language")
+                if not language:
+                    language = self._detect_language(query)
+                    session["language"] = language
+                    await self._save_session(session_id, session)
+            
+            # Process through NLU for intent classification
+            logger.info(f"🧠 Processing database-first query through NLU: '{query}'")
+            try:
+                nlu_result = await self._process_nlu(query, session_id, language)
+            except Exception as nlu_error:
+                logger.warning(f"NLU processing failed for database-first query, using fallback: {nlu_error}")
+                # Create minimal NLU result for database routing
+                nlu_result = {
+                    "text": query,
+                    "intent": "general_query",
+                    "entities": {},
+                    "confidence": 0.5,
+                    "language": language
+                }
+            
+            # Update session with NLU results
+            session["intent"] = nlu_result.get("intent")
+            session["entities"] = nlu_result.get("entities", {})
+            
+            # Get dialog action based on intent and entities
+            dialog_action = await self._get_dialog_action(nlu_result, session)
+            
+            # Generate response using dialog manager and database
+            response = await self._generate_response(dialog_action, nlu_result, session)
+            
+            # Ensure response has required fields
+            response = self._ensure_response_fields(response, session_id, language, "database_search")
+            
+            # Mark as database source for analytics
+            if response.get("source") != "database":
+                response["source"] = "database_routed"
+            
+            # Save session
+            await self._save_session(session_id, session)
+            
+            # Add to session history
+            try:
+                await self._add_message_to_session(session_id, "user", query)
+                await self._add_message_to_session(session_id, "assistant", response.get("text", ""))
+            except Exception as e:
+                logger.error(f"Error adding database-routed message to session: {str(e)}")
+            
+            logger.info(f"✅ Database-first routing completed for: '{query}'")
+            return response
+            
+        except Exception as e:
+            logger.error(f"Error in database-first routing: {str(e)}")
+            
+            # Fallback to standard processing
+            logger.info("🔄 Falling back to standard processing")
+            return await self._fallback_response(query, session_id, language)
+
+    async def _fallback_response(self, query: str, session_id: str, language: str) -> Dict[str, Any]:
+        """Create a fallback response when database routing fails."""
+        fallback_texts = {
+            "en": f"I'm here to help with your Egypt tourism questions. Could you please rephrase your question about '{query}'?",
+            "ar": f"أنا هنا للمساعدة في أسئلة السياحة المصرية. هل يمكنك إعادة صياغة سؤالك حول '{query}'؟"
+        }
+        
+        return {
+            "text": fallback_texts.get(language, fallback_texts["en"]),
+            "response_type": "fallback",
+            "intent": "general_query",
+            "session_id": session_id,
+            "language": language,
+            "source": "fallback",
+            "fallback": True
         }

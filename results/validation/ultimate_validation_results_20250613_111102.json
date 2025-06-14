@@ -1,0 +1,365 @@
+{
+  "test_nlu_intent_failures": {
+    "total_queries": 16,
+    "working_fastpath": 2,
+    "failing_nlu": 6,
+    "detailed_results": {
+      "What should I tip in restaurants in Egypt?": {
+        "expected_intent": "practical_info",
+        "response_type": "general",
+        "is_generic": true,
+        "is_specific": false,
+        "has_suggestions": [],
+        "status": "\u274c NLU FAIL",
+        "response_preview": "I'm here to help with your questions about Egypt tourism. How can I assist you t"
+      },
+      "How much should I tip taxi drivers?": {
+        "expected_intent": "practical_info",
+        "response_type": "quick_response",
+        "is_generic": false,
+        "is_specific": false,
+        "has_suggestions": null,
+        "status": "\u26a0\ufe0f UNCLEAR",
+        "response_preview": "I'd be happy to help you with Egypt tourism information!"
+      },
+      "Currency exchange rates in Egypt": {
+        "expected_intent": "practical_info",
+        "response_type": "general",
+        "is_generic": true,
+        "is_specific": false,
+        "has_suggestions": [],
+        "status": "\u274c NLU FAIL",
+        "response_preview": "I'm here to help with your questions about Egypt tourism. How can I assist you t"
+      },
+      "Safety tips for travelers": {
+        "expected_intent": "practical_info",
+        "response_type": "general",
+        "is_generic": true,
+        "is_specific": false,
+        "has_suggestions": [],
+        "status": "\u274c NLU FAIL",
+        "response_preview": "I'm here to help with your questions about Egypt tourism. How can I assist you t"
+      },
+      "baksheesh": {
+        "expected_intent": "practical_info",
+        "response_type": "general",
+        "is_generic": true,
+        "is_specific": false,
+        "has_suggestions": [],
+        "status": "\u274c NLU FAIL",
+        "response_preview": "I'm here to help with your questions about Egypt tourism. How can I assist you t"
+      },
+      "tipping": {
+        "expected_intent": "practical_info",
+        "response_type": "general",
+        "is_generic": true,
+        "is_specific": false,
+        "has_suggestions": [],
+        "status": "\u274c NLU FAIL",
+        "response_preview": "I'm here to help with your questions about Egypt tourism. How can I assist you t"
+      },
+      "Best attractions in Egypt": {
+        "expected_intent": "attraction_info",
+        "response_type": "general",
+        "is_generic": true,
+        "is_specific": false,
+        "has_suggestions": [],
+        "status": "\u26a0\ufe0f UNCLEAR",
+        "response_preview": "I'm here to help with your questions about Egypt tourism. How can I assist you t"
+      },
+      "What to see in Cairo": {
+        "expected_intent": "attraction_info",
+        "response_type": "quick_response",
+        "is_generic": false,
+        "is_specific": false,
+        "has_suggestions": null,
+        "status": "\u26a0\ufe0f UNCLEAR",
+        "response_preview": "I'd be happy to help you with Egypt tourism information!"
+      },
+      "attractions in egypt": {
+        "expected_intent": "attraction_info",
+        "response_type": "general",
+        "is_generic": true,
+        "is_specific": false,
+        "has_suggestions": [],
+        "status": "\u26a0\ufe0f UNCLEAR",
+        "response_preview": "I'm here to help with your questions about Egypt tourism. How can I assist you t"
+      },
+      "Best hotels in Cairo": {
+        "expected_intent": "accommodation_info",
+        "response_type": "quick_response",
+        "is_generic": false,
+        "is_specific": false,
+        "has_suggestions": null,
+        "status": "\u26a0\ufe0f UNCLEAR",
+        "response_preview": "I'd be happy to help you with Egypt tourism information!"
+      },
+      "best hotels in cairo": {
+        "expected_intent": "accommodation_info",
+        "response_type": "quick_response",
+        "is_generic": false,
+        "is_specific": false,
+        "has_suggestions": null,
+        "status": "\u26a0\ufe0f UNCLEAR",
+        "response_preview": "I'd be happy to help you with Egypt tourism information!"
+      },
+      "restaurant recommendations": {
+        "expected_intent": "restaurant_info",
+        "response_type": "quick_response",
+        "is_generic": false,
+        "is_specific": false,
+        "has_suggestions": null,
+        "status": "\u26a0\ufe0f UNCLEAR",
+        "response_preview": "I'd be happy to help you with Egypt tourism information!"
+      },
+      "Egyptian cuisine": {
+        "expected_intent": "restaurant_info",
+        "response_type": "general",
+        "is_generic": true,
+        "is_specific": false,
+        "has_suggestions": [],
+        "status": "\u274c NLU FAIL",
+        "response_preview": "I'm here to help with your questions about Egypt tourism. How can I assist you t"
+      },
+      "pyramids": {
+        "expected_intent": "attraction_pyramids",
+        "response_type": "attraction_info",
+        "is_generic": false,
+        "is_specific": true,
+        "has_suggestions": true,
+        "status": "\u2705 FAST-PATH",
+        "response_preview": "The Pyramids of Giza are Egypt's most iconic monuments! Built over 4,500 years a"
+      },
+      "sphinx": {
+        "expected_intent": "attraction_sphinx",
+        "response_type": "attraction_info",
+        "is_generic": false,
+        "is_specific": true,
+        "has_suggestions": true,
+        "status": "\u2705 FAST-PATH",
+        "response_preview": "The Great Sphinx of Giza is a magnificent limestone statue with a human head and"
+      },
+      "hello": {
+        "expected_intent": "greeting",
+        "response_type": "quick_response",
+        "is_generic": false,
+        "is_specific": false,
+        "has_suggestions": true,
+        "status": "\u26a0\ufe0f UNCLEAR",
+        "response_preview": "Hello! I'm your Egypt tourism guide. How can I help you explore Egypt?"
+      }
+    },
+    "critical_finding": true
+  },
+  "test_fastpath_inconsistencies": {
+    "pyramids": {
+      "duration_ms": 3.7488937377929688,
+      "should_be_fast": true,
+      "predicted_fastpath": true,
+      "is_specific": true,
+      "status": "\u2705 FAST-PATH OK"
+    },
+    "sphinx": {
+      "duration_ms": 4.276037216186523,
+      "should_be_fast": true,
+      "predicted_fastpath": true,
+      "is_specific": true,
+      "status": "\u2705 FAST-PATH OK"
+    },
+    "hello": {
+      "duration_ms": 4.756927490234375,
+      "should_be_fast": true,
+      "predicted_fastpath": true,
+      "is_specific": false,
+      "status": "\u2705 FAST-PATH OK"
+    },
+    "help": {
+      "duration_ms": 7.420778274536133,
+      "should_be_fast": true,
+      "predicted_fastpath": true,
+      "is_specific": true,
+      "status": "\u2705 FAST-PATH OK"
+    },
+    "What should I tip in restaurants?": {
+      "duration_ms": 163.58590126037598,
+      "should_be_fast": false,
+      "predicted_fastpath": false,
+      "is_specific": false,
+      "status": "\u2705 FULL-NLU OK"
+    },
+    "best hotels in cairo": {
+      "duration_ms": 3.899812698364258,
+      "should_be_fast": false,
+      "predicted_fastpath": null,
+      "is_specific": false,
+      "status": "\u2705 FULL-NLU OK"
+    },
+    "Egyptian cuisine": {
+      "duration_ms": 26.63588523864746,
+      "should_be_fast": false,
+      "predicted_fastpath": [],
+      "is_specific": false,
+      "status": "\u2705 FULL-NLU OK"
+    },
+    "tipping": {
+      "duration_ms": 18.452167510986328,
+      "should_be_fast": false,
+      "predicted_fastpath": [],
+      "is_specific": false,
+      "status": "\u2705 FULL-NLU OK"
+    }
+  },
+  "test_database_routing_issues": {
+    "direct_database_results": {
+      "tip": {
+        "error": "maximum recursion depth exceeded"
+      },
+      "tipping": {
+        "error": "maximum recursion depth exceeded"
+      },
+      "baksheesh": {
+        "error": "maximum recursion depth exceeded"
+      },
+      "currency": {
+        "error": "maximum recursion depth exceeded"
+      },
+      "safety": {
+        "error": "maximum recursion depth exceeded"
+      }
+    },
+    "database_component_working": false
+  },
+  "test_knowledge_api_failures": {
+    "api_endpoints_tested": 4,
+    "working_endpoints": 0,
+    "broken_endpoints": 4,
+    "detailed_results": {
+      "/api/knowledge/practical-info": {
+        "status_code": 500,
+        "working": false,
+        "error_detail": "Error searching practical info: maximum recursion depth exceeded"
+      },
+      "/api/knowledge/attractions": {
+        "status_code": 500,
+        "working": false,
+        "error_detail": "Error searching attractions: 'NoneType' object is not callable"
+      },
+      "/api/knowledge/hotels": {
+        "error": "'NoneType' object is not subscriptable"
+      },
+      "/api/knowledge/restaurants": {
+        "error": "'NoneType' object is not subscriptable"
+      }
+    }
+  },
+  "test_response_generation_analysis": {
+    "generic_fallback": {
+      "response_type": "general",
+      "length": 85,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "is_generic": true,
+      "is_specific": false,
+      "response_preview": "I'm here to help with your questions about Egypt tourism. How can I assist you today?"
+    },
+    "fastpath_specific": {
+      "response_type": "attraction_info",
+      "length": 244,
+      "has_suggestions": true,
+      "suggestion_count": 4,
+      "is_generic": false,
+      "is_specific": true,
+      "response_preview": "The Pyramids of Giza are Egypt's most iconic monuments! Built over 4,500 years ago, these magnificen"
+    },
+    "fastpath_greeting": {
+      "response_type": "quick_response",
+      "length": 116,
+      "has_suggestions": true,
+      "suggestion_count": 5,
+      "is_generic": false,
+      "is_specific": true,
+      "response_preview": "Welcome to the Egypt Tourism Chatbot! I can provide information about Egypt's attractions, accommoda"
+    },
+    "nlu_failure": {
+      "response_type": "general",
+      "length": 85,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "is_generic": true,
+      "is_specific": false,
+      "response_preview": "I'm here to help with your questions about Egypt tourism. How can I assist you today?"
+    },
+    "help_response": {
+      "response_type": "help",
+      "length": 180,
+      "has_suggestions": true,
+      "suggestion_count": 6,
+      "is_generic": true,
+      "is_specific": true,
+      "response_preview": "I'm here to help with Egypt tourism information! I can tell you about attractions like the Pyramids,"
+    }
+  },
+  "test_configuration_flag_behavior": {
+    "flags": {
+      "USE_NEW_UNIFIED_SEARCH": "true",
+      "USE_LLM_FIRST": "NOT_SET",
+      "USE_ANTHROPIC": "NOT_SET",
+      "USE_NEW_API": "true",
+      "USE_NEW_NLU": "true",
+      "USE_NEW_KB": "true",
+      "USE_NEW_SERVICES": "true"
+    },
+    "inconsistencies": [
+      "USE_LLM_FIRST=NOT_SET but some queries may still use LLM"
+    ],
+    "critical_flags_missing": 2
+  },
+  "test_grey_areas_edge_cases": {
+    "minimal_'egypt'": {
+      "status_code": 200,
+      "response_type": "general",
+      "has_response": true
+    },
+    "minimal_'help'": {
+      "status_code": 200,
+      "response_type": "help",
+      "has_response": true
+    }
+  },
+  "test_performance_timing_patterns": {
+    "fast": {
+      "count": 3,
+      "avg_ms": 4.252195358276367,
+      "min_ms": 3.1728744506835938,
+      "max_ms": 5.351781845092773,
+      "all_timings": [
+        3.1728744506835938,
+        4.231929779052734,
+        5.351781845092773
+      ]
+    },
+    "slow": {
+      "count": 3,
+      "avg_ms": 19.2720890045166,
+      "min_ms": 3.5657882690429688,
+      "max_ms": 28.264284133911133,
+      "all_timings": [
+        28.264284133911133,
+        3.5657882690429688,
+        25.986194610595703
+      ]
+    }
+  },
+  "determine_ultimate_root_cause": {
+    "root_cause": "DATABASE_ACCESS_FAILURE",
+    "explanation": "Core database access is broken",
+    "severity": "CRITICAL",
+    "evidence": {
+      "failing_nlu": 6,
+      "working_fastpath": 2,
+      "database_working": false,
+      "broken_apis": 4,
+      "missing_flags": 2
+    }
+  }
+}

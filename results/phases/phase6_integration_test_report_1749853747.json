@@ -1,0 +1,231 @@
+{
+  "phase6_integration_test": {
+    "timestamp": "2025-06-14T01:29:07.378427",
+    "total_duration_seconds": 15.61,
+    "overall_status": "ISSUES_FOUND",
+    "test_summary": {
+      "total_test_categories": 4,
+      "passed_categories": 3,
+      "failed_categories": 1,
+      "success_rate": 75.0
+    }
+  },
+  "integration_validation": {
+    "end_to_end_workflows": {
+      "status": "PASS",
+      "details": {
+        "Tourism Planning Journey": {
+          "total_queries": 5,
+          "successful_responses": 5,
+          "database_routing_count": 0,
+          "api_routing_count": 5,
+          "fast_path_count": 0,
+          "average_response_time": 277.09503173828125,
+          "response_times": [
+            924.921989440918,
+            24.74808692932129,
+            153.95212173461914,
+            143.4779167175293,
+            138.37504386901855
+          ],
+          "routing_accuracy": 0,
+          "errors": [],
+          "success_rate": 1.0,
+          "passed": true
+        },
+        "Complex Itinerary Planning": {
+          "total_queries": 5,
+          "successful_responses": 5,
+          "database_routing_count": 3,
+          "api_routing_count": 2,
+          "fast_path_count": 0,
+          "average_response_time": 95.03850936889648,
+          "response_times": [
+            89.51711654663086,
+            138.69023323059082,
+            78.74202728271484,
+            82.85307884216309,
+            85.39009094238281
+          ],
+          "routing_accuracy": 0,
+          "errors": [],
+          "success_rate": 1.0,
+          "passed": true
+        },
+        "Mixed Language and Complexity": {
+          "total_queries": 5,
+          "successful_responses": 5,
+          "database_routing_count": 2,
+          "api_routing_count": 3,
+          "fast_path_count": 0,
+          "average_response_time": 43.54586601257324,
+          "response_times": [
+            1.0890960693359375,
+            0.9782314300537109,
+            132.63988494873047,
+            82.0620059967041,
+            0.9601116180419922
+          ],
+          "routing_accuracy": 0,
+          "errors": [],
+          "success_rate": 1.0,
+          "passed": true
+        }
+      }
+    },
+    "system_integration": {
+      "status": "FAIL",
+      "details": {
+        "successful_integrations": 1,
+        "total_integrations": 3,
+        "integration_details": {
+          "nlu_database": {
+            "error": "KnowledgeBaseService.search_events_festivals() takes from 1 to 4 positional arguments but 6 were given"
+          },
+          "kb_database": {
+            "error": "KnowledgeBaseService.search_events_festivals() takes from 1 to 4 positional arguments but 6 were given"
+          },
+          "complete_pipeline": {
+            "total_queries": 4,
+            "successful_responses": 4,
+            "response_times": [
+              129.9300193786621,
+              137.96401023864746,
+              145.4629898071289,
+              1.135110855102539
+            ],
+            "routing_distribution": {
+              "database": 0,
+              "api": 4,
+              "fast_path": 0
+            },
+            "average_response_time": 103.62303256988525
+          }
+        }
+      }
+    },
+    "performance_under_load": {
+      "status": "PASS",
+      "details": {
+        "Light Load": {
+          "concurrent_users": 3,
+          "total_queries": 6,
+          "successful_requests": 6,
+          "failed_requests": 0,
+          "response_times": [
+            180.37009239196777,
+            236.0701560974121,
+            296.79107666015625,
+            211.6680145263672,
+            235.8541488647461,
+            229.78901863098145
+          ],
+          "errors": [],
+          "average_response_time": 231.75708452860513,
+          "min_response_time": 180.37009239196777,
+          "max_response_time": 296.79107666015625,
+          "total_duration": 0.5098810195922852,
+          "requests_per_second": 11.767451168897725,
+          "success_rate": 1.0,
+          "passed": true
+        },
+        "Medium Load": {
+          "concurrent_users": 5,
+          "total_queries": 10,
+          "successful_requests": 10,
+          "failed_requests": 0,
+          "response_times": [
+            54.20970916748047,
+            46.98491096496582,
+            46.237945556640625,
+            31.025171279907227,
+            46.9059944152832,
+            31.244993209838867,
+            180.7258129119873,
+            115.9050464630127,
+            130.94568252563477,
+            198.81224632263184
+          ],
+          "errors": [],
+          "average_response_time": 88.29975128173828,
+          "min_response_time": 31.025171279907227,
+          "max_response_time": 198.81224632263184,
+          "total_duration": 0.5879127979278564,
+          "requests_per_second": 17.00932525239417,
+          "success_rate": 1.0,
+          "passed": true
+        }
+      }
+    },
+    "real_world_scenarios": {
+      "status": "PASS",
+      "details": {
+        "Specific Information Request": {
+          "query": "What are the opening hours for the Egyptian Museum in Cairo?",
+          "expected_complexity": "medium",
+          "expected_routing": "database",
+          "success": true,
+          "response_time": 114.17603492736816,
+          "response_length": 85,
+          "quality_indicators": {
+            "has_specific_info": true,
+            "has_numbers": false,
+            "has_recommendations": false,
+            "response_comprehensive": false
+          },
+          "actual_routing": "database",
+          "routing_correct": true,
+          "passed": true
+        },
+        "Practical Information": {
+          "query": "What's the appropriate tip for hotel staff in Egypt?",
+          "expected_complexity": "low",
+          "expected_routing": "database",
+          "success": true,
+          "response_time": 200.95014572143555,
+          "response_length": 77,
+          "quality_indicators": {
+            "has_specific_info": false,
+            "has_numbers": false,
+            "has_recommendations": false,
+            "response_comprehensive": false
+          },
+          "actual_routing": "database",
+          "routing_correct": true,
+          "passed": true
+        },
+        "Current Events": {
+          "query": "What cultural festivals are happening in Egypt this month?",
+          "expected_complexity": "medium",
+          "expected_routing": "database",
+          "success": true,
+          "response_time": 101.08709335327148,
+          "response_length": 77,
+          "quality_indicators": {
+            "has_specific_info": false,
+            "has_numbers": false,
+            "has_recommendations": false,
+            "response_comprehensive": false
+          },
+          "actual_routing": "database",
+          "routing_correct": true,
+          "passed": true
+        }
+      }
+    }
+  },
+  "system_readiness": {
+    "end_to_end_workflows": true,
+    "system_integration": false,
+    "performance_under_load": true,
+    "real_world_scenarios": true
+  },
+  "phase_1_to_5_validation": {
+    "database_foundation": "validated",
+    "configuration_unification": "validated",
+    "service_implementation": "validated",
+    "error_handling": "validated",
+    "environment_hardening": "validated",
+    "integration_proof": "partial"
+  }
+}

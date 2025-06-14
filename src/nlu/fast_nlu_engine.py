@@ -23,59 +23,39 @@ class FastNLUEngine:
         """Initialize fast NLU engine with pattern-based processing."""
         logger.info("🚀 Phase 3: Initializing FastNLUEngine for immediate responses...")
         
-        # Fast-path patterns from Phase 1 (enhanced for Phase 3)
+        # PHASE 4: RESTRICTED Fast-path patterns - ONLY social interactions
+        # All content queries should go through database-first routing
         self.simple_patterns = {
-            # Greetings & Social
+            # Basic Social Interactions (Keep these for instant UX)
             r'\b(hi|hello|hey|greetings|مرحبا|أهلا|السلام عليكم)\b': 'greeting',
             r'\b(bye|goodbye|farewell|وداعا|مع السلامة|إلى اللقاء)\b': 'farewell',
             r'\b(thanks?|thank you|شكرا|متشكر|ممنون)\b': 'gratitude',
             
-            # Help & Information
-            r'\b(help|info|information|معلومات|مساعدة|إزاي|كيف)\b': 'help_request',
+            # Essential Help & Capabilities (Keep for UX, but very specific)
+            r'^(help|معلومات|مساعدة)$': 'help_request',  # Only exact matches
             r'\b(what can you do|what do you know|ايه اللي تقدر|ايه خدماتك)\b': 'capabilities',
             
-            # Major Attractions (Most Common Tourism Queries)
-            r'\b(pyramid|pyramids?|هرم|أهرامات|giza)\b': 'attraction_pyramids',
-            r'\b(sphinx|أبو الهول)\b': 'attraction_sphinx', 
-            r'\b(luxor|الأقصر|temple|معبد)\b': 'attraction_luxor',
-            r'\b(karnak|الكرنك)\b': 'attraction_luxor',
-            r'\b(aswan|أسوان|dam|السد)\b': 'attraction_aswan',
-            r'\b(abu simbel|أبو سمبل)\b': 'attraction_aswan',
-            r'\b(alexandria|الإسكندرية|library|مكتبة)\b': 'attraction_alexandria',
-            
-            # Tourism Services
-            r'\b(hotel|accommodation|stay|فندق|إقامة|منتجع)\b': 'service_hotel',
-            r'\b(restaurant|food|eat|مطعم|طعام|أكل)\b': 'service_restaurant',
-            
-            # Cities & Destinations  
-            r'\b(cairo|القاهرة|capital|عاصمة)\b': 'destination_cairo',
-            r'\b(hurghada|الغردقة|red sea|البحر الأحمر)\b': 'destination_redsea',
-            r'\b(sharm|شرم الشيخ)\b': 'destination_redsea',
-            
-            # Practical Information
-            r'\b(weather|temperature|climate|طقس|حرارة|مناخ)\b': 'practical_weather',
-            r'\b(visa|passport|entry|فيزا|جواز|دخول)\b': 'practical_visa',
-            r'\b(currency|money|جنيه|نقود|صرافة)\b': 'practical_currency',
-            r'\b(price|cost|how much|كام|سعر|تكلفة)\b': 'inquiry_price',
+            # REMOVED: All content-based patterns - these should use database
+            # - Major Attractions: Let database provide rich content
+            # - Tourism Services: Let database provide specific recommendations  
+            # - Cities & Destinations: Let database provide detailed info
+            # - Practical Information: Let database provide accurate data
+            #
+            # Philosophy: Fast-path for social interaction speed, 
+            #           Database for content richness and accuracy
         }
         
-        # Fast entity extraction patterns
+        # PHASE 4: MINIMAL entity extraction patterns - only for social interaction context
         self.entity_patterns = {
-            'location': [
-                r'\b(cairo|giza|luxor|aswan|alexandria|hurghada|sharm|marsa alam)\b',
-                r'\b(القاهرة|الجيزة|الأقصر|أسوان|الإسكندرية|الغردقة|شرم الشيخ)\b'
-            ],
-            'attraction': [
-                r'\b(pyramid|sphinx|temple|museum|citadel|library)\b',
-                r'\b(هرم|أبو الهول|معبد|متحف|قلعة|مكتبة)\b'
-            ],
-            'accommodation': [
-                r'\b(hotel|resort|hostel|accommodation)\b',
-                r'\b(فندق|منتجع|نزل|إقامة)\b'
+            # Keep minimal entity extraction for basic conversation context
+            # All detailed entity extraction should happen in full NLU pipeline
+            'greeting_type': [
+                r'\b(morning|afternoon|evening)\b',
+                r'\b(صباح|مساء|ليل)\b'
             ]
         }
         
-        # Fast response templates
+        # PHASE 4: RESTRICTED Fast response templates - ONLY social interactions
         self.quick_responses = {
             'greeting': [
                 "Hello! Welcome to Egypt Tourism Assistant! 🇪🇬",
@@ -85,17 +65,13 @@ class FastNLUEngine:
                 "Goodbye! Have a wonderful trip to Egypt! 🌟",
                 "وداعا! استمتع برحلتك في مصر! 🌟"
             ],
-            'attraction_pyramids': [
-                "The Pyramids of Giza are Egypt's most iconic attraction! Built over 4,500 years ago, they're a must-see wonder of the ancient world. 🏺✨",
-                "أهرامات الجيزة هي أشهر معالم مصر! بُنيت منذ أكثر من 4500 سنة وهي من عجائب العالم القديم التي يجب زيارتها! 🏺✨"
+            'gratitude': [
+                "You're welcome! I'm happy to help with your Egypt tourism questions! 😊",
+                "عفواً! يسعدني مساعدتك في أسئلة السياحة المصرية! 😊"
             ],
-            'attraction_sphinx': [
-                "The Great Sphinx stands guard at Giza, carved from a single limestone block. This mysterious monument is over 4,000 years old! 🦁",
-                "أبو الهول العظيم يحرس الجيزة، منحوت من كتلة حجر جيري واحدة. هذا النصب الغامض عمره أكثر من 4000 سنة! 🦁"
-            ],
-            'service_hotel': [
-                "Egypt offers amazing accommodations from luxury resorts to budget-friendly hotels. Would you like recommendations for a specific city? 🏨",
-                "مصر تقدم إقامة رائعة من المنتجعات الفاخرة للفنادق الاقتصادية. هل تريد توصيات لمدينة معينة؟ 🏨"
+            'capabilities': [
+                "I can help you with Egypt tourism information! Ask me about attractions, hotels, restaurants, transportation, or practical travel tips. 🗺️",
+                "يمكنني مساعدتك في معلومات السياحة المصرية! اسألني عن المعالم والفنادق والمطاعم والمواصلات أو نصائح السفر العملية. 🗺️"
             ],
             'help_request': [
                 "I'm here to help with your Egypt travel plans! Ask me about attractions, hotels, restaurants, weather, or practical information. 🗺️",

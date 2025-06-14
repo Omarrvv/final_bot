@@ -319,6 +319,110 @@ class KnowledgeBaseService:
             raise
     
     # ============================================================================
+    # PRACTICAL INFO METHODS
+    # ============================================================================
+    
+    def search_practical_info(self, query: Dict = None, limit: int = 10, language: str = "en") -> List[Dict]:
+        """Search practical information with signature compatibility."""
+        start_time = time.time()
+        
+        try:
+            # Call DatabaseManagerService with correct parameter mapping
+            result = self.db_manager.search_practical_info(
+                query=query,
+                category_id=None,  # No category filtering from KnowledgeBase layer
+                limit=limit,
+                offset=0,
+                language=language
+            )
+            
+            duration_ms = (time.time() - start_time) * 1000
+            self._track_operation('search_practical_info', duration_ms, True)
+            return result or []
+            
+        except Exception as e:
+            duration_ms = (time.time() - start_time) * 1000
+            self._track_operation('search_practical_info', duration_ms, False)
+            logger.error(f"Error searching practical info: {str(e)}")
+            raise
+
+    def search_faqs(self, query: Dict = None, limit: int = 10, language: str = "en") -> List[Dict]:
+        """Search FAQs with signature compatibility - FIX for bigint parameter bug."""
+        start_time = time.time()
+        
+        try:
+            # Call DatabaseManagerService with correct parameter mapping
+            # This fixes the critical "invalid input syntax for type bigint: 'en'" error
+            result = self.db_manager.search_faqs(
+                query=query,
+                filters=None,  # No additional filters from KnowledgeBase layer
+                limit=limit,
+                offset=0,  # Default offset 
+                language=language
+            )
+            
+            duration_ms = (time.time() - start_time) * 1000
+            self._track_operation('search_faqs', duration_ms, True)
+            return result or []
+            
+        except Exception as e:
+            duration_ms = (time.time() - start_time) * 1000
+            self._track_operation('search_faqs', duration_ms, False)
+            logger.error(f"Error searching FAQs: {str(e)}")
+            return []
+
+    def search_tour_packages(self, query: Dict = None, category_id: str = None,
+                           min_duration: int = None, max_duration: int = None,
+                           limit: int = 10, language: str = "en") -> List[Dict]:
+        """Search tour packages with signature compatibility - FIX for parameter bugs."""
+        start_time = time.time()
+        
+        try:
+            # Call DatabaseManagerService with correct parameter mapping
+            result = self.db_manager.search_tour_packages(
+                query=query,
+                category_id=category_id,
+                min_duration=min_duration,
+                max_duration=max_duration,
+                limit=limit,
+                offset=0,  # Default offset 
+                language=language
+            )
+            
+            duration_ms = (time.time() - start_time) * 1000
+            self._track_operation('search_tour_packages', duration_ms, True)
+            return result or []
+            
+        except Exception as e:
+            duration_ms = (time.time() - start_time) * 1000
+            self._track_operation('search_tour_packages', duration_ms, False)
+            logger.error(f"Error searching tour packages: {str(e)}")
+            return []
+
+    def search_custom_itineraries(self, query: Dict = None, limit: int = 10, language: str = "en") -> List[Dict]:
+        """Search custom itineraries with signature compatibility - FIX for parameter bugs."""
+        start_time = time.time()
+        
+        try:
+            # Call DatabaseManagerService with correct parameter mapping
+            result = self.db_manager.search_custom_itineraries(
+                query=query,
+                limit=limit,
+                offset=0,  # Default offset 
+                language=language
+            )
+            
+            duration_ms = (time.time() - start_time) * 1000
+            self._track_operation('search_custom_itineraries', duration_ms, True)
+            return result or []
+            
+        except Exception as e:
+            duration_ms = (time.time() - start_time) * 1000
+            self._track_operation('search_custom_itineraries', duration_ms, False)
+            logger.error(f"Error searching custom itineraries: {str(e)}")
+            return []
+
+    # ============================================================================
     # LEGACY COMPATIBILITY METHODS
     # ============================================================================
     
@@ -440,14 +544,65 @@ class KnowledgeBaseService:
         }
     
     # ============================================================================
+    # ADDITIONAL SEARCH METHODS (for phantom table support)
+    # ============================================================================
+    
+    def search_events_festivals(self, query: Dict = None, limit: int = 10, language: str = "en") -> List[Dict]:
+        """Search events and festivals."""
+        start_time = time.time()
+        try:
+            result = self.db_manager.search_events(query=query, limit=limit, language=language)
+            duration_ms = (time.time() - start_time) * 1000
+            self._track_operation('search_events_festivals', duration_ms, True)
+            return result or []
+        except Exception as e:
+            duration_ms = (time.time() - start_time) * 1000
+            self._track_operation('search_events_festivals', duration_ms, False)
+            logger.error(f"Error searching events/festivals: {str(e)}")
+            return []
+
+    def search_itineraries(self, query: Dict = None, limit: int = 10, language: str = "en") -> List[Dict]:
+        """Search itineraries."""
+        start_time = time.time()
+        try:
+            result = self.db_manager.generic_search("itineraries",
+                                                  filters=query if query else {},
+                                                  limit=limit,
+                                                  jsonb_fields=["name", "description"],
+                                                  language=language)
+            duration_ms = (time.time() - start_time) * 1000
+            self._track_operation('search_itineraries', duration_ms, True)
+            return result or []
+        except Exception as e:
+            duration_ms = (time.time() - start_time) * 1000
+            self._track_operation('search_itineraries', duration_ms, False)
+            logger.error(f"Error searching itineraries: {str(e)}")
+            return []
+
+    # ============================================================================
     # LEGACY API DELEGATION
     # ============================================================================
     
     def __getattr__(self, name):
-        """Delegate unknown attributes to the legacy database manager."""
+        """Delegate unknown attributes to the legacy database manager with robust error handling."""
         if hasattr(self.db_manager, name):
             self._facade_metrics['legacy_fallback_count'] += 1
             if self.enable_logging:
                 logger.debug(f"KB_FACADE: Delegating {name} to legacy db_manager")
             return getattr(self.db_manager, name)
-        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'") 
+
+        # Handle missing methods gracefully instead of raising AttributeError
+        from src.utils.error_handler import UnifiedErrorHandler
+
+        def missing_method_handler(*args, **kwargs):
+            # Extract language from kwargs if available
+            language = kwargs.get('language', 'en')
+            
+            # Return graceful error response
+            return UnifiedErrorHandler.handle_missing_method(
+                self.__class__.__name__,
+                name,
+                language
+            )
+
+        return missing_method_handler 

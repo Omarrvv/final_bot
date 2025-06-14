@@ -1,352 +1,430 @@
 """
-Comprehensive health check endpoints for Phase 4 optimization.
-Monitors system components, performance metrics, and optimization status.
+Phase 5: Environment Hardening - Health Monitoring Endpoints
+Production-ready health check and monitoring system
 """
 import time
+import json
+import psutil
+from datetime import datetime, timedelta
+from typing import Dict, Any, List
+from fastapi import APIRouter, HTTPException, BackgroundTasks
+from fastapi.responses import JSONResponse
 import logging
-from typing import Dict, Any, List, Optional
-from fastapi import APIRouter, Request, Depends, HTTPException
-from src.utils.dependencies import get_chatbot, get_knowledge_base, get_database_manager
+
+# Import our core services
+import sys
+import os
+sys.path.append('src')
+
+from src.knowledge.database_service import DatabaseManagerService
+from src.knowledge.knowledge_base_service import KnowledgeBaseService
+from src.nlu.engine import NLUEngine
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(
-    prefix="/api/health",
-    tags=["health"],
-)
+# Create router for health endpoints
+router = APIRouter(prefix="/api/health", tags=["health"])
+
+# Global health metrics storage
+health_metrics = {
+    "system_start_time": datetime.utcnow(),
+    "total_requests": 0,
+    "successful_requests": 0,
+    "failed_requests": 0,
+    "database_queries": 0,
+    "api_calls": 0,
+    "average_response_time": 0.0,
+    "last_health_check": None,
+    "alerts": []
+}
+
+# Performance thresholds
+PERFORMANCE_THRESHOLDS = {
+    "response_time_warning": 500,  # ms
+    "response_time_critical": 2000,  # ms
+    "memory_warning": 800,  # MB
+    "memory_critical": 1500,  # MB
+    "database_query_warning": 100,  # ms
+    "error_rate_warning": 0.05,  # 5%
+    "error_rate_critical": 0.15  # 15%
+}
+
+class HealthMonitor:
+    """Production health monitoring system."""
+    
+    def __init__(self):
+        self.start_time = datetime.utcnow()
+        self.db_manager = None
+        self.nlu_engine = None
+        self.kb_service = None
+        
+    def initialize_services(self):
+        """Initialize core services for health checking."""
+        try:
+            self.db_manager = DatabaseManagerService()
+            self.kb_service = KnowledgeBaseService(self.db_manager)
+            self.nlu_engine = NLUEngine('configs/models.json', self.kb_service)
+            return True
+        except Exception as e:
+            logger.error(f"Failed to initialize services for health monitoring: {e}")
+            return False
+    
+    def check_database_health(self) -> Dict[str, Any]:
+        """Check database connectivity and performance."""
+        try:
+            if not self.db_manager:
+                self.db_manager = DatabaseManagerService()
+            
+            start_time = time.time()
+            connection_ok = self.db_manager.test_connection()
+            connection_time = (time.time() - start_time) * 1000
+            
+            if not connection_ok:
+                return {
+                    "status": "CRITICAL",
+                    "message": "Database connection failed",
+                    "response_time_ms": connection_time
+                }
+            
+            # Test a simple query
+            start_time = time.time()
+            result = self.db_manager.generic_search("attractions", limit=1)
+            query_time = (time.time() - start_time) * 1000
+            
+            status = "HEALTHY"
+            if query_time > PERFORMANCE_THRESHOLDS["database_query_warning"]:
+                status = "WARNING"
+            
+            return {
+                "status": status,
+                "message": "Database operational",
+                "connection_time_ms": round(connection_time, 2),
+                "query_time_ms": round(query_time, 2),
+                "sample_results": len(result) if result else 0
+            }
+            
+        except Exception as e:
+            return {
+                "status": "CRITICAL",
+                "message": f"Database health check failed: {str(e)}",
+                "error": str(e)
+            }
+    
+    def check_nlu_health(self) -> Dict[str, Any]:
+        """Check NLU engine and embedding service health."""
+        try:
+            if not self.nlu_engine:
+                self.kb_service = KnowledgeBaseService(DatabaseManagerService())
+                self.nlu_engine = NLUEngine('configs/models.json', self.kb_service)
+            
+            # Test embedding service
+            embedding_status = "CRITICAL"
+            embedding_message = "Embedding service not ready"
+            
+            if self.nlu_engine.embedding_service and self.nlu_engine.embedding_service.is_ready():
+                embedding_status = "HEALTHY"
+                embedding_message = "Embedding service operational"
+                
+                # Test embedding generation
+                start_time = time.time()
+                test_embedding = self.nlu_engine.embedding_service.generate_embedding("test health check")
+                embedding_time = (time.time() - start_time) * 1000
+                
+                if embedding_time > 200:  # 200ms threshold for embeddings
+                    embedding_status = "WARNING"
+                    embedding_message = f"Embedding generation slow: {embedding_time:.1f}ms"
+            
+            # Test intent classification
+            start_time = time.time()
+            result = self.nlu_engine.process("What are the best attractions in Cairo?", "health_check")
+            classification_time = (time.time() - start_time) * 1000
+            
+            classification_status = "HEALTHY"
+            if classification_time > PERFORMANCE_THRESHOLDS["response_time_warning"]:
+                classification_status = "WARNING"
+            
+            intent = result.get('intent', 'unknown') if result else 'failed'
+            
+            return {
+                "status": "HEALTHY" if embedding_status == "HEALTHY" and classification_status == "HEALTHY" else "WARNING",
+                "embedding_service": {
+                    "status": embedding_status,
+                    "message": embedding_message
+                },
+                "intent_classification": {
+                    "status": classification_status,
+                    "response_time_ms": round(classification_time, 2),
+                    "test_result": intent
+                },
+                "models_loaded": len(self.nlu_engine.transformer_models),
+                "intents_configured": len(self.nlu_engine.models_config.get('intents', {}))
+            }
+            
+        except Exception as e:
+            return {
+                "status": "CRITICAL",
+                "message": f"NLU health check failed: {str(e)}",
+                "error": str(e)
+            }
+        
+    def check_system_resources(self) -> Dict[str, Any]:
+        """Check system resource usage."""
+        try:
+            process = psutil.Process()
+            
+            # Memory usage
+            memory_info = process.memory_info()
+            memory_mb = memory_info.rss / 1024 / 1024
+            memory_status = "HEALTHY"
+            
+            if memory_mb > PERFORMANCE_THRESHOLDS["memory_critical"]:
+                memory_status = "CRITICAL"
+            elif memory_mb > PERFORMANCE_THRESHOLDS["memory_warning"]:
+                memory_status = "WARNING"
+            
+            # CPU usage
+            cpu_percent = process.cpu_percent(interval=0.1)
+            cpu_status = "HEALTHY"
+            if cpu_percent > 80:
+                cpu_status = "WARNING"
+            elif cpu_percent > 95:
+                cpu_status = "CRITICAL"
+            
+            # System uptime
+            uptime = datetime.utcnow() - self.start_time
+            
+            return {
+                "status": memory_status if memory_status != "HEALTHY" else cpu_status,
+                "memory": {
+                    "usage_mb": round(memory_mb, 1),
+                    "status": memory_status,
+                    "threshold_warning": PERFORMANCE_THRESHOLDS["memory_warning"],
+                    "threshold_critical": PERFORMANCE_THRESHOLDS["memory_critical"]
+                },
+                "cpu": {
+                    "usage_percent": round(cpu_percent, 1),
+                    "status": cpu_status
+                },
+                "uptime": {
+                    "seconds": int(uptime.total_seconds()),
+                    "human_readable": str(uptime).split('.')[0]
+                }
+            }
+            
+        except Exception as e:
+            return {
+                "status": "CRITICAL",
+                "message": f"System resource check failed: {str(e)}",
+                "error": str(e)
+            }
+    
+    def get_performance_metrics(self) -> Dict[str, Any]:
+        """Get performance metrics and statistics."""
+        total_requests = health_metrics["total_requests"]
+        
+        if total_requests == 0:
+            return {
+                "status": "HEALTHY",
+                "message": "No requests processed yet",
+                "metrics": health_metrics
+            }
+        
+        success_rate = health_metrics["successful_requests"] / total_requests
+        error_rate = health_metrics["failed_requests"] / total_requests
+        
+        status = "HEALTHY"
+        if error_rate > PERFORMANCE_THRESHOLDS["error_rate_critical"]:
+            status = "CRITICAL"
+        elif error_rate > PERFORMANCE_THRESHOLDS["error_rate_warning"]:
+            status = "WARNING"
+        
+        return {
+            "status": status,
+            "metrics": {
+                "total_requests": total_requests,
+                "success_rate": round(success_rate * 100, 2),
+                "error_rate": round(error_rate * 100, 2),
+                "average_response_time_ms": round(health_metrics["average_response_time"], 2),
+                "database_queries": health_metrics["database_queries"],
+                "api_calls": health_metrics["api_calls"]
+            },
+            "thresholds": {
+                "error_rate_warning": PERFORMANCE_THRESHOLDS["error_rate_warning"] * 100,
+                "error_rate_critical": PERFORMANCE_THRESHOLDS["error_rate_critical"] * 100,
+                "response_time_warning": PERFORMANCE_THRESHOLDS["response_time_warning"],
+                "response_time_critical": PERFORMANCE_THRESHOLDS["response_time_critical"]
+            }
+        }
+
+# Global health monitor instance
+health_monitor = HealthMonitor()
 
 @router.get("/")
-async def basic_health_check(request: Request):
-    """
-    Basic health check endpoint - fast and lightweight.
-    Phase 4: Optimized for <100ms response time.
-    """
-    start_time = time.time()
-    
-    try:
-        # Quick check of app.state singleton
-        chatbot_available = hasattr(request.app.state, 'chatbot') and request.app.state.chatbot is not None
-        
-        processing_time = time.time() - start_time
-        
-        return {
-            "status": "healthy" if chatbot_available else "unhealthy",
-            "timestamp": time.time(),
-            "processing_time_ms": round(processing_time * 1000, 2),
-            "version": "1.0.0",
-            "phase": "4_optimized"
-        }
-    
-    except Exception as e:
-        processing_time = time.time() - start_time
-        logger.error(f"Basic health check failed: {e}")
-        
-        return {
-            "status": "unhealthy",
-            "error": str(e),
-            "processing_time_ms": round(processing_time * 1000, 2),
-            "phase": "4_optimized"
-        }
+async def basic_health_check():
+    """Basic health check endpoint - lightweight."""
+    return {
+        "status": "healthy",
+        "timestamp": datetime.utcnow().isoformat(),
+        "service": "Egypt Tourism Chatbot",
+        "version": "1.0.0",
+        "uptime_seconds": int((datetime.utcnow() - health_metrics["system_start_time"]).total_seconds())
+    }
 
 @router.get("/detailed")
-async def detailed_health_check(
-    request: Request,
-    chatbot=Depends(get_chatbot),
-    knowledge_base=Depends(get_knowledge_base),
-    db_manager=Depends(get_database_manager)
-):
-    """
-    Detailed health check with component verification.
-    Phase 4: Comprehensive health monitoring with performance metrics.
-    """
-    start_time = time.time()
+async def detailed_health_check():
+    """Comprehensive health check with all systems."""
+    health_results = {
+        "timestamp": datetime.utcnow().isoformat(),
+        "overall_status": "HEALTHY",
+        "components": {}
+    }
     
-    try:
-        # Component status checks
-        components = {}
-        
-        # 1. Chatbot components
-        components["chatbot"] = {
-            "status": "healthy",
-            "type": type(chatbot).__name__,
-            "has_knowledge_base": hasattr(chatbot, 'knowledge_base') and chatbot.knowledge_base is not None,
-            "has_nlu_engine": hasattr(chatbot, 'nlu_engine') and chatbot.nlu_engine is not None,
-            "has_db_manager": hasattr(chatbot, 'db_manager') and chatbot.db_manager is not None,
-            "singleton_from_app_state": request.app.state.chatbot is chatbot
-        }
-        
-        # 2. Database connectivity
+    # Initialize services if needed
+    if not health_monitor.db_manager:
+        init_success = health_monitor.initialize_services()
+        if not init_success:
+            health_results["overall_status"] = "CRITICAL"
+            health_results["initialization_error"] = "Failed to initialize core services"
+    
+    # Check all components
+    components = {
+        "database": health_monitor.check_database_health,
+        "nlu_system": health_monitor.check_nlu_health,
+        "system_resources": health_monitor.check_system_resources
+    }
+    
+    critical_issues = []
+    warnings = []
+    
+    for component_name, check_func in components.items():
         try:
-            db_connected = db_manager.is_connected()
-            components["database"] = {
-                "status": "healthy" if db_connected else "unhealthy",
-                "connected": db_connected,
-                "type": type(db_manager).__name__
-            }
-        except Exception as e:
-            components["database"] = {
-                "status": "unhealthy",
-                "error": str(e),
-                "connected": False
-            }
-        
-        # 3. NLU Engine status
-        try:
-            nlu_engine = chatbot.nlu_engine
-            transformer_models_loaded = len(nlu_engine.transformer_models) if hasattr(nlu_engine, 'transformer_models') else 0
-            nlp_models_loaded = len(nlu_engine.nlp_models) if hasattr(nlu_engine, 'nlp_models') else 0
-            embedding_cache_size = len(nlu_engine.embedding_cache) if hasattr(nlu_engine, 'embedding_cache') else 0
+            result = check_func()
+            health_results["components"][component_name] = result
             
-            components["nlu_engine"] = {
-                "status": "healthy",
-                "transformer_models_loaded": transformer_models_loaded,
-                "nlp_models_loaded": nlp_models_loaded,
-                "embedding_cache_size": embedding_cache_size,
-                "has_async_processing": hasattr(nlu_engine, 'process_async'),
-                "type": type(nlu_engine).__name__
-            }
+            if result["status"] == "CRITICAL":
+                critical_issues.append(f"{component_name}: {result.get('message', 'Critical issue')}")
+            elif result["status"] == "WARNING":
+                warnings.append(f"{component_name}: {result.get('message', 'Warning')}")
+                
         except Exception as e:
-            components["nlu_engine"] = {
-                "status": "unhealthy", 
+            health_results["components"][component_name] = {
+                "status": "CRITICAL",
                 "error": str(e)
             }
-        
-        # 4. Knowledge Base status
-        try:
-            components["knowledge_base"] = {
-                "status": "healthy",
-                "type": type(knowledge_base).__name__,
-                "has_search_methods": all(hasattr(knowledge_base, method) for method in 
-                                        ['search_attractions', 'search_hotels', 'search_restaurants'])
-            }
-        except Exception as e:
-            components["knowledge_base"] = {
-                "status": "unhealthy",
-                "error": str(e)
-            }
-        
-        # 5. Performance middleware status
-        performance_middleware = getattr(request.app.state, 'performance_middleware', None)
-        if performance_middleware:
-            try:
-                perf_summary = performance_middleware.get_performance_summary()
-                components["performance_monitoring"] = {
-                    "status": "healthy",
-                    "enabled": True,
-                    "summary": perf_summary
-                }
-            except Exception as e:
-                components["performance_monitoring"] = {
-                    "status": "unhealthy",
-                    "enabled": True,
-                    "error": str(e)
-                }
-        else:
-            components["performance_monitoring"] = {
-                "status": "disabled",
-                "enabled": False
-            }
-        
-        # Overall status determination
-        component_statuses = [comp.get("status", "unknown") for comp in components.values()]
-        unhealthy_components = [name for name, comp in components.items() if comp.get("status") != "healthy"]
-        
-        overall_status = "healthy" if all(status == "healthy" for status in component_statuses) else "degraded"
-        if any(status == "unhealthy" for status in component_statuses):
-            overall_status = "unhealthy"
-        
-        processing_time = time.time() - start_time
-        
-        return {
-            "status": overall_status,
-            "timestamp": time.time(),
-            "processing_time_ms": round(processing_time * 1000, 2),
-            "components": components,
-            "unhealthy_components": unhealthy_components,
-            "optimization_phase": "4_complete",
-            "performance_targets": {
-                "basic_health_check": "<100ms",
-                "detailed_health_check": "<500ms",
-                "chat_api": "<1s", 
-                "knowledge_queries": "<1s"
-            }
-        }
+            critical_issues.append(f"{component_name}: Health check failed")
     
-    except Exception as e:
-        processing_time = time.time() - start_time
-        logger.error(f"Detailed health check failed: {e}")
-        
-        return {
-            "status": "unhealthy",
-            "error": str(e),
-            "processing_time_ms": round(processing_time * 1000, 2),
-            "optimization_phase": "4_error"
-        }
+    # Determine overall status
+    if critical_issues:
+        health_results["overall_status"] = "CRITICAL"
+        health_results["critical_issues"] = critical_issues
+    elif warnings:
+        health_results["overall_status"] = "WARNING"
+        health_results["warnings"] = warnings
+    
+    # Update health metrics
+    health_metrics["last_health_check"] = datetime.utcnow().isoformat()
+    
+    return health_results
 
 @router.get("/performance")
-async def performance_health_check(request: Request):
-    """
-    Performance-focused health check.
-    Phase 4: Detailed performance metrics and optimization status.
-    """
-    start_time = time.time()
-    
+async def performance_metrics():
+    """Get performance metrics and statistics."""
+    return health_monitor.get_performance_metrics()
+
+@router.get("/readiness")
+async def readiness_check():
+    """Kubernetes-style readiness probe."""
     try:
-        # Get performance middleware
-        performance_middleware = getattr(request.app.state, 'performance_middleware', None)
+        # Quick checks for essential services
+        db_check = health_monitor.check_database_health()
         
-        if not performance_middleware:
-            return {
-                "status": "performance_monitoring_disabled",
-                "processing_time_ms": round((time.time() - start_time) * 1000, 2),
-                "message": "Performance monitoring middleware not enabled"
+        if db_check["status"] == "CRITICAL":
+            raise HTTPException(status_code=503, detail="Database not ready")
+        
+        return {
+            "status": "ready",
+            "timestamp": datetime.utcnow().isoformat(),
+            "checks": {
+                "database": db_check["status"]
             }
-        
-        # Get comprehensive performance data
-        perf_summary = performance_middleware.get_performance_summary()
-        slow_requests = performance_middleware.get_slow_requests(limit=5)
-        
-        # Phase optimization status
-        optimization_status = {
-            "phase_1_dependency_injection": "complete",
-            "phase_2_model_preloading": "complete", 
-            "phase_3_nlu_optimization": "complete",
-            "phase_4_route_optimization": "in_progress"
-        }
-        
-        # Performance target compliance
-        target_compliance = {}
-        for endpoint, perf in perf_summary.get('endpoint_performance', {}).items():
-            target = perf.get('performance_target')
-            recent_avg = perf.get('recent_average_time', 0)
-            
-            if target:
-                compliance = recent_avg <= target
-                target_compliance[endpoint] = {
-                    "target": target,
-                    "recent_average": recent_avg,
-                    "compliant": compliance,
-                    "margin": target - recent_avg if compliance else recent_avg - target
-                }
-        
-        processing_time = time.time() - start_time
-        
-        return {
-            "status": "healthy",
-            "processing_time_ms": round(processing_time * 1000, 2),
-            "performance_summary": perf_summary,
-            "recent_slow_requests": slow_requests,
-            "optimization_status": optimization_status,
-            "target_compliance": target_compliance,
-            "recommendations": _generate_performance_recommendations(perf_summary, target_compliance)
         }
     
     except Exception as e:
-        processing_time = time.time() - start_time
-        logger.error(f"Performance health check failed: {e}")
+        raise HTTPException(status_code=503, detail=f"Service not ready: {str(e)}")
         
-        return {
-            "status": "unhealthy",
-            "error": str(e),
-            "processing_time_ms": round(processing_time * 1000, 2)
-        }
+@router.get("/liveness")
+async def liveness_check():
+    """Kubernetes-style liveness probe."""
+    # Very lightweight check - just verify the service is responding
+    return {
+        "status": "alive",
+        "timestamp": datetime.utcnow().isoformat(),
+        "pid": os.getpid()
+    }
 
-@router.get("/components")
-async def components_health_check(
-    request: Request,
-    chatbot=Depends(get_chatbot)
+@router.post("/metrics/request")
+async def record_request_metrics(
+    response_time_ms: float,
+    success: bool = True,
+    database_used: bool = False,
+    api_used: bool = False
 ):
-    """
-    Component-specific health check.
-    Phase 4: Detailed component analysis and singleton verification.
-    """
-    start_time = time.time()
-    
+    """Record request metrics for monitoring."""
     try:
-        # Verify singleton pattern compliance
-        singleton_verification = {
-            "chatbot_from_app_state": request.app.state.chatbot is chatbot,
-            "chatbot_instance_id": id(chatbot),
-            "app_state_chatbot_id": id(request.app.state.chatbot) if hasattr(request.app.state, 'chatbot') else None
-        }
+        health_metrics["total_requests"] += 1
         
-        # Component initialization status
-        component_status = {}
+        if success:
+            health_metrics["successful_requests"] += 1
+        else:
+            health_metrics["failed_requests"] += 1
         
-        # Check each component
-        for component_name in ['knowledge_base', 'nlu_engine', 'dialog_manager', 'response_generator', 'service_hub', 'session_manager', 'db_manager']:
-            if hasattr(chatbot, component_name):
-                component = getattr(chatbot, component_name)
-                component_status[component_name] = {
-                    "initialized": component is not None,
-                    "type": type(component).__name__ if component else None,
-                    "instance_id": id(component) if component else None
-                }
-            else:
-                component_status[component_name] = {
-                    "initialized": False,
-                    "error": "Component not found in chatbot"
-                }
+        if database_used:
+            health_metrics["database_queries"] += 1
         
-        # Phase-specific checks
-        phase_checks = {
-            "phase_1_singletons": singleton_verification["chatbot_from_app_state"],
-            "phase_2_models_loaded": component_status.get('nlu_engine', {}).get('initialized', False),
-            "phase_3_fast_path": True,  # Assume enabled if we reach this point
-            "phase_4_monitoring": hasattr(request.app.state, 'performance_middleware')
-        }
+        if api_used:
+            health_metrics["api_calls"] += 1
         
-        overall_status = "healthy" if all(phase_checks.values()) else "degraded"
+        # Update average response time
+        current_avg = health_metrics["average_response_time"]
+        total_requests = health_metrics["total_requests"]
+        health_metrics["average_response_time"] = (
+            (current_avg * (total_requests - 1) + response_time_ms) / total_requests
+        )
         
-        processing_time = time.time() - start_time
-        
-        return {
-            "status": overall_status,
-            "processing_time_ms": round(processing_time * 1000, 2),
-            "singleton_verification": singleton_verification,
-            "component_status": component_status,
-            "phase_checks": phase_checks,
-            "optimization_level": "phase_4_complete" if all(phase_checks.values()) else "partial"
-        }
+        return {"status": "recorded"}
     
     except Exception as e:
-        processing_time = time.time() - start_time
-        logger.error(f"Components health check failed: {e}")
-        
-        return {
-            "status": "unhealthy",
-            "error": str(e),
-            "processing_time_ms": round(processing_time * 1000, 2)
-        }
+        logger.error(f"Failed to record metrics: {e}")
+        return {"status": "error", "message": str(e)}
 
-def _generate_performance_recommendations(perf_summary: Dict[str, Any], target_compliance: Dict[str, Any]) -> List[str]:
-    """Generate performance recommendations based on metrics."""
-    recommendations = []
+@router.get("/alerts")
+async def get_health_alerts():
+    """Get current system alerts and warnings."""
+    current_alerts = []
     
-    # Check slow request percentage
-    last_hour = perf_summary.get('last_hour_summary', {})
-    slow_percentage = last_hour.get('slow_request_percentage', 0)
-    
-    if slow_percentage > 10:
-        recommendations.append(f"High slow request rate ({slow_percentage:.1f}%) - consider optimizing slow endpoints")
-    
-    # Check target compliance
-    non_compliant_endpoints = [
-        endpoint for endpoint, compliance in target_compliance.items() 
-        if not compliance.get('compliant', True)
-    ]
-    
-    if non_compliant_endpoints:
-        recommendations.append(f"Performance targets not met for: {', '.join(non_compliant_endpoints)}")
+    # Check for performance issues
+    if health_metrics["average_response_time"] > PERFORMANCE_THRESHOLDS["response_time_warning"]:
+        current_alerts.append({
+            "type": "performance",
+            "severity": "warning",
+            "message": f"Average response time high: {health_metrics['average_response_time']:.1f}ms",
+            "threshold": PERFORMANCE_THRESHOLDS["response_time_warning"]
+        })
     
     # Check error rate
-    error_requests = last_hour.get('error_requests', 0)
-    total_requests = last_hour.get('total_requests', 0)
+    if health_metrics["total_requests"] > 0:
+        error_rate = health_metrics["failed_requests"] / health_metrics["total_requests"]
+        if error_rate > PERFORMANCE_THRESHOLDS["error_rate_warning"]:
+            severity = "critical" if error_rate > PERFORMANCE_THRESHOLDS["error_rate_critical"] else "warning"
+            current_alerts.append({
+                "type": "error_rate",
+                "severity": severity,
+                "message": f"Error rate high: {error_rate * 100:.1f}%",
+                "threshold": PERFORMANCE_THRESHOLDS["error_rate_warning"] * 100
+            })
     
-    if total_requests > 0 and (error_requests / total_requests) > 0.05:
-        recommendations.append(f"High error rate ({error_requests}/{total_requests}) - investigate error causes")
-    
-    if not recommendations:
-        recommendations.append("All performance metrics within acceptable ranges")
-    
-    return recommendations 
+    return {
+        "timestamp": datetime.utcnow().isoformat(),
+        "alerts": current_alerts,
+        "alert_count": len(current_alerts)
+    } 

@@ -15,15 +15,30 @@ from dotenv import load_dotenv
 from typing import Optional, AsyncGenerator
 from contextlib import asynccontextmanager
 import uvicorn
-# UNIFIED CONFIGURATION - Single source of truth
-from src.config_unified import settings
 
-from .middleware.core import add_core_middleware
-# Authentication middleware
-from .middleware.auth import add_auth_middleware
-from .middleware.security import add_csrf_middleware
-# Phase 4: Performance monitoring middleware
-from .middleware.performance import add_performance_middleware
+# Fix Python path when running from src directory
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
+# UNIFIED CONFIGURATION - Single source of truth
+try:
+    from src.config_unified import settings
+except ImportError:
+    from config_unified import settings
+
+try:
+    from .middleware.core import add_core_middleware
+    from .middleware.auth import add_auth_middleware
+    from .middleware.security import add_csrf_middleware
+    from .middleware.performance import add_performance_middleware
+except ImportError:
+    from middleware.core import add_core_middleware
+    from middleware.auth import add_auth_middleware
+    from middleware.security import add_csrf_middleware
+    from middleware.performance import add_performance_middleware
 
 # Add this to handle imports properly
 if __name__ == "__main__":
@@ -56,7 +71,10 @@ from src.api.routes.db_routes import router as database_router
 from src.session.enhanced_session_manager import EnhancedSessionManager
 from src.session.integration import integrate_enhanced_session_manager
 # Phase 4: Health check router
-from .api.routes.health import router as health_router
+try:
+    from .api.routes.health import router as health_router
+except ImportError:
+    from api.routes.health import router as health_router
 
 # --- Define Project Root Path ---
 # Get the absolute path of the directory containing this file (src/)
@@ -219,6 +237,20 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         
         model_load_time = time.time() - model_load_start
         logger.info(f"🏆 PHASE 3: Complete model optimization finished in {model_load_time:.2f}s")
+        
+        # Force regenerate intent embeddings after successful model loading
+        logger.info("🔄 Force regenerating intent embeddings after async model loading...")
+        try:
+            if hasattr(nlu_engine, 'force_regenerate_intent_embeddings'):
+                success = nlu_engine.force_regenerate_intent_embeddings()
+                if success:
+                    logger.info("✅ Intent embeddings successfully regenerated during startup")
+                else:
+                    logger.warning("⚠️ Intent embedding regeneration failed during startup")
+            else:
+                logger.warning("⚠️ NLU engine does not support intent embedding regeneration")
+        except Exception as regenerate_error:
+            logger.error(f"❌ Error regenerating intent embeddings: {regenerate_error}")
         
     except Exception as e:
         logger.error(f"❌ Phase 3 model optimization failed: {e}", exc_info=True)

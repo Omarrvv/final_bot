@@ -108,12 +108,27 @@ class KnowledgeBase:
     
     def search_events(self, query: Dict = None, limit: int = 10, language: str = "en") -> List[Dict]:
         """Search events."""
-        return self._service.search_events(query, limit, language)
+        return self._service.search_events(query=query, limit=limit, language=language)
     
     def search_events_festivals(self, query: Dict = None, category_id: str = None,
                               destination_id: str = None, limit: int = 10, language: str = "en") -> List[Dict]:
         """Search events and festivals."""
-        return self._service.search_events_festivals(query, category_id, destination_id, limit, language)
+        # Convert Dict query to string for database layer compatibility
+        # and merge additional parameters into the query
+        final_query = {}
+        
+        if query and isinstance(query, dict):
+            final_query.update(query)
+        elif isinstance(query, str):
+            final_query['text'] = query
+            
+        # Add category and destination filters if provided
+        if category_id:
+            final_query['category_id'] = category_id
+        if destination_id:
+            final_query['destination_id'] = destination_id
+            
+        return self._service.search_events_festivals(final_query, limit, language)
     
     def search_itineraries(self, query: Dict = None, limit: int = 10, language: str = "en") -> List[Dict]:
         """Search itineraries."""

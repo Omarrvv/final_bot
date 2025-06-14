@@ -577,24 +577,14 @@ class EnhancedEntityExtractor:
                     
     def _extract_semantic_entities(self, text: str, entities: Dict[str, List[str]], 
                                confidence: Dict[str, List[float]], intent: Optional[str] = None):
-        """Extract entities using semantic similarity (Phase 3: Fixed dimension issues)."""
+        """Extract entities using semantic similarity."""
         # Skip if no embedding model
         if not self.embedding_model:
             return
             
         # Get text embedding
         try:
-            # CRITICAL FIX: Handle different embedding model interfaces correctly
-            if callable(self.embedding_model) and not hasattr(self.embedding_model, 'encode'):
-                # This is the NLU engine's _get_embedding_model method - takes single string
-                text_embedding = self.embedding_model(text)
-            else:
-                # This is a sentence-transformers model with encode() method - takes list
-                text_embedding = self.embedding_model.encode([text])[0]
-            
-            # Ensure text_embedding is 1D
-            if text_embedding.ndim > 1:
-                text_embedding = text_embedding.flatten()
+            text_embedding = self.embedding_model(text)
             
             # For each entity type, check semantic similarity to known entities
             for entity_type, entity_list in self.entity_lists.items():
@@ -611,44 +601,12 @@ class EnhancedEntityExtractor:
                     entities[entity_type] = []
                     confidence[entity_type] = []
                     
-                # Encode known entities with proper shape validation
+                # Encode known entities
                 known_embeddings = []
                 for entity in entity_list:
                     try:
-                        # CRITICAL FIX: Handle different embedding model interfaces correctly
-                        if callable(self.embedding_model) and not hasattr(self.embedding_model, 'encode'):
-                            # This is the NLU engine's _get_embedding_model method - takes single string
-                            embedding = self.embedding_model(entity)
-                        else:
-                            # This is a sentence-transformers model with encode() method - takes list
-                            embedding = self.embedding_model.encode([entity])[0]
-                        # Ensure 1-D vector (flatten any 2-D shape like (1, dim))
-                        if isinstance(embedding, np.ndarray) and embedding.ndim > 1:
-                            embedding = embedding.flatten()
-                        # CRITICAL FIX: Validate embedding has proper dimensions
-                        if not isinstance(embedding, np.ndarray):
-                            # Convert non-array to numpy array
-                            embedding = np.array(embedding)
-                            
-                        # Handle scalar or very small embeddings (dimension mismatch prevention)
-                        if embedding.size == 1 or embedding.ndim == 0:
-                            # Scalar value - expand to match text_embedding dimensions
-                            logger.debug(f"Expanding scalar embedding for entity '{entity}' from shape {embedding.shape}")
-                            # Create zero array matching text embedding shape and fill with scalar value if available
-                            expanded = np.zeros_like(text_embedding)
-                            if embedding.size > 0:
-                                expanded.fill(float(embedding))
-                            embedding = expanded
-                        
-                        # Log unusual embedding sizes for debugging
-                        if embedding.size < 10 or embedding.size > 2000:
-                            logger.warning(f"Unusual embedding size {embedding.size} for entity '{entity}'")
-                        # Validate same dimensionality as text_embedding
-                        if embedding.shape == text_embedding.shape:
-                            known_embeddings.append(embedding)
-                        else:
-                            logger.debug(
-                                f"Skipping entity '{entity}' due to embedding shape mismatch: {embedding.shape} vs {text_embedding.shape}")
+                        embedding = self.embedding_model(entity)
+                        known_embeddings.append(embedding)
                     except Exception as embed_err:
                         logger.debug(f"Failed to generate embedding for entity '{entity}': {embed_err}")
                         continue
@@ -661,51 +619,20 @@ class EnhancedEntityExtractor:
                 try:
                     # Reshape for cosine_similarity: needs 2D arrays
                     text_embed_2d = text_embedding.reshape(1, -1)
+                    known_embed_2d = np.array(known_embeddings)
                     
-                    # CRITICAL FIX: Validate all embeddings before stacking
-                    valid_embeddings = []
-                    for i, emb in enumerate(known_embeddings):
-                        if emb.shape == text_embedding.shape:
-                            valid_embeddings.append(emb)
-                        else:
-                            logger.debug(f"Filtering out embedding with shape {emb.shape} vs expected {text_embedding.shape}")
+                    # Calculate cosine similarity
+                    similarities = cosine_similarity(text_embed_2d, known_embed_2d)[0]
                     
-                    # Only proceed if we have valid embeddings
-                    if not valid_embeddings:
-                        logger.warning(f"No valid embeddings for entity type '{entity_type}' after shape validation")
-                        continue
+                    # Find entities with high similarity (threshold: 0.8)
+                    high_sim_indices = np.where(similarities > 0.8)[0]
                     
-                    # CRITICAL FIX: Stack embeddings properly to create 2D matrix
-                    # Instead of concatenating, stack them as rows
-                    known_embeds_2d = np.stack(valid_embeddings, axis=0)
-                    
-                    # Validate dimensions before cosine similarity
-                    if text_embed_2d.shape[1] != known_embeds_2d.shape[1]:
-                        logger.warning(f"Dimension mismatch: query={text_embed_2d.shape} vs entities={known_embeds_2d.shape}")
-                        # Attempt to fix if Y.shape[1] == 1
-                        if known_embeds_2d.shape[1] == 1:
-                            logger.warning(f"Fixing Y.shape[1]=1 by expanding to {text_embed_2d.shape[1]} dimensions")
-                            fixed_embeds = np.zeros((known_embeds_2d.shape[0], text_embed_2d.shape[1]))
-                            for i in range(known_embeds_2d.shape[0]):
-                                fixed_embeds[i].fill(known_embeds_2d[i][0])
-                            known_embeds_2d = fixed_embeds
-                    
-                    try:
-                        similarities = cosine_similarity(text_embed_2d, known_embeds_2d)[0]
-                    except ValueError as ve:
-                        if "Incompatible dimension" in str(ve):
-                            logger.error(f"Dimension mismatch in cosine_similarity: {ve}")
-                            logger.error(f"text_embed_2d shape: {text_embed_2d.shape}, known_embeds_2d shape: {known_embeds_2d.shape}")
-                            continue  # Skip this entity type
-                        else:
-                            raise  # Re-raise other ValueError types
-                    
-                    # Find highly similar entities
-                    for i, similarity in enumerate(similarities):
-                        if similarity > 0.8:  # High threshold for semantic matching
-                            entity_idx = i
-                            if entity_idx < len(entity_list):
-                                self._add_entity(entities, confidence, entity_type, entity_list[entity_idx], similarity)
+                    for idx in high_sim_indices:
+                        similarity = similarities[idx]
+                        
+                        # Get the corresponding entity
+                        if idx < len(entity_list):
+                            self._add_entity(entities, confidence, entity_type, entity_list[idx], similarity)
                                 
                 except Exception as sim_err:
                     logger.debug(f"Failed to calculate similarities for entity type '{entity_type}': {sim_err}")

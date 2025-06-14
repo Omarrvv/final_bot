@@ -1,0 +1,125 @@
+{
+  "timestamp": "20250613_114332",
+  "test_results": {
+    "database_direct": {
+      "status": "success",
+      "count": 5,
+      "has_tipping_guide": true
+    },
+    "intent_classification": {
+      "What should I tip in restaurants in Egypt?": {
+        "inferred_intent": "learning_fallback",
+        "response_length": 121,
+        "response_type": "general"
+      },
+      "tipping": {
+        "inferred_intent": "general_query",
+        "response_length": 92,
+        "response_type": "general"
+      },
+      "practical information": {
+        "inferred_intent": "greeting/help",
+        "response_length": 180,
+        "response_type": "help"
+      },
+      "currency exchange": {
+        "inferred_intent": "learning_fallback",
+        "response_length": 121,
+        "response_type": "general"
+      },
+      "pyramids": {
+        "inferred_intent": "specific_query",
+        "response_length": 244,
+        "response_type": "attraction_info"
+      },
+      "hello": {
+        "inferred_intent": "greeting/help",
+        "response_length": 100,
+        "response_type": "quick_response"
+      }
+    },
+    "knowledge_api": {
+      "practical_info_tip": {
+        "status": "success",
+        "total": 0,
+        "status_code": 200
+      },
+      "practical_info_currency": {
+        "status": "success",
+        "total": 0,
+        "status_code": 200
+      },
+      "attractions_list": {
+        "status": "failed",
+        "status_code": 500
+      },
+      "practical_info_all": {
+        "status": "success",
+        "total": 0,
+        "status_code": 200
+      }
+    },
+    "chat_api": {
+      "detailed_tipping": {
+        "query": "What should I tip in restaurants in Egypt?",
+        "response_length": 92,
+        "response_type": "general",
+        "is_generic": true,
+        "has_suggestions": false,
+        "response_preview": "I don't have information about that. Is there something else about Egypt you'd like to know?"
+      },
+      "simple_tipping": {
+        "query": "tipping",
+        "response_length": 121,
+        "response_type": "general",
+        "is_generic": true,
+        "has_suggestions": false,
+        "response_preview": "I'm still learning and don't have an answer for that yet. Can I help you with something else related..."
+      },
+      "currency_info": {
+        "query": "currency exchange egypt",
+        "response_length": 60,
+        "response_type": "general",
+        "is_generic": false,
+        "has_suggestions": false,
+        "response_preview": "I'm not sure I understand. Could you rephrase your question?"
+      },
+      "attraction_pyramids": {
+        "query": "pyramids",
+        "response_length": 244,
+        "response_type": "attraction_info",
+        "is_generic": false,
+        "has_suggestions": true,
+        "response_preview": "The Pyramids of Giza are Egypt's most iconic monuments! Built over 4,500 years ago, these magnificen..."
+      },
+      "greeting": {
+        "query": "hello",
+        "response_length": 116,
+        "response_type": "quick_response",
+        "is_generic": false,
+        "has_suggestions": true,
+        "response_preview": "Welcome to the Egypt Tourism Chatbot! I can provide information about Egypt's attractions, accommoda..."
+      },
+      "practical_advice": {
+        "query": "practical travel advice",
+        "response_length": 92,
+        "response_type": "general",
+        "is_generic": true,
+        "has_suggestions": false,
+        "response_preview": "I don't have information about that. Is there something else about Egypt you'd like to know?"
+      }
+    },
+    "issues": [
+      "\u274c KNOWLEDGE_API: Practical info search returning empty results",
+      "\u274c INTENT_CLASSIFICATION: Tipping queries classified as learning_fallback",
+      "\u274c CHAT_INTELLIGENCE: Tipping queries getting generic responses"
+    ]
+  },
+  "summary": {
+    "total_tests": 5,
+    "issues_found": 3,
+    "database_working": true,
+    "knowledge_api_working": false,
+    "chat_api_working": true
+  }
+}

@@ -1,0 +1,3107 @@
+{
+  "timestamp": 1749809758,
+  "summary": {
+    "total_tests": 109,
+    "successful_tests": 109,
+    "failed_tests": 0,
+    "average_response_time": 0.08773050833185879,
+    "response_types": {
+      "general": 51,
+      "practical_info": 10,
+      "quick_response": 34,
+      "attraction_info": 10,
+      "help": 3,
+      "greeting": 1
+    },
+    "sources": {
+      "unknown": 109
+    },
+    "quality_summary": {
+      "has_meaningful_content": 109,
+      "not_generic_fallback": 89,
+      "is_database_driven": 0,
+      "response_time_good": 109,
+      "has_specific_info": 91,
+      "proper_formatting": 108,
+      "no_template_errors": 103
+    },
+    "issues_found": [],
+    "performance_issues": [],
+    "template_issues": [
+      {
+        "query": "Upper Egypt travel",
+        "issue": "Template formatting error"
+      }
+    ],
+    "database_issues": [
+      {
+        "query": "What currency is used in Egypt?",
+        "source": "unknown"
+      },
+      {
+        "query": "Where can I exchange money?",
+        "source": "unknown"
+      },
+      {
+        "query": "ATM availability in Egypt",
+        "source": "unknown"
+      },
+      {
+        "query": "Is Egypt safe for tourists?",
+        "source": "unknown"
+      },
+      {
+        "query": "Safety tips for Egypt travel",
+        "source": "unknown"
+      },
+      {
+        "query": "What to avoid in Egypt?",
+        "source": "unknown"
+      },
+      {
+        "query": "What's the weather like in Egypt?",
+        "source": "unknown"
+      },
+      {
+        "query": "Best time to visit Egypt",
+        "source": "unknown"
+      },
+      {
+        "query": "Summer temperatures in Egypt",
+        "source": "unknown"
+      },
+      {
+        "query": "How to get around Cairo?",
+        "source": "unknown"
+      },
+      {
+        "query": "Transportation in Egypt",
+        "source": "unknown"
+      },
+      {
+        "query": "Airport transfer options",
+        "source": "unknown"
+      },
+      {
+        "query": "What should I tip in restaurants?",
+        "source": "unknown"
+      },
+      {
+        "query": "Dress code in Egypt",
+        "source": "unknown"
+      },
+      {
+        "query": "Egyptian customs and etiquette",
+        "source": "unknown"
+      },
+      {
+        "query": "Is tap water safe in Egypt?",
+        "source": "unknown"
+      },
+      {
+        "query": "Vaccinations needed for Egypt",
+        "source": "unknown"
+      },
+      {
+        "query": "Medical facilities in Cairo",
+        "source": "unknown"
+      },
+      {
+        "query": "Tell me about the pyramids",
+        "source": "unknown"
+      },
+      {
+        "query": "Pyramids of Giza information",
+        "source": "unknown"
+      },
+      {
+        "query": "Great Sphinx details",
+        "source": "unknown"
+      },
+      {
+        "query": "Step Pyramid of Djoser",
+        "source": "unknown"
+      },
+      {
+        "query": "Luxor temples",
+        "source": "unknown"
+      },
+      {
+        "query": "Valley of the Kings",
+        "source": "unknown"
+      },
+      {
+        "query": "Karnak Temple complex",
+        "source": "unknown"
+      },
+      {
+        "query": "Temple of Hatshepsut",
+        "source": "unknown"
+      },
+      {
+        "query": "Egyptian Museum Cairo",
+        "source": "unknown"
+      },
+      {
+        "query": "Grand Egyptian Museum",
+        "source": "unknown"
+      },
+      {
+        "query": "Coptic Museum",
+        "source": "unknown"
+      },
+      {
+        "query": "Citadel of Saladin",
+        "source": "unknown"
+      },
+      {
+        "query": "Khan el-Khalili bazaar",
+        "source": "unknown"
+      },
+      {
+        "query": "Al-Azhar Mosque",
+        "source": "unknown"
+      },
+      {
+        "query": "Bibliotheca Alexandrina",
+        "source": "unknown"
+      },
+      {
+        "query": "Qaitbay Citadel",
+        "source": "unknown"
+      },
+      {
+        "query": "Catacombs of Kom el Shoqafa",
+        "source": "unknown"
+      },
+      {
+        "query": "Abu Simbel temples",
+        "source": "unknown"
+      },
+      {
+        "query": "Philae Temple",
+        "source": "unknown"
+      },
+      {
+        "query": "Aswan High Dam",
+        "source": "unknown"
+      },
+      {
+        "query": "Siwa Oasis",
+        "source": "unknown"
+      },
+      {
+        "query": "White Desert",
+        "source": "unknown"
+      },
+      {
+        "query": "Red Sea diving spots",
+        "source": "unknown"
+      },
+      {
+        "query": "Best hotels in Cairo",
+        "source": "unknown"
+      },
+      {
+        "query": "Luxury hotels near pyramids",
+        "source": "unknown"
+      },
+      {
+        "query": "Budget hostels in Egypt",
+        "source": "unknown"
+      },
+      {
+        "query": "Nile view hotels",
+        "source": "unknown"
+      },
+      {
+        "query": "Resorts in Hurghada",
+        "source": "unknown"
+      },
+      {
+        "query": "Best restaurants in Cairo",
+        "source": "unknown"
+      },
+      {
+        "query": "Traditional Egyptian food",
+        "source": "unknown"
+      },
+      {
+        "query": "Koshari restaurants",
+        "source": "unknown"
+      },
+      {
+        "query": "Fine dining in Alexandria",
+        "source": "unknown"
+      },
+      {
+        "query": "Street food in Egypt",
+        "source": "unknown"
+      },
+      {
+        "query": "Nile cruise options",
+        "source": "unknown"
+      },
+      {
+        "query": "Train travel in Egypt",
+        "source": "unknown"
+      },
+      {
+        "query": "Domestic flights Egypt",
+        "source": "unknown"
+      },
+      {
+        "query": "Car rental in Cairo",
+        "source": "unknown"
+      },
+      {
+        "query": "Day tours from Cairo",
+        "source": "unknown"
+      },
+      {
+        "query": "Diving tours Red Sea",
+        "source": "unknown"
+      },
+      {
+        "query": "Desert safari Egypt",
+        "source": "unknown"
+      },
+      {
+        "query": "Felucca rides Nile",
+        "source": "unknown"
+      },
+      {
+        "query": "Shopping in Khan el-Khalili",
+        "source": "unknown"
+      },
+      {
+        "query": "Egyptian souvenirs",
+        "source": "unknown"
+      },
+      {
+        "query": "Modern malls Cairo",
+        "source": "unknown"
+      },
+      {
+        "query": "What to see in Cairo?",
+        "source": "unknown"
+      },
+      {
+        "query": "Alexandria attractions",
+        "source": "unknown"
+      },
+      {
+        "query": "Things to do in Luxor",
+        "source": "unknown"
+      },
+      {
+        "query": "Aswan travel guide",
+        "source": "unknown"
+      },
+      {
+        "query": "Sharm El Sheikh activities",
+        "source": "unknown"
+      },
+      {
+        "query": "Upper Egypt travel",
+        "source": "unknown"
+      },
+      {
+        "query": "Sinai Peninsula",
+        "source": "unknown"
+      },
+      {
+        "query": "Red Sea coast",
+        "source": "unknown"
+      },
+      {
+        "query": "Western Desert",
+        "source": "unknown"
+      },
+      {
+        "query": "Giza plateau",
+        "source": "unknown"
+      },
+      {
+        "query": "Tahrir Square",
+        "source": "unknown"
+      },
+      {
+        "query": "Old Cairo",
+        "source": "unknown"
+      },
+      {
+        "query": "Zamalek district",
+        "source": "unknown"
+      },
+      {
+        "query": "Distance Cairo to Luxor",
+        "source": "unknown"
+      },
+      {
+        "query": "How far is Abu Simbel",
+        "source": "unknown"
+      },
+      {
+        "query": "Egypt map",
+        "source": "unknown"
+      },
+      {
+        "query": "hi",
+        "source": "unknown"
+      },
+      {
+        "query": "hello",
+        "source": "unknown"
+      },
+      {
+        "query": "bye",
+        "source": "unknown"
+      },
+      {
+        "query": "help",
+        "source": "unknown"
+      },
+      {
+        "query": "Egypt",
+        "source": "unknown"
+      },
+      {
+        "query": "Cairo",
+        "source": "unknown"
+      },
+      {
+        "query": "tourist",
+        "source": "unknown"
+      },
+      {
+        "query": "Plan my Egypt itinerary",
+        "source": "unknown"
+      },
+      {
+        "query": "Egypt travel guide",
+        "source": "unknown"
+      },
+      {
+        "query": "Complete Egypt information",
+        "source": "unknown"
+      },
+      {
+        "query": "\u0645\u0631\u062d\u0628\u0627",
+        "source": "unknown"
+      },
+      {
+        "query": "\u0627\u0644\u0623\u0647\u0631\u0627\u0645\u0627\u062a",
+        "source": "unknown"
+      },
+      {
+        "query": "\u0627\u0644\u0642\u0627\u0647\u0631\u0629",
+        "source": "unknown"
+      },
+      {
+        "query": "\u0645\u0635\u0631",
+        "source": "unknown"
+      },
+      {
+        "query": "",
+        "source": "unknown"
+      },
+      {
+        "query": "???",
+        "source": "unknown"
+      },
+      {
+        "query": "123",
+        "source": "unknown"
+      },
+      {
+        "query": "What?",
+        "source": "unknown"
+      },
+      {
+        "query": "Egypt history",
+        "source": "unknown"
+      },
+      {
+        "query": "Egyptian pharaohs",
+        "source": "unknown"
+      },
+      {
+        "query": "Nile River facts",
+        "source": "unknown"
+      },
+      {
+        "query": "Hello, I'm planning a trip to Egypt",
+        "source": "unknown"
+      },
+      {
+        "query": "What are the must-see attractions?",
+        "source": "unknown"
+      },
+      {
+        "query": "Tell me about the pyramids",
+        "source": "unknown"
+      },
+      {
+        "query": "How do I get to Giza?",
+        "source": "unknown"
+      },
+      {
+        "query": "What about accommodation in Cairo?",
+        "source": "unknown"
+      },
+      {
+        "query": "Where should I eat traditional food?",
+        "source": "unknown"
+      },
+      {
+        "query": "Is Egypt safe for tourists?",
+        "source": "unknown"
+      },
+      {
+        "query": "What's the weather like in December?",
+        "source": "unknown"
+      },
+      {
+        "query": "Do I need any vaccinations?",
+        "source": "unknown"
+      },
+      {
+        "query": "Thank you for your help",
+        "source": "unknown"
+      }
+    ]
+  },
+  "detailed_results": [
+    {
+      "query": "What currency is used in Egypt?",
+      "success": true,
+      "response_time": 0.11224913597106934,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 60,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_7961",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": false,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Where can I exchange money?",
+      "success": true,
+      "response_time": 0.03882098197937012,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 92,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_4783",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": false,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "ATM availability in Egypt",
+      "success": true,
+      "response_time": 1.6740140914916992,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 121,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_5401",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Is Egypt safe for tourists?",
+      "success": true,
+      "response_time": 0.04461479187011719,
+      "status_code": 200,
+      "error": null,
+      "response_type": "practical_info",
+      "source": "unknown",
+      "text_length": 3762,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_8192",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": true
+    },
+    {
+      "query": "Safety tips for Egypt travel",
+      "success": true,
+      "response_time": 0.03795909881591797,
+      "status_code": 200,
+      "error": null,
+      "response_type": "practical_info",
+      "source": "unknown",
+      "text_length": 3762,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_7446",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": true,
+      "tipping_specific": {
+        "mentions_restaurant": true,
+        "mentions_egp": false,
+        "mentions_percentage": true,
+        "mentions_baksheesh": false,
+        "has_specific_amounts": false
+      }
+    },
+    {
+      "query": "What to avoid in Egypt?",
+      "success": true,
+      "response_time": 0.1875920295715332,
+      "status_code": 200,
+      "error": null,
+      "response_type": "practical_info",
+      "source": "unknown",
+      "text_length": 78,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_2948",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": false
+      },
+      "expected_type_match": true
+    },
+    {
+      "query": "What's the weather like in Egypt?",
+      "success": true,
+      "response_time": 0.0390169620513916,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 92,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_6304",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": false,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Best time to visit Egypt",
+      "success": true,
+      "response_time": 0.032774925231933594,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 92,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_8218",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": false,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Summer temperatures in Egypt",
+      "success": true,
+      "response_time": 0.09409499168395996,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 92,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_1996",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": false,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "How to get around Cairo?",
+      "success": true,
+      "response_time": 0.003997802734375,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 56,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_4175",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Transportation in Egypt",
+      "success": true,
+      "response_time": 0.03482413291931152,
+      "status_code": 200,
+      "error": null,
+      "response_type": "practical_info",
+      "source": "unknown",
+      "text_length": 78,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_9382",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": false
+      },
+      "expected_type_match": true
+    },
+    {
+      "query": "Airport transfer options",
+      "success": true,
+      "response_time": 0.15951800346374512,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 121,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_9188",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "What should I tip in restaurants?",
+      "success": true,
+      "response_time": 0.03993487358093262,
+      "status_code": 200,
+      "error": null,
+      "response_type": "practical_info",
+      "source": "unknown",
+      "text_length": 2742,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_9940",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": true,
+      "tipping_specific": {
+        "mentions_restaurant": true,
+        "mentions_egp": true,
+        "mentions_percentage": true,
+        "mentions_baksheesh": true,
+        "has_specific_amounts": true
+      }
+    },
+    {
+      "query": "Dress code in Egypt",
+      "success": true,
+      "response_time": 0.15618300437927246,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 60,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_5209",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": false,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Egyptian customs and etiquette",
+      "success": true,
+      "response_time": 0.16997098922729492,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 121,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_7684",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Is tap water safe in Egypt?",
+      "success": true,
+      "response_time": 0.1635589599609375,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 121,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_1959",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Vaccinations needed for Egypt",
+      "success": true,
+      "response_time": 0.1666100025177002,
+      "status_code": 200,
+      "error": null,
+      "response_type": "practical_info",
+      "source": "unknown",
+      "text_length": 78,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_6052",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": false
+      },
+      "expected_type_match": true
+    },
+    {
+      "query": "Medical facilities in Cairo",
+      "success": true,
+      "response_time": 0.004751920700073242,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 56,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_7217",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Tell me about the pyramids",
+      "success": true,
+      "response_time": 0.0047380924224853516,
+      "status_code": 200,
+      "error": null,
+      "response_type": "attraction_info",
+      "source": "unknown",
+      "text_length": 244,
+      "has_suggestions": true,
+      "suggestion_count": 4,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_8243",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": true
+    },
+    {
+      "query": "Pyramids of Giza information",
+      "success": true,
+      "response_time": 0.004757881164550781,
+      "status_code": 200,
+      "error": null,
+      "response_type": "help",
+      "source": "unknown",
+      "text_length": 180,
+      "has_suggestions": true,
+      "suggestion_count": 6,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_2371",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": false,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Great Sphinx details",
+      "success": true,
+      "response_time": 0.005995035171508789,
+      "status_code": 200,
+      "error": null,
+      "response_type": "attraction_info",
+      "source": "unknown",
+      "text_length": 177,
+      "has_suggestions": true,
+      "suggestion_count": 3,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_2262",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": true
+    },
+    {
+      "query": "Step Pyramid of Djoser",
+      "success": true,
+      "response_time": 0.0038170814514160156,
+      "status_code": 200,
+      "error": null,
+      "response_type": "attraction_info",
+      "source": "unknown",
+      "text_length": 244,
+      "has_suggestions": true,
+      "suggestion_count": 4,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_7256",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": true
+    },
+    {
+      "query": "Luxor temples",
+      "success": true,
+      "response_time": 0.003915071487426758,
+      "status_code": 200,
+      "error": null,
+      "response_type": "attraction_info",
+      "source": "unknown",
+      "text_length": 191,
+      "has_suggestions": true,
+      "suggestion_count": 4,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_3544",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": true
+    },
+    {
+      "query": "Valley of the Kings",
+      "success": true,
+      "response_time": 0.005627155303955078,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 60,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_3852",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": false,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Karnak Temple complex",
+      "success": true,
+      "response_time": 0.15587401390075684,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 92,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_7069",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": false,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Temple of Hatshepsut",
+      "success": true,
+      "response_time": 0.13815808296203613,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 60,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_7457",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": false,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Egyptian Museum Cairo",
+      "success": true,
+      "response_time": 0.004119157791137695,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 56,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_4086",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Grand Egyptian Museum",
+      "success": true,
+      "response_time": 0.1588451862335205,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 92,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_7339",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": false,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Coptic Museum",
+      "success": true,
+      "response_time": 0.15123391151428223,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 60,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_9990",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": false,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Citadel of Saladin",
+      "success": true,
+      "response_time": 0.15673208236694336,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 92,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_7712",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": false,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Khan el-Khalili bazaar",
+      "success": true,
+      "response_time": 0.15052270889282227,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 92,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_1663",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": false,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Al-Azhar Mosque",
+      "success": true,
+      "response_time": 0.14497613906860352,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 92,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_8136",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": false,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Bibliotheca Alexandrina",
+      "success": true,
+      "response_time": 0.16611790657043457,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 60,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_3181",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": false,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Qaitbay Citadel",
+      "success": true,
+      "response_time": 0.005590915679931641,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 121,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_9472",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Catacombs of Kom el Shoqafa",
+      "success": true,
+      "response_time": 0.1588280200958252,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 60,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_8111",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": false,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Abu Simbel temples",
+      "success": true,
+      "response_time": 0.14911198616027832,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 121,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_4760",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Philae Temple",
+      "success": true,
+      "response_time": 0.005243062973022461,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 121,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_7085",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Aswan High Dam",
+      "success": true,
+      "response_time": 0.004565000534057617,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 56,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_2698",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Siwa Oasis",
+      "success": true,
+      "response_time": 0.15378308296203613,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 92,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_5592",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": false,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "White Desert",
+      "success": true,
+      "response_time": 0.1404101848602295,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 92,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_5200",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": false,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Red Sea diving spots",
+      "success": true,
+      "response_time": 0.004589080810546875,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 56,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_9091",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Best hotels in Cairo",
+      "success": true,
+      "response_time": 0.004446268081665039,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 56,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_6068",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Luxury hotels near pyramids",
+      "success": true,
+      "response_time": 0.004087209701538086,
+      "status_code": 200,
+      "error": null,
+      "response_type": "attraction_info",
+      "source": "unknown",
+      "text_length": 244,
+      "has_suggestions": true,
+      "suggestion_count": 4,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_7284",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Budget hostels in Egypt",
+      "success": true,
+      "response_time": 0.15771818161010742,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 121,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_3078",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Nile view hotels",
+      "success": true,
+      "response_time": 0.005406856536865234,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 56,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_4266",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Resorts in Hurghada",
+      "success": true,
+      "response_time": 0.0038650035858154297,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 56,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_1671",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Best restaurants in Cairo",
+      "success": true,
+      "response_time": 0.00454401969909668,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 56,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_9549",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Traditional Egyptian food",
+      "success": true,
+      "response_time": 0.004149913787841797,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 56,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_8798",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Koshari restaurants",
+      "success": true,
+      "response_time": 0.1640777587890625,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 121,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_5971",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Fine dining in Alexandria",
+      "success": true,
+      "response_time": 0.004064083099365234,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 56,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_5823",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Street food in Egypt",
+      "success": true,
+      "response_time": 0.00363922119140625,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 56,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_6370",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Nile cruise options",
+      "success": true,
+      "response_time": 0.004415988922119141,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 56,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_3787",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Train travel in Egypt",
+      "success": true,
+      "response_time": 0.1619091033935547,
+      "status_code": 200,
+      "error": null,
+      "response_type": "practical_info",
+      "source": "unknown",
+      "text_length": 78,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_4399",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": false
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Domestic flights Egypt",
+      "success": true,
+      "response_time": 0.15624690055847168,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 121,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_1523",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Car rental in Cairo",
+      "success": true,
+      "response_time": 0.003834247589111328,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 56,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_6919",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Day tours from Cairo",
+      "success": true,
+      "response_time": 0.004016876220703125,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 56,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_6664",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Diving tours Red Sea",
+      "success": true,
+      "response_time": 0.003908872604370117,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 56,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_8383",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Desert safari Egypt",
+      "success": true,
+      "response_time": 0.09192490577697754,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 121,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_7169",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Felucca rides Nile",
+      "success": true,
+      "response_time": 0.004653215408325195,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 56,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_5173",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Shopping in Khan el-Khalili",
+      "success": true,
+      "response_time": 0.15988588333129883,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 92,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_4158",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": false,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Egyptian souvenirs",
+      "success": true,
+      "response_time": 0.17332935333251953,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 60,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_2793",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": false,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Modern malls Cairo",
+      "success": true,
+      "response_time": 0.0045928955078125,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 56,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_8162",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "What to see in Cairo?",
+      "success": true,
+      "response_time": 0.00700068473815918,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 56,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_3462",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Alexandria attractions",
+      "success": true,
+      "response_time": 0.0050733089447021484,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 56,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_3029",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Things to do in Luxor",
+      "success": true,
+      "response_time": 0.004047870635986328,
+      "status_code": 200,
+      "error": null,
+      "response_type": "attraction_info",
+      "source": "unknown",
+      "text_length": 191,
+      "has_suggestions": true,
+      "suggestion_count": 4,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_6233",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Aswan travel guide",
+      "success": true,
+      "response_time": 0.003625154495239258,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 56,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_9874",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Sharm El Sheikh activities",
+      "success": true,
+      "response_time": 0.15556788444519043,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 121,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_2363",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Upper Egypt travel",
+      "success": true,
+      "response_time": 0.13957715034484863,
+      "status_code": 200,
+      "error": null,
+      "response_type": "practical_info",
+      "source": "unknown",
+      "text_length": 82,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_5552",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": false,
+        "no_template_errors": false
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Sinai Peninsula",
+      "success": true,
+      "response_time": 0.16707277297973633,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 60,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_8405",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": false,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Red Sea coast",
+      "success": true,
+      "response_time": 0.004292011260986328,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 56,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_1125",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Western Desert",
+      "success": true,
+      "response_time": 0.1451570987701416,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 92,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_5266",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": false,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Giza plateau",
+      "success": true,
+      "response_time": 0.004056215286254883,
+      "status_code": 200,
+      "error": null,
+      "response_type": "attraction_info",
+      "source": "unknown",
+      "text_length": 244,
+      "has_suggestions": true,
+      "suggestion_count": 4,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_2329",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Tahrir Square",
+      "success": true,
+      "response_time": 0.14655399322509766,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 92,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_6740",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": false,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Old Cairo",
+      "success": true,
+      "response_time": 0.003911256790161133,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 56,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_1249",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Zamalek district",
+      "success": true,
+      "response_time": 0.14560604095458984,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 121,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_1739",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Distance Cairo to Luxor",
+      "success": true,
+      "response_time": 0.004087209701538086,
+      "status_code": 200,
+      "error": null,
+      "response_type": "attraction_info",
+      "source": "unknown",
+      "text_length": 191,
+      "has_suggestions": true,
+      "suggestion_count": 4,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_8205",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "How far is Abu Simbel",
+      "success": true,
+      "response_time": 0.14473295211791992,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 121,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_5483",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Egypt map",
+      "success": true,
+      "response_time": 0.1370849609375,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 60,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_9099",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": false,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "hi",
+      "success": true,
+      "response_time": 0.004667043685913086,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 116,
+      "has_suggestions": true,
+      "suggestion_count": 5,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_2729",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "hello",
+      "success": true,
+      "response_time": 0.0036737918853759766,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 70,
+      "has_suggestions": true,
+      "suggestion_count": 5,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_9636",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "bye",
+      "success": true,
+      "response_time": 0.00429987907409668,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 69,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_5627",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "help",
+      "success": true,
+      "response_time": 0.003496408462524414,
+      "status_code": 200,
+      "error": null,
+      "response_type": "help",
+      "source": "unknown",
+      "text_length": 180,
+      "has_suggestions": true,
+      "suggestion_count": 6,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_9441",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": false,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": true
+    },
+    {
+      "query": "Egypt",
+      "success": true,
+      "response_time": 0.21268415451049805,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 60,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_8241",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": false,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": true
+    },
+    {
+      "query": "Cairo",
+      "success": true,
+      "response_time": 0.0045659542083740234,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 56,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_5445",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "tourist",
+      "success": true,
+      "response_time": 0.19031691551208496,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 60,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_5908",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": false,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": true
+    },
+    {
+      "query": "Plan my Egypt itinerary",
+      "success": true,
+      "response_time": 0.14952301979064941,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 92,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_9978",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": false,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": true
+    },
+    {
+      "query": "Egypt travel guide",
+      "success": true,
+      "response_time": 0.13919496536254883,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 60,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_2344",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": false,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": true
+    },
+    {
+      "query": "Complete Egypt information",
+      "success": true,
+      "response_time": 0.004072904586791992,
+      "status_code": 200,
+      "error": null,
+      "response_type": "help",
+      "source": "unknown",
+      "text_length": 180,
+      "has_suggestions": true,
+      "suggestion_count": 6,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_2737",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": false,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "\u0645\u0631\u062d\u0628\u0627",
+      "success": true,
+      "response_time": 0.004662036895751953,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 116,
+      "has_suggestions": true,
+      "suggestion_count": 5,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_2512",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "\u0627\u0644\u0623\u0647\u0631\u0627\u0645\u0627\u062a",
+      "success": true,
+      "response_time": 0.017397165298461914,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 60,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_7744",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": false,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "\u0627\u0644\u0642\u0627\u0647\u0631\u0629",
+      "success": true,
+      "response_time": 0.0038580894470214844,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 56,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_1874",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "\u0645\u0635\u0631",
+      "success": true,
+      "response_time": 0.14428997039794922,
+      "status_code": 200,
+      "error": null,
+      "response_type": "practical_info",
+      "source": "unknown",
+      "text_length": 78,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_2094",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": false
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "",
+      "success": true,
+      "response_time": 0.0037136077880859375,
+      "status_code": 200,
+      "error": null,
+      "response_type": "greeting",
+      "source": "unknown",
+      "text_length": 100,
+      "has_suggestions": true,
+      "suggestion_count": 5,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_4186",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": false,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "???",
+      "success": true,
+      "response_time": 0.015464305877685547,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 92,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_7116",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": false,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": true
+    },
+    {
+      "query": "123",
+      "success": true,
+      "response_time": 0.1370530128479004,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 60,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_5629",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": false,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": true
+    },
+    {
+      "query": "What?",
+      "success": true,
+      "response_time": 0.14208507537841797,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 121,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_6078",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": true
+    },
+    {
+      "query": "Egypt history",
+      "success": true,
+      "response_time": 0.14849495887756348,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 121,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_3076",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": true
+    },
+    {
+      "query": "Egyptian pharaohs",
+      "success": true,
+      "response_time": 0.15706110000610352,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 60,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_8597",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": false,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": true
+    },
+    {
+      "query": "Nile River facts",
+      "success": true,
+      "response_time": 0.0035479068756103516,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 56,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_6647",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "expected_type_match": false
+    },
+    {
+      "query": "Hello, I'm planning a trip to Egypt",
+      "success": true,
+      "response_time": 0.0038399696350097656,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 70,
+      "has_suggestions": true,
+      "suggestion_count": 5,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_conversation",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "turn_number": 1
+    },
+    {
+      "query": "What are the must-see attractions?",
+      "success": true,
+      "response_time": 0.17804384231567383,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 121,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_conversation",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "turn_number": 2
+    },
+    {
+      "query": "Tell me about the pyramids",
+      "success": true,
+      "response_time": 0.014850854873657227,
+      "status_code": 200,
+      "error": null,
+      "response_type": "attraction_info",
+      "source": "unknown",
+      "text_length": 244,
+      "has_suggestions": true,
+      "suggestion_count": 4,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_conversation",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "turn_number": 3
+    },
+    {
+      "query": "How do I get to Giza?",
+      "success": true,
+      "response_time": 0.013285160064697266,
+      "status_code": 200,
+      "error": null,
+      "response_type": "attraction_info",
+      "source": "unknown",
+      "text_length": 244,
+      "has_suggestions": true,
+      "suggestion_count": 4,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_conversation",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "turn_number": 4
+    },
+    {
+      "query": "What about accommodation in Cairo?",
+      "success": true,
+      "response_time": 0.018465042114257812,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 56,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_conversation",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "turn_number": 5
+    },
+    {
+      "query": "Where should I eat traditional food?",
+      "success": true,
+      "response_time": 0.012677192687988281,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 56,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_conversation",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "turn_number": 6
+    },
+    {
+      "query": "Is Egypt safe for tourists?",
+      "success": true,
+      "response_time": 0.0760047435760498,
+      "status_code": 200,
+      "error": null,
+      "response_type": "practical_info",
+      "source": "unknown",
+      "text_length": 3762,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_conversation",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "turn_number": 7
+    },
+    {
+      "query": "What's the weather like in December?",
+      "success": true,
+      "response_time": 0.19010519981384277,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 60,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_conversation",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": false,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "turn_number": 8
+    },
+    {
+      "query": "Do I need any vaccinations?",
+      "success": true,
+      "response_time": 0.16696500778198242,
+      "status_code": 200,
+      "error": null,
+      "response_type": "general",
+      "source": "unknown",
+      "text_length": 60,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_conversation",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": false,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "turn_number": 9
+    },
+    {
+      "query": "Thank you for your help",
+      "success": true,
+      "response_time": 0.014065265655517578,
+      "status_code": 200,
+      "error": null,
+      "response_type": "quick_response",
+      "source": "unknown",
+      "text_length": 56,
+      "has_suggestions": false,
+      "suggestion_count": 0,
+      "language": "en",
+      "session_id": "e2e_test_1749809743_conversation",
+      "quality_checks": {
+        "has_meaningful_content": true,
+        "not_generic_fallback": true,
+        "is_database_driven": false,
+        "response_time_good": true,
+        "has_specific_info": true,
+        "proper_formatting": true,
+        "no_template_errors": true
+      },
+      "turn_number": 10
+    }
+  ]
+}

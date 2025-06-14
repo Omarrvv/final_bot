@@ -684,7 +684,53 @@ class DatabaseManagerService:
             
             if self.enable_fallback and use_service:
                 logger.warning("Search service failed, falling back to direct query")
-                return self.generic_search(table, filters, limit, offset, jsonb_fields, language)
+                # Force fallback to legacy path by recursing with use_service=False
+                try:
+                    # Direct database query (copy of the else block above)
+                    if filters is None:
+                        filters = {}
+                    if jsonb_fields is None:
+                        jsonb_fields = []
+                    
+                    # Build query
+                    query = f"SELECT * FROM {table}"
+                    params = []
+                    
+                    if filters:
+                        where_conditions = []
+                        for field, value in filters.items():
+                            if value is not None:
+                                where_conditions.append(f"{field} = %s")
+                                params.append(value)
+                        
+                        if where_conditions:
+                            query += " WHERE " + " AND ".join(where_conditions)
+                    
+                    # Add LIMIT and OFFSET clauses
+                    query += f" LIMIT %s OFFSET %s"
+                    try:
+                        params.extend([int(limit), int(offset)])
+                    except (TypeError, ValueError):
+                        logger.warning(f"Invalid limit/offset values: {limit}/{offset}, using defaults")
+                        params.extend([10, 0])  # Default values
+                    
+                    results = self._connection_manager.execute_query(query, tuple(params), fetchall=True)
+                    
+                    # Parse JSONB fields
+                    for result in results:
+                        for field in jsonb_fields:
+                            if field in result and result[field]:
+                                import json
+                                try:
+                                    result[field] = json.loads(result[field]) if isinstance(result[field], str) else result[field]
+                                except (json.JSONDecodeError, TypeError):
+                                    pass
+                    
+                    return results
+                    
+                except Exception as fallback_error:
+                    logger.error(f"Fallback query also failed: {fallback_error}")
+                    return []
             raise
     
     def generic_create(self, table: str, data: Dict[str, Any]) -> Optional[int]:
@@ -813,6 +859,7 @@ class DatabaseManagerService:
         if query:
             if isinstance(query, dict):
                 if "text" in query:
+                    search_filters["text"] = query["text"]  # ✅ FIX: Keep the text key!
                     search_filters.update({k: v for k, v in query.items() if k != "text"})
                 else:
                     search_filters.update(query)
@@ -827,6 +874,7 @@ class DatabaseManagerService:
         if query:
             if isinstance(query, dict):
                 if "text" in query:
+                    search_filters["text"] = query["text"]  # ✅ FIX: Keep the text key!
                     search_filters.update({k: v for k, v in query.items() if k != "text"})
                 else:
                     search_filters.update(query)
@@ -841,6 +889,7 @@ class DatabaseManagerService:
         if query:
             if isinstance(query, dict):
                 if "text" in query:
+                    search_filters["text"] = query["text"]  # ✅ FIX: Keep the text key!
                     search_filters.update({k: v for k, v in query.items() if k != "text"})
                 else:
                     search_filters.update(query)
@@ -866,7 +915,8 @@ class DatabaseManagerService:
         if query:
             if isinstance(query, dict):
                 if "text" in query:
-                    # For text queries, we keep text separate; remaining keys become filters
+                    # For text queries, preserve the text key and add other filters
+                    search_filters["text"] = query["text"]  # ✅ FIX: Keep the text key!
                     search_filters.update({k: v for k, v in query.items() if k != "text"})
                 else:
                     search_filters.update(query)
@@ -915,6 +965,258 @@ class DatabaseManagerService:
                 search_filters["text"] = str(query)
         
         return self.generic_search("events_festivals", search_filters, limit, offset, ["name", "description"], language)
+    
+    def search_tour_packages(self, query: Optional[Dict[str, Any]] = None, category_id: Optional[str] = None,
+                           min_duration: Optional[int] = None, max_duration: Optional[int] = None,
+                           limit: int = 10, offset: int = 0, language: str = "en") -> List[Dict[str, Any]]:
+        """Search tour packages using generic search method."""
+        # Handle both query dict with 'text' and direct filters
+        search_filters = {}
+        if query:
+            if isinstance(query, dict):
+                if "text" in query:
+                    # For text queries, search in name and description fields
+                    search_filters.update({k: v for k, v in query.items() if k != "text"})
+                else:
+                    search_filters.update(query)
+            else:
+                # If query is a string, treat as text search
+                search_filters["text"] = str(query)
+        
+        # Add parameter filters
+        if category_id:
+            search_filters["category_id"] = category_id
+        if min_duration is not None:
+            search_filters["min_duration"] = min_duration
+        if max_duration is not None:
+            search_filters["max_duration"] = max_duration
+        
+        return self.generic_search("tour_packages", search_filters, limit, offset, ["name", "description"], language)
+    
+    def search_custom_itineraries(self, query: Optional[Dict[str, Any]] = None, 
+                                limit: int = 10, offset: int = 0, language: str = "en") -> List[Dict[str, Any]]:
+        """Search custom itineraries using generic search method."""
+        # Handle both query dict with 'text' and direct filters
+        search_filters = {}
+        if query:
+            if isinstance(query, dict):
+                if "text" in query:
+                    # For text queries, search in name and description fields
+                    search_filters.update({k: v for k, v in query.items() if k != "text"})
+                else:
+                    search_filters.update(query)
+            else:
+                # If query is a string, treat as text search
+                search_filters["text"] = str(query)
+        
+        return self.generic_search("itineraries", search_filters, limit, offset, ["name", "description"], language)
+    
+    # ADDITIONAL SEARCH METHODS FOR COMPREHENSIVE COVERAGE
+    
+    def search_tourism_faqs(self, query: Optional[str] = None, category_id: Optional[str] = None,
+                          limit: int = 10, offset: int = 0, language: str = "en") -> List[Dict[str, Any]]:
+        """Search tourism FAQs with proper parameter handling (fixing bigint issues)."""
+        search_filters = {}
+        
+        # Handle text query
+        if query:
+            search_filters["text"] = str(query)
+        
+        # Handle category filtering - ensure string type to avoid bigint errors
+        if category_id:
+            search_filters["category_id"] = str(category_id)  # Force string to avoid bigint issues
+        
+        return self.generic_search("tourism_faqs", search_filters, limit, offset, ["question", "answer"], language)
+    
+    def search_events_festivals(self, query: Optional[Dict[str, Any]] = None, category_id: Optional[str] = None,
+                              destination_id: Optional[str] = None, limit: int = 10, 
+                              offset: int = 0, language: str = "en") -> List[Dict[str, Any]]:
+        """Search events and festivals with proper schema mapping."""
+        search_filters = {}
+        
+        if query:
+            if isinstance(query, dict):
+                if "text" in query:
+                    search_filters.update({k: v for k, v in query.items() if k != "text"})
+                else:
+                    search_filters.update(query)
+            else:
+                search_filters["text"] = str(query)
+        
+        # Handle category filtering with proper field mapping
+        if category_id:
+            # Map to the correct database field (category_id in schema)
+            search_filters["category_id"] = str(category_id)
+        
+        if destination_id:
+            search_filters["destination_id"] = str(destination_id)
+        
+        return self.generic_search("events_festivals", search_filters, limit, offset, ["name", "description"], language)
+    
+    def search_transportation(self, query: Optional[Dict[str, Any]] = None, origin: str = None, 
+                            destination: str = None, transportation_type: str = None, 
+                            limit: int = 10, language: str = "en") -> List[Dict[str, Any]]:
+        """Search transportation options using multiple transportation tables.
+        
+        This method searches across transportation_types, transportation_routes, and transportation_stations
+        to provide comprehensive transportation information.
+        
+        Args:
+            query: Query dictionary with optional 'text' field for text search
+            origin: Origin location filter
+            destination: Destination location filter  
+            transportation_type: Type of transportation filter (taxi, bus, train, etc.)
+            limit: Maximum number of results
+            language: Language for multilingual content
+            
+        Returns:
+            List of transportation results from various tables
+        """
+        start_time = time.time()
+        
+        try:
+            all_results = []
+            
+            # Build base search filters
+            search_filters = {}
+            search_text = None
+            
+            if query:
+                if isinstance(query, dict):
+                    if "text" in query:
+                        search_text = query["text"]
+                        search_filters.update({k: v for k, v in query.items() if k != "text"})
+                    else:
+                        search_filters.update(query)
+                else:
+                    search_text = str(query)
+            
+            # Add parameter filters (FIXED: Map to correct database field names)
+            if transportation_type:
+                search_filters["transportation_type"] = transportation_type
+            if origin:
+                search_filters["origin_id"] = origin  
+            if destination:
+                search_filters["destination_id"] = destination
+            
+            # Search transportation_types table first (for general transportation info)
+            types_filters = {}
+            if search_text:
+                types_filters["text"] = search_text
+            if transportation_type:
+                # FIXED: Use correct field name from schema (type field is actually the primary key)
+                types_filters["type"] = transportation_type
+                
+            try:
+                types_results = self.generic_search(
+                    "transportation_types", 
+                    types_filters, 
+                    limit=limit//3, 
+                    offset=0, 
+                    jsonb_fields=["name", "description"], 
+                    language=language
+                )
+                
+                # Add source information and enhance results
+                for result in types_results:
+                    result["_source_table"] = "transportation_types"
+                    result["_search_type"] = "type_info"
+                    all_results.append(result)
+                    
+            except Exception as e:
+                logger.warning(f"Error searching transportation_types: {e}")
+            
+            # Search transportation_routes table (for route-specific info)
+            routes_filters = {}
+            if search_text:
+                routes_filters["text"] = search_text
+            if transportation_type:
+                # FIXED: Use correct field name from schema 
+                routes_filters["transportation_type"] = transportation_type
+            # FIXED: Add proper origin/destination filtering with correct field names
+            if origin:
+                routes_filters["origin_id"] = origin
+            if destination:
+                routes_filters["destination_id"] = destination
+            
+            try:
+                routes_results = self.generic_search(
+                    "transportation_routes",
+                    routes_filters,
+                    limit=limit//3,
+                    offset=0,
+                    jsonb_fields=["name", "description", "schedule"],  # Fixed: use "name" not "route_name"
+                    language=language
+                )
+                
+                # Add source information
+                for result in routes_results:
+                    result["_source_table"] = "transportation_routes" 
+                    result["_search_type"] = "route_info"
+                    all_results.append(result)
+                    
+            except Exception as e:
+                logger.warning(f"Error searching transportation_routes: {e}")
+            
+            # Search transportation_stations table (for station info)
+            # Remove restrictive keyword filtering - search all station queries
+            stations_filters = {}
+            if search_text:
+                stations_filters["text"] = search_text
+                
+            try:
+                stations_results = self.generic_search(
+                    "transportation_stations",
+                    stations_filters,
+                    limit=limit//3,
+                    offset=0,
+                    jsonb_fields=["name", "description"],  # Added description field
+                    language=language
+                )
+                
+                # Add source information
+                for result in stations_results:
+                    result["_source_table"] = "transportation_stations"
+                    result["_search_type"] = "station_info"
+                    all_results.append(result)
+                    
+            except Exception as e:
+                logger.warning(f"Error searching transportation_stations: {e}")
+            
+            # Sort results by relevance (types first, then routes, then stations)
+            def sort_key(result):
+                source_priority = {
+                    "transportation_types": 1,
+                    "transportation_routes": 2, 
+                    "transportation_stations": 3
+                }
+                return source_priority.get(result.get("_source_table", ""), 4)
+            
+            all_results.sort(key=sort_key)
+            
+            # Limit final results
+            final_results = all_results[:limit]
+            
+            duration_ms = (time.time() - start_time) * 1000
+            logger.info(f"✅ search_transportation completed in {duration_ms:.2f}ms, found {len(final_results)} results")
+            
+            return final_results
+            
+        except Exception as e:
+            duration_ms = (time.time() - start_time) * 1000
+            logger.error(f"❌ Error in search_transportation: {str(e)} (took {duration_ms:.2f}ms)")
+            
+            # Fallback: try to search just transportation_types table
+            try:
+                logger.warning("Falling back to transportation_types only search")
+                fallback_filters = {"text": search_text} if search_text else {}
+                if transportation_type:
+                    fallback_filters["type"] = transportation_type
+                    
+                return self.generic_search("transportation_types", fallback_filters, limit, 0, ["name", "description"], language)
+            except Exception as fallback_error:
+                logger.error(f"❌ Fallback search also failed: {fallback_error}")
+                return []
     
     # ============================================================================
     # DELEGATE ALL OTHER METHODS TO LEGACY DATABASE MANAGER

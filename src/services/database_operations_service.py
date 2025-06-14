@@ -24,6 +24,7 @@ import psycopg2
 from psycopg2.extras import execute_values, RealDictCursor
 
 from src.services.base_service import BaseService
+from src.utils.error_handler import UnifiedErrorHandler, handle_db_connection_error
 
 logger = logging.getLogger(__name__)
 
@@ -111,6 +112,7 @@ class DatabaseOperationsService(BaseService):
     def __init__(self, db_manager=None, analytics_service=None):
         super().__init__(db_manager)
         self.analytics_service = analytics_service
+        self.db_manager = self.db  # Alias for backward compatibility
         self._batch_metrics: Dict[str, BatchMetrics] = {}
         self._extension_cache: Dict[str, ExtensionInfo] = {}
         self._last_check_time = 0
@@ -339,4 +341,48 @@ class DatabaseOperationsService(BaseService):
         """Get batch metrics."""
         if batch_id:
             return self._batch_metrics.get(batch_id)
-        return list(self._batch_metrics.values()) 
+        return list(self._batch_metrics.values())
+
+    # Database Query Methods
+    def execute_postgres_query(self, query: str, params: tuple = None, fetchall: bool = True, cursor_factory=None):
+        """
+        Execute a PostgreSQL query through the internal db_manager.
+        
+        This method serves as a proxy to the internal db_manager's execute_postgres_query method
+        to maintain compatibility with existing code that expects this interface.
+        
+        Args:
+            query (str): SQL query to execute
+            params (tuple, optional): Query parameters
+            fetchall (bool): Whether to fetch all results or just one
+            cursor_factory: Optional cursor factory for result formatting
+            
+        Returns:
+            Query results (list of dicts, single dict, or None depending on fetchall and results)
+        """
+        if hasattr(self.db_manager, 'execute_postgres_query'):
+            return self.db_manager.execute_postgres_query(query, params, fetchall, cursor_factory)
+        elif hasattr(self.db, 'execute_postgres_query'):
+            return self.db.execute_postgres_query(query, params, fetchall, cursor_factory)
+        else:
+            # Fallback: try to execute directly using connection
+            try:
+                conn = self.db_manager.get_connection() if hasattr(self.db_manager, 'get_connection') else self.db.get_connection()
+                try:
+                    cursor_fact = cursor_factory if cursor_factory else RealDictCursor
+                    with conn.cursor(cursor_factory=cursor_fact) as cursor:
+                        cursor.execute(query, params)
+                        if fetchall:
+                            return cursor.fetchall()
+                        else:
+                            return cursor.fetchone()
+                finally:
+                    if hasattr(self.db_manager, 'return_connection'):
+                        self.db_manager.return_connection(conn)
+                    elif hasattr(self.db, 'return_connection'):
+                        self.db.return_connection(conn)
+                    else:
+                        conn.close()
+            except Exception as e:
+                logger.error(f"Error executing query: {str(e)}")
+                raise 

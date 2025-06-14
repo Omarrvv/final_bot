@@ -75,7 +75,7 @@ class VectorDB:
                 for collection in self.vectors:
                     for item_id, item_data in self.vectors[collection].items():
                         if "vector" in item_data and isinstance(item_data["vector"], list):
-                            item_data["vector"] = np.array(item_data["vector"], dtype=np.float32)
+                            item_data["vector"] = np.asarray(item_data["vector"], dtype=np.float32)
 
                 logger.info(f"Loaded {sum(len(items) for items in self.vectors.values())} vectors")
             else:
@@ -266,7 +266,7 @@ class VectorDB:
                 # Compute cosine similarity
                 item_vector = item_data["vector"]
                 if isinstance(item_vector, list):
-                    item_vector = np.array(item_vector, dtype=np.float32)
+                    item_vector = np.asarray(item_vector, dtype=np.float32)
 
                 # Normalize vectors (if not already normalized)
                 query_norm = np.linalg.norm(query_vector)

@@ -90,6 +90,10 @@ class ComponentFactory:
         container.register_cached_factory("service_hub", self.create_service_hub)
         container.register_cached_factory("session_manager", self.create_session_manager)
         container.register_cached_factory("database_manager", self.create_database_manager)
+        
+        # CRITICAL FIX: Register missing services that were mentioned in investigation
+        container.register_cached_factory("search_service", self.create_search_service)
+        container.register_cached_factory("unified_search_service", self.create_unified_search_service)
 
         # Create AnthropicService with API key from settings
         anthropic_api_key = settings.anthropic_api_key.get_secret_value() if settings.anthropic_api_key else ""
@@ -101,6 +105,18 @@ class ComponentFactory:
         container.register_cached_factory("chatbot", self.create_chatbot)
 
         logger.info("Service registration complete")
+        
+        # DEBUG: Verify container state immediately after registration
+        debug_info = container.get_cache_info()
+        logger.info(f"DEBUG - Container state after registration:")
+        logger.info(f"  Registered services: {debug_info['registered_services']}")
+        logger.info(f"  Registered factories: {debug_info['registered_factories']}")
+        logger.info(f"  Registered singletons: {debug_info['registered_singletons']}")
+        
+        if not debug_info['registered_factories']:
+            logger.error("CRITICAL: No factories were registered! Container registration failed!")
+        else:
+            logger.info(f"✅ Successfully registered {len(debug_info['registered_factories'])} factories")
 
     def register_component(self, name, component):
         container.register(name, component)
@@ -259,16 +275,30 @@ class ComponentFactory:
                 redis_uri = settings.redis_url
                 logger.info(f"Using local Redis URI: {redis_uri}")
 
-            # Create Redis session manager
             return RedisSessionManager(
                 redis_uri=redis_uri,
                 session_ttl=settings.session_ttl
             )
+
         except Exception as e:
-            # Log error and fall back to memory session manager
-            logger.error(f"Failed to create Redis session manager: {str(e)}")
-            logger.warning("Falling back to memory session manager")
+            logger.warning(f"Failed to create Redis session manager: {e}. Falling back to memory-based session manager")
             return MemorySessionManager(session_ttl=settings.session_ttl)
+
+    def create_search_service(self) -> Any:
+        """Create the search service component."""
+        from src.services.search_service import SearchService
+        
+        # Get the database manager from container
+        db_manager = container.get("database_manager")
+        return SearchService(db_manager=db_manager)
+
+    def create_unified_search_service(self) -> Any:
+        """Create the unified search service component."""
+        from src.services.search_service import UnifiedSearchService
+        
+        # Get the database manager from container
+        db_manager = container.get("database_manager")
+        return UnifiedSearchService(db_manager=db_manager)
 
 # Create a global factory instance
 component_factory = ComponentFactory()
