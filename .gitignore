@@ -174,3 +174,9 @@ archives/
 
 # Results Directory (generated test results and analysis files)
 results/
+
+# Generated test result files (in root directory)
+comprehensive_system_testing_results_*.json
+*_test_results.json
+*_testing_results*.json
+debug_*.py 
