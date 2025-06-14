@@ -87,13 +87,26 @@ class StandardizedEmbeddingService:
             logger.warning("Empty text provided for embedding generation")
             return self._get_fallback_embedding()
             
-        # Check cache first
+        # Check cache first with validation
         if self.cache:
             cache_key = f"{text}_{language}"
             if hasattr(self.cache, '__contains__') and cache_key in self.cache:
                 cached = self.cache[cache_key] if hasattr(self.cache, '__getitem__') else self.cache.get(cache_key)
                 if cached is not None:
-                    return self._standardize_embedding(cached)
+                    # CRITICAL: Validate cached data BEFORE using it
+                    if isinstance(cached, np.ndarray) and self.validate_embedding(cached):
+                        logger.debug(f"✅ Using valid cached embedding for '{text[:30]}...'")
+                        return cached
+                    else:
+                        # Remove corrupted cache entry automatically
+                        logger.warning(f"🧹 Auto-removing corrupted cache entry for '{text[:30]}...' (type: {type(cached)})")
+                        try:
+                            if hasattr(self.cache, '__delitem__'):
+                                del self.cache[cache_key]
+                            elif hasattr(self.cache, 'delete'):
+                                self.cache.delete(cache_key)
+                        except Exception:
+                            pass  # Continue even if cache deletion fails
         
         # Select appropriate model
         model_key = self.select_best_model(language)
@@ -175,15 +188,27 @@ class StandardizedEmbeddingService:
         results = {}
         uncached_texts = []
         
-        # Check cache for all texts
+        # Check cache for all texts with validation
         for text in texts:
             if self.cache:
                 cache_key = f"{text}_{language}"
                 if hasattr(self.cache, '__contains__') and cache_key in self.cache:
                     cached = self.cache[cache_key] if hasattr(self.cache, '__getitem__') else self.cache.get(cache_key)
                     if cached is not None:
-                        results[text] = self._standardize_embedding(cached)
-                        continue
+                        # CRITICAL: Validate cached data in batch processing too
+                        if isinstance(cached, np.ndarray) and self.validate_embedding(cached):
+                            results[text] = cached
+                            continue
+                        else:
+                            # Auto-remove corrupted batch cache entry
+                            logger.warning(f"🧹 Auto-removing corrupted batch cache entry for '{text[:30]}...' (type: {type(cached)})")
+                            try:
+                                if hasattr(self.cache, '__delitem__'):
+                                    del self.cache[cache_key]
+                                elif hasattr(self.cache, 'delete'):
+                                    self.cache.delete(cache_key)
+                            except Exception:
+                                pass
             uncached_texts.append(text)
         
         if not uncached_texts:

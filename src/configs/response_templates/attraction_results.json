@@ -1,0 +1,10 @@
+{
+  "en": [
+    "I found {count} attractions for you:\n\n{attraction_list}\n\nWould you like more details about any of these attractions?",
+    "Here are {count} places to visit:\n\n{attraction_list}\n\nI can provide more information about history, tickets, or visiting hours for any of these."
+  ],
+  "ar": [
+    "وجدت {count} معلم سياحي لك:\n\n{attraction_list}\n\nهل ترغب في مزيد من التفاصيل حول أي من هذه المعالم؟",
+    "إليك {count} مكان للزيارة:\n\n{attraction_list}\n\nيمكنني تقديم مزيد من المعلومات حول التاريخ أو التذاكر أو ساعات الزيارة لأي من هذه."
+  ]
+}

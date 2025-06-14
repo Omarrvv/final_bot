@@ -23,8 +23,8 @@ class IntentClassifier:
         self.knowledge_base = knowledge_base
 
         # --- MODIFIED INTENT LOADING ---
-        # First try to load from the custom intents file in src/nlu/config
-        custom_intents_path = os.path.join(os.path.dirname(__file__), "config", "intents.json")
+        # First try to load from the comprehensive intents file
+        custom_intents_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "configs", "comprehensive_intents.json")
         if os.path.exists(custom_intents_path):
             logger.info(f"Loading intents from custom file: {custom_intents_path}")
             self.intents = self._load_intents_from_file(custom_intents_path)

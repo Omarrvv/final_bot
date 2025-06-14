@@ -10,9 +10,12 @@ import fasttext
 import requests
 from pathlib import Path
 
-# Suppress NumPy 2.0 warnings from fasttext
+# Suppress NumPy 2.0 warnings from fasttext and other modules
 warnings.filterwarnings("ignore", message="Unable to avoid copy while creating an array")
+warnings.filterwarnings("ignore", message=".*copy.*", category=UserWarning)
+warnings.filterwarnings("ignore", message=".*copy.*", category=FutureWarning)
 warnings.filterwarnings("ignore", category=FutureWarning, module="numpy")
+warnings.filterwarnings("ignore", category=UserWarning, module="fasttext")
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +86,11 @@ class LanguageDetector:
         # Use FastText model if available
         if self.model:
             try:
-                predictions = self.model.predict(text, k=3)
+                # Suppress warnings during prediction
+                with warnings.catch_warnings():
+                    warnings.filterwarnings("ignore")
+                    predictions = self.model.predict(text, k=3)
+                    
                 languages = [lang.replace('__label__', '') for lang in predictions[0]]
                 confidences = predictions[1]
                 

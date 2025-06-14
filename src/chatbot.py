@@ -984,8 +984,46 @@ class Chatbot:
             kb_results = None
             response_source = "dialog_manager"  # Default source
 
-            # Handle itinerary queries
-            if dialog_action.get("query_type") == "itinerary":
+            # Handle tourism queries with database search
+            query_type = dialog_action.get("query_type")
+            if query_type in ["accommodation", "dining", "attractions", "tours", "practical", "events", "itinerary", "locations", "faq"]:
+                logger.info(f"Processing {query_type} knowledge query")
+                
+                # Extract query parameters
+                query_params = dialog_action.get("params", {})
+                language = session.get("language", "en")
+                search_method = dialog_action.get("search_method", "search_general")
+                
+                # Perform database search based on query type
+                try:
+                    if query_type == "accommodation":
+                        kb_results = self.knowledge_base.search_hotels(query=query_params, limit=5, language=language)
+                    elif query_type == "dining":
+                        kb_results = self.knowledge_base.search_restaurants(query=query_params, limit=5, language=language)
+                    elif query_type == "attractions":
+                        kb_results = self.knowledge_base.search_attractions(query=query_params, limit=5, language=language)
+                    elif query_type == "events":
+                        kb_results = self.knowledge_base.search_events(query=query_params, limit=5, language=language)
+                    elif query_type == "practical":
+                        kb_results = self.knowledge_base.search_practical_info(query=query_params, limit=5, language=language)
+                    elif query_type == "itinerary":
+                        kb_results = self.knowledge_base.search_itineraries(query=query_params, limit=3, language=language)
+                    else:
+                        # Generic search for other types
+                        kb_results = self.knowledge_base.search(query=str(query_params), limit=5, language=language)
+                    
+                    if kb_results:
+                        response_source = "database"
+                        logger.info(f"Found {len(kb_results)} {query_type} results from database")
+                    else:
+                        logger.warning(f"No {query_type} results found in database")
+                        
+                except Exception as e:
+                    logger.error(f"Error searching {query_type}: {str(e)}")
+                    kb_results = None
+
+            # Handle itinerary queries (legacy support)
+            elif dialog_action.get("query_type") == "itinerary":
                 logger.info("Processing itinerary knowledge query")
 
                 # Extract query parameters

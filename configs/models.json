@@ -26,7 +26,8 @@
     "ar": "asafaya/bert-base-arabic"
   },
   "intent_classification": {
-    "min_confidence": 0.65,
+    "min_confidence": 0.4,
+    "intents_file": "configs/comprehensive_intents.json",
     "intents": {
       "greeting": {
         "examples": [

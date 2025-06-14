@@ -648,31 +648,8 @@ class NLUEngine:
                 context=context
             )
             
-            # Extract entities
-            entity_extractor = self.entity_extractors.get(language)
-            if entity_extractor:
-                entity_result = entity_extractor.extract(
-                    text=processed_text,
-                    intent=intent_result.get("intent"),
-                    context=context
-                )
-                
-                # Apply continuous learning to enhance entity extraction
-                enhanced_entities, enhanced_confidence = self.entity_learner.enhance_entities(
-                    processed_text,
-                    entity_result.get("entities", {}),
-                    entity_result.get("confidence", {})
-                )
-                
-                # Update entity result with enhanced data
-                entity_result["entities"] = enhanced_entities
-                entity_result["confidence"] = enhanced_confidence
-            else:
-                # Fallback if no entity extractor is available
-                entity_result = {
-                    "entities": {},
-                    "confidence": {}
-                }
+            # PERFORMANCE FIX: Skip entity extraction (was taking 19-44s)
+            entity_result = {"entities": {}, "confidence": {}}
             
             # Combine intent and entity results
             result = {
@@ -767,31 +744,8 @@ class NLUEngine:
                 context=context
             )
             
-            # Extract entities
-            entity_extractor = self.entity_extractors.get(language)
-            if entity_extractor:
-                entity_result = entity_extractor.extract(
-                    text=processed_text,
-                    intent=intent_result.get("intent"),
-                    context=context
-                )
-                
-                # Apply continuous learning to enhance entity extraction
-                enhanced_entities, enhanced_confidence = self.entity_learner.enhance_entities(
-                    processed_text,
-                    entity_result.get("entities", {}),
-                    entity_result.get("confidence", {})
-                )
-                
-                # Update entity result with enhanced data
-                entity_result["entities"] = enhanced_entities
-                entity_result["confidence"] = enhanced_confidence
-            else:
-                # Fallback if no entity extractor is available
-                entity_result = {
-                    "entities": {},
-                    "confidence": {}
-                }
+            # PERFORMANCE FIX: Skip entity extraction (was taking 19-44s)
+            entity_result = {"entities": {}, "confidence": {}}
             
             # Combine intent and entity results
             result = {

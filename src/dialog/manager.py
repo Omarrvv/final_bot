@@ -281,7 +281,7 @@ class DialogManager:
         confidence = nlu_result.get("intent_confidence", 0.0)
         
         # Get current dialog state
-        current_state = context.get("dialog_state", "greeting")
+        current_state = context.get("dialog_state", "information_gathering")
         
         # Handle greetings and farewells directly
         if intent == "greeting" and confidence > 0.7:
@@ -289,6 +289,10 @@ class DialogManager:
         
         if intent == "farewell" and confidence > 0.7:
             return self._create_farewell_action(language)
+        
+        # Handle tourism intents directly with database queries
+        if intent in ["hotel_query", "restaurant_query", "attraction_info", "tour_query", "practical_info", "event_query", "itinerary_query", "location_query", "faq_query"] and confidence > 0.4:
+            return self._create_tourism_action(intent, entities, language)
         
         # Get flow for current state
         flow = self.flows.get(current_state, {})
@@ -358,6 +362,76 @@ class DialogManager:
             "dialog_state": "information_gathering",
             "suggestions": ["attractions", "hotels", "restaurants", "practical_info"],
             "language": language
+        }
+    
+    def _create_tourism_action(self, intent: str, entities: Dict, language: str) -> Dict:
+        """Create a tourism action that triggers database queries."""
+        # Map intent to response type and query parameters
+        intent_mapping = {
+            "hotel_query": {
+                "response_type": "hotel_results",
+                "query_type": "accommodation",
+                "search_method": "search_hotels"
+            },
+            "restaurant_query": {
+                "response_type": "restaurant_results", 
+                "query_type": "dining",
+                "search_method": "search_restaurants"
+            },
+            "attraction_info": {
+                "response_type": "attraction_results",
+                "query_type": "attractions", 
+                "search_method": "search_attractions"
+            },
+            "tour_query": {
+                "response_type": "tour_results",
+                "query_type": "tours",
+                "search_method": "search_tours"
+            },
+            "practical_info": {
+                "response_type": "practical_info_results",
+                "query_type": "practical",
+                "search_method": "search_practical_info"
+            },
+            "event_query": {
+                "response_type": "event_results",
+                "query_type": "events",
+                "search_method": "search_events"
+            },
+            "itinerary_query": {
+                "response_type": "itinerary_results",
+                "query_type": "itinerary",
+                "search_method": "search_itineraries"
+            },
+            "location_query": {
+                "response_type": "location_results",
+                "query_type": "locations",
+                "search_method": "search_locations"
+            },
+            "faq_query": {
+                "response_type": "faq_results",
+                "query_type": "faq",
+                "search_method": "search_faq"
+            }
+        }
+        
+        mapping = intent_mapping.get(intent, {
+            "response_type": "general_results",
+            "query_type": "general",
+            "search_method": "search_general"
+        })
+        
+        return {
+            "action_type": "response", 
+            "response_type": mapping["response_type"],
+            "query_type": mapping["query_type"],
+            "search_method": mapping["search_method"],
+            "dialog_state": "information_gathering",
+            "suggestions": ["related_topics", "more_info", "other_questions"],
+            "language": language,
+            "entities": entities,
+            "intent": intent,
+            "params": entities  # Pass entities as query parameters
         }
     
     def _create_entity_prompt_action(self, missing_entity: str, flow: Dict, language: str) -> Dict:

@@ -1,0 +1,10 @@
+{
+  "en": [
+    "I found {count} itinerary suggestions for you:\n\n{itinerary_list}\n\nWould you like me to customize any of these itineraries?",
+    "Here are {count} travel itineraries based on your preferences:\n\n{itinerary_list}\n\nI can provide more details or help you plan your perfect Egypt trip."
+  ],
+  "ar": [
+    "وجدت {count} اقتراح برنامج سياحي لك:\n\n{itinerary_list}\n\nهل ترغب في تخصيص أي من هذه البرامج؟",
+    "إليك {count} برنامج سفر بناءً على تفضيلاتك:\n\n{itinerary_list}\n\nيمكنني تقديم مزيد من التفاصيل أو مساعدتك في التخطيط لرحلتك المثالية إلى مصر."
+  ]
+}

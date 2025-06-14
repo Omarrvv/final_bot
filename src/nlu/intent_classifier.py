@@ -28,8 +28,8 @@ class AdvancedIntentClassifier:
         self.embedding_service = embedding_service
         self.knowledge_base = knowledge_base
         
-        # Intent definitions with examples
-        self.intents = self.config.get("intents", {})
+        # Intent definitions with examples - Load from comprehensive file
+        self.intents = self._load_comprehensive_intents()
         
         # Intent examples and their embeddings
         self.intent_examples = {}
@@ -43,6 +43,57 @@ class AdvancedIntentClassifier:
         
         # Initialize intent examples
         self._prepare_intent_examples()
+    
+    def _load_comprehensive_intents(self):
+        """Load comprehensive intents from file with fallback to config."""
+        import os
+        import json
+        
+        # First try to load from the comprehensive intents file
+        custom_intents_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "configs", "comprehensive_intents.json")
+        if os.path.exists(custom_intents_path):
+            logger.info(f"Loading intents from custom file: {custom_intents_path}")
+            intents = self._load_intents_from_file(custom_intents_path)
+            if intents:
+                logger.info(f"Successfully loaded {len(intents)} intents from custom file")
+                return intents.get("intents", intents)  # Handle both formats
+            else:
+                logger.warning("Failed to load intents from custom file, falling back to config")
+
+        # If custom file doesn't exist or is empty, check if intents are directly in the config dictionary
+        if "intents" in self.config and isinstance(self.config["intents"], dict):
+            logger.info("Loading intents directly from config dictionary.")
+            return self.config["intents"]
+        else:
+            # Fallback to loading from file path if specified
+            intents_file_path = self.config.get("intents_file")
+            logger.info(f"Attempting to load intents from file: {intents_file_path}")
+            intents = self._load_intents_from_file(intents_file_path)
+            if intents:
+                return intents.get("intents", intents)  # Handle both formats
+            else:
+                logger.warning("No intents loaded! Using empty intents dictionary.")
+                return {}
+    
+    def _load_intents_from_file(self, file_path):
+        """Load intent definitions from a JSON file."""
+        import os
+        import json
+        
+        if not file_path or not os.path.exists(file_path):
+            logger.error(f"Intents file not found or path not specified: {file_path}")
+            return {}
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                intents = json.load(f)
+                logger.info(f"Successfully loaded intents from {file_path}")
+                return intents
+        except json.JSONDecodeError:
+            logger.error(f"Error decoding JSON from intents file: {file_path}")
+            return {}
+        except Exception as e:
+            logger.error(f"Error loading intents file {file_path}: {e}")
+            return {}
         
     def _prepare_intent_examples(self):
         """Process and prepare intent examples for classification with retry logic."""
@@ -151,13 +202,8 @@ class AdvancedIntentClassifier:
         is_fallback = len(np.unique(embedding)) == 1
         logger.debug(f"Query embedding quality - Fallback: {is_fallback}, Shape: {embedding.shape}")
         
-        # DEBUG: Log transportation queries specifically
-        is_transport_query = any(word in text.lower() for word in 
-                               ['airport', 'transfer', 'transport', 'taxi', 'bus', 'train'])
-        
-        if is_transport_query:
-            logger.warning(f"🚌 Transportation query detected: '{text}'")
-            logger.warning(f"🚌 Using {'fallback' if is_fallback else 'real'} embedding")
+        # DEBUG: Log embedding quality (removed transportation-specific logic)
+        logger.debug(f"Processing query: '{text[:50]}...' with {'fallback' if is_fallback else 'real'} embedding")
             
         # Calculate similarity with all intent examples
         intent_scores = self._calculate_intent_scores(embedding, context)
@@ -184,15 +230,8 @@ class AdvancedIntentClassifier:
         if len(top_intents) > 1:
             confidence_diff = top_score - top_intents[1][1]
         
-        # DEBUG: Log transportation query results
-        if is_transport_query:
-            logger.warning(f"🚌 Transportation query result: {top_intent} ({top_score:.3f})")
-            
-            if top_intent != 'practical_info':
-                logger.error(f"❌ TRANSPORTATION MISCLASSIFIED: '{text}' → {top_intent}")
-                logger.error(f"❌ Expected: practical_info, Got: {top_intent}")
-            else:
-                logger.info(f"✅ Transportation query correctly classified as practical_info")
+        # DEBUG: Log classification result
+        logger.debug(f"Intent classification result: {top_intent} ({top_score:.3f})")
         
         # Return classification result
         return {

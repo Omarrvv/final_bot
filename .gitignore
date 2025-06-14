@@ -171,3 +171,6 @@ models/
 
 # Archive Directories (historical reports and logs)
 archives/
+
+# Results Directory (generated test results and analysis files)
+results/

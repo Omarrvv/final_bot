@@ -1,0 +1,10 @@
+{
+  "en": [
+    "I found {count} restaurants for you:\n\n{restaurant_list}\n\nWould you like more details about any of these restaurants?",
+    "Here are {count} dining options:\n\n{restaurant_list}\n\nI can provide more information about cuisine, prices, or reservations for any of these."
+  ],
+  "ar": [
+    "وجدت {count} مطعم لك:\n\n{restaurant_list}\n\nهل ترغب في مزيد من التفاصيل حول أي من هذه المطاعم؟",
+    "إليك {count} خيار طعام:\n\n{restaurant_list}\n\nيمكنني تقديم مزيد من المعلومات حول المأكولات أو الأسعار أو الحجوزات لأي من هذه."
+  ]
+}
