@@ -10,6 +10,8 @@ import os
 
 from ...models.api_models import ChatMessageRequest, ChatbotResponse, SuggestionsResponse
 from ...utils.exceptions import ChatbotError
+from ...utils.error_responses import SecureErrorHandler
+from ...middleware.error_handler import get_request_id
 
 # Phase 4: Import the new ComponentFactory instead of legacy factory
 from ...knowledge.factory import ComponentFactory
@@ -30,7 +32,10 @@ def get_chatbot(request: Request):
         # Use singleton from app.state instead of recreating via factory
         if not hasattr(request.app.state, 'chatbot') or not request.app.state.chatbot:
             logger.error("Chatbot not found in app.state - check lifespan initialization")
-            raise HTTPException(status_code=503, detail="Chatbot service unavailable")
+            raise SecureErrorHandler.internal_server_error(
+                Exception("Chatbot service unavailable"), 
+                get_request_id(request)
+            )
         
         chatbot = request.app.state.chatbot
         logger.debug(f"✅ Chat using singleton: {type(chatbot).__name__}")
@@ -39,7 +44,7 @@ def get_chatbot(request: Request):
         raise
     except Exception as e:
         logger.error(f"Error accessing chatbot singleton: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=503, detail="Chatbot service unavailable")
+        raise SecureErrorHandler.internal_server_error(e, get_request_id(request))
 
 # Conditional rate limiter based on environment
 
@@ -86,12 +91,15 @@ async def chat_endpoint(
     except ChatbotError as e:
         # Handle known chatbot errors
         logger.error(f"Chatbot error: {str(e)}")
-        raise HTTPException(status_code=400, detail=str(e))
+        raise SecureErrorHandler.validation_error(
+            [{"field": "message", "message": str(e), "code": "chatbot_error"}],
+            get_request_id(request)
+        )
 
     except Exception as e:
         # Handle unexpected errors
         logger.error(f"Error processing chat message: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="An error occurred processing your message")
+        raise SecureErrorHandler.internal_server_error(e, get_request_id(request))
 
 @router.get("/suggestions", response_model=SuggestionsResponse)
 async def get_suggestions(
@@ -110,7 +118,7 @@ async def get_suggestions(
         return {"suggestions": suggestions}
     except Exception as e:
         logger.error(f"Error getting suggestions: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Failed to get suggestions")
+        raise SecureErrorHandler.internal_server_error(e, get_request_id(request))
 
 @router.post("/toggle-llm-first", tags=["Config"])
 async def toggle_llm_first_endpoint():

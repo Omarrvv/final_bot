@@ -64,6 +64,11 @@ class VectorSearchService(BaseService):
     VALID_TABLES = {
         'attractions', 'restaurants', 'accommodations', 'cities', 'regions', 'events_festivals', 'itineraries'
     }
+    
+    @classmethod
+    def validate_table_name(cls, table_name: str) -> bool:
+        """Validate table name to prevent SQL injection attacks."""
+        return table_name in cls.VALID_TABLES
 
     # Default search parameters
     DEFAULT_EF_SEARCH = 100  # Higher values = more accurate but slower
@@ -242,6 +247,11 @@ class UnifiedSearchService(BaseService):
         'attractions', 'restaurants', 'accommodations', 'cities', 'regions', 'users', 'tourism_faqs', 'practical_info',
         'transportation_types', 'transportation_routes', 'transportation_stations', 'events_festivals', 'itineraries'
     }
+    
+    @classmethod
+    def validate_table_name(cls, table_name: str) -> bool:
+        """Validate table name to prevent SQL injection attacks."""
+        return table_name in cls.VALID_TABLES
     
     # Search type weights for hybrid search
     HYBRID_WEIGHTS = {

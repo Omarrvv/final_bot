@@ -120,6 +120,13 @@ class UnifiedSettings(BaseSettings):
         description="Enable debug mode",
         env="DEBUG"
     )
+    
+    # Security enforcement
+    force_security_in_dev: bool = Field(
+        default=True,
+        description="Force security middleware even in development mode",
+        env="FORCE_SECURITY_IN_DEV"
+    )
     log_level: str = Field(
         default="INFO", 
         description="Logging level",
@@ -175,6 +182,12 @@ class UnifiedSettings(BaseSettings):
         description="Vector database storage path",
         env="VECTOR_DB_URI"
     )
+    
+    # Alias for backward compatibility
+    @property
+    def database_url(self) -> str:
+        """Alias for database_uri for backward compatibility"""
+        return self.database_uri
 
     # ============================================================================
     # REDIS CONFIGURATION
@@ -572,6 +585,26 @@ class UnifiedSettings(BaseSettings):
     @model_validator(mode='after')
     def validate_and_setup_config(self):
         """Post-initialization validation and setup."""
+        # SECURITY VALIDATION: Enforce production security requirements
+        if self.env == "production":
+            # Validate JWT secret is not default
+            if self.jwt_secret == "generate_a_strong_secret_key_here":
+                raise ValueError(
+                    "Production environment requires a secure JWT_SECRET. "
+                    "Set JWT_SECRET environment variable to a strong secret key."
+                )
+            
+            # Validate secret key is not default
+            if self.secret_key == "egypt-tourism-chatbot-secret-key-change-in-production":
+                raise ValueError(
+                    "Production environment requires a secure SECRET_KEY. "
+                    "Set SECRET_KEY environment variable to a strong secret key."
+                )
+            
+            # Force security settings in production
+            self.session_cookie_secure = True
+            logger.info("✅ Production security validation passed")
+        
         # Validate database setup
         logger.debug(f"Using PostgreSQL database URI: {self.database_uri}")
 

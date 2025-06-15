@@ -299,6 +299,15 @@ logger.info("FastAPI app instance created.")
 add_core_middleware(app, log_request_body=False, log_response_body=False, debug=settings.debug)
 logger.info("Core middleware (logging, error handling, request ID) added")
 
+# Phase 1C: Add standardized error handling middleware
+try:
+    from src.middleware.error_handler import standard_error_handler
+    app.middleware("http")(standard_error_handler)
+    logger.info("✅ Phase 1C: Standardized error handling middleware added")
+except Exception as e:
+    logger.error(f"Failed to add error handling middleware: {e}", exc_info=True)
+    logger.warning("Standardized error handling will be disabled")
+
 # Phase 4: Add performance monitoring middleware
 try:
     performance_middleware = add_performance_middleware(app, slow_request_threshold=1.0)
@@ -331,8 +340,14 @@ except Exception as e:
     logger.warning("CORS protection will be disabled. This is a security risk.")
 
 # --- Add Auth Middleware ---
-# SECURITY FIX: Enable authentication middleware with environment control
-if not settings.debug or settings.env == "production":
+# SECURITY FIX: Enable authentication middleware with enhanced control
+should_enable_auth = (
+    settings.env == "production" or 
+    settings.force_security_in_dev or 
+    not settings.debug
+)
+
+if should_enable_auth:
     try:
         # Add auth middleware with session manager
         add_auth_middleware(
@@ -349,17 +364,29 @@ if not settings.debug or settings.env == "production":
             testing_mode=(settings.env == "development")
         )
         logger.info("✅ Session-based authentication middleware ENABLED")
+        logger.info(f"   Reason: production={settings.env == 'production'}, "
+                   f"force_security={settings.force_security_in_dev}, "
+                   f"debug={not settings.debug}")
     except Exception as e:
         logger.error(f"❌ Failed to add authentication middleware: {e}", exc_info=True)
         if settings.env == "production":
             raise RuntimeError("Cannot start in production without authentication middleware")
         logger.warning("Authentication middleware will be disabled")
 else:
-    logger.warning("⚠️ Authentication middleware DISABLED (debug mode)")
+    logger.warning("⚠️ Authentication middleware DISABLED")
+    logger.warning(f"   Reason: production={settings.env == 'production'}, "
+                  f"force_security={settings.force_security_in_dev}, "
+                  f"debug={not settings.debug}")
 
 # --- Add CSRF Middleware ---
-# SECURITY FIX: Enable CSRF protection with environment control
-if not settings.debug or settings.env == "production":
+# SECURITY FIX: Enable CSRF protection with enhanced control
+should_enable_csrf = (
+    settings.env == "production" or 
+    settings.force_security_in_dev or 
+    not settings.debug
+)
+
+if should_enable_csrf:
     try:
         exclude_urls = [
             "/docs", "/redoc", "/openapi.json", "/api/health",
@@ -376,13 +403,19 @@ if not settings.debug or settings.env == "production":
             cookie_secure=(settings.env == "production")
         )
         logger.info("✅ CSRF middleware ENABLED")
+        logger.info(f"   Reason: production={settings.env == 'production'}, "
+                   f"force_security={settings.force_security_in_dev}, "
+                   f"debug={not settings.debug}")
     except Exception as e:
         logger.error(f"❌ Failed to add CSRF middleware: {e}", exc_info=True)
         if settings.env == "production":
             raise RuntimeError("Cannot start in production without CSRF protection")
         logger.warning("CSRF protection will be disabled")
 else:
-    logger.warning("⚠️ CSRF middleware DISABLED (debug mode)")
+    logger.warning("⚠️ CSRF middleware DISABLED")
+    logger.warning(f"   Reason: production={settings.env == 'production'}, "
+                  f"force_security={settings.force_security_in_dev}, "
+                  f"debug={not settings.debug}")
 
 # --- Include routers ---
 app.include_router(chat_router, prefix="/api")
@@ -434,13 +467,12 @@ if os.path.exists(static_folder_path) and os.path.exists(os.path.join(static_fol
 
     # Serve other static files
     @app.get("/{full_path:path}")
-    async def serve_static_files(full_path: str):
-        # Skip API routes
+    async def serve_static_files(full_path: str, request: Request):
+        # Skip API routes - use standardized error handling
         if full_path.startswith("api/"):
-            return JSONResponse(
-                status_code=404,
-                content={"error": "Not found"}
-            )
+            from src.utils.error_responses import SecureErrorHandler
+            from src.middleware.error_handler import get_request_id
+            raise SecureErrorHandler.not_found_error("API endpoint", get_request_id(request))
 
         # Check for specific file
         file_path = os.path.join(static_folder_path, full_path)
@@ -484,13 +516,12 @@ elif os.path.exists(react_build_path) and os.path.exists(os.path.join(react_buil
 
     # Serve React frontend for all non-API routes (client-side routing)
     @app.get("/{full_path:path}")
-    async def serve_react_app(full_path: str):
-        # Skip API routes
+    async def serve_react_app(full_path: str, request: Request):
+        # Skip API routes - use standardized error handling
         if full_path.startswith("api/"):
-            return JSONResponse(
-                status_code=404,
-                content={"error": "Not found"}
-            )
+            from src.utils.error_responses import SecureErrorHandler
+            from src.middleware.error_handler import get_request_id
+            raise SecureErrorHandler.not_found_error("API endpoint", get_request_id(request))
 
         # Check for specific file in the build directory
         file_path = os.path.join(react_build_path, full_path)
