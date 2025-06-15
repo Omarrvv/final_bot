@@ -14,7 +14,7 @@ from ...utils.exceptions import ChatbotError
 # Phase 4: Import the new ComponentFactory instead of legacy factory
 from ...knowledge.factory import ComponentFactory
 from ...chatbot import Chatbot
-from ...utils.llm_config import toggle_llm_first, get_config
+from ...config_unified import settings
 
 # Create router
 router = APIRouter(tags=["Chatbot"])
@@ -124,13 +124,16 @@ async def toggle_llm_first_endpoint():
         Dict containing the new setting value
     """
     try:
-        # Toggle the setting
-        new_value = toggle_llm_first()
-
-        # Return the new value
+        # Get current value from unified settings
+        current_value = getattr(settings, 'use_llm_first', False)
+        new_value = not current_value
+        
+        # Note: In unified config, this would need to be persisted to be permanent
+        # For now, just return the toggled value
         return {
             "use_llm_first": new_value,
-            "message": f"LLM first setting toggled to: {new_value}"
+            "message": f"LLM first setting would be toggled to: {new_value} (Note: Not persisted in current config)",
+            "current_config_value": current_value
         }
     except Exception as e:
         logger.error(f"Error toggling LLM first setting: {str(e)}", exc_info=True)
@@ -145,13 +148,18 @@ async def get_llm_config():
         Dict containing the current configuration
     """
     try:
-        # Get the current configuration
-        config = get_config()
+        # Get the current configuration from unified settings
+        config = {
+            "use_llm_first": getattr(settings, 'use_llm_first', False),
+            "env": settings.env,
+            "debug": settings.debug,
+            "anthropic_configured": bool(settings.anthropic_api_key),
+        }
 
         # Return the configuration
         return {
             "config": config,
-            "message": "Current LLM configuration"
+            "message": "Current unified configuration"
         }
     except Exception as e:
         logger.error(f"Error getting LLM configuration: {str(e)}", exc_info=True)

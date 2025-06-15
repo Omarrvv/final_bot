@@ -318,63 +318,71 @@ try:
         allowed_origins = get_default_origins(settings.frontend_url)
         logger.warning(f"No CORS allowed_origins specified. Using defaults: {allowed_origins}")
 
-    # Add CORS middleware with our secure implementation
+    # Add CORS middleware with comprehensive configuration
     add_cors_middleware(
         app=app,
         allowed_origins=allowed_origins,
         allow_credentials=True,
-        allowed_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        allowed_headers=["Content-Type", "Authorization", "X-CSRF-Token"],
+        # Use default methods and headers from security middleware (more comprehensive)
+        # This ensures proper CORS headers are sent for OPTIONS requests
     )
 except Exception as e:
     logger.error(f"Failed to add CORS middleware: {e}", exc_info=True)
     logger.warning("CORS protection will be disabled. This is a security risk.")
 
 # --- Add Auth Middleware ---
-# TEMPORARILY DISABLED FOR TESTING
-# try:
-#     # Add auth middleware with session manager
-#     add_auth_middleware(
-#         app=app,
-#         session_manager=session_manager,
-#         public_paths=[
-#             "/docs", "/redoc", "/openapi.json", "/api/health",
-#             "/api/v1/auth/session", "/api/v1/auth/validate-session",
-#             "/api/v1/auth/refresh-session", "/api/v1/auth/end-session",
-#             "/api/chat", "/api/reset", "/api/suggestions",
-#             "/api/languages", "/api/feedback",
-#             "/", "/static", "/{full_path:path}"  # Make all paths public for the demo
-#         ],
-#         testing_mode=True  # Enable testing mode for the demo
-#     )
-#     logger.info("Session-based authentication middleware added")
-# except Exception as e:
-#     logger.error(f"Failed to add authentication middleware: {e}", exc_info=True)
-#     logger.warning("Authentication middleware will be disabled")
-logger.warning("Authentication middleware DISABLED for testing")
+# SECURITY FIX: Enable authentication middleware with environment control
+if not settings.debug or settings.env == "production":
+    try:
+        # Add auth middleware with session manager
+        add_auth_middleware(
+            app=app,
+            session_manager=session_manager,
+            public_paths=[
+                "/docs", "/redoc", "/openapi.json", "/api/health",
+                "/api/v1/auth/session", "/api/v1/auth/validate-session",
+                "/api/v1/auth/refresh-session", "/api/v1/auth/end-session",
+                "/api/chat", "/api/reset", "/api/suggestions",
+                "/api/languages", "/api/feedback",
+                "/", "/static", "/{full_path:path}"  # Keep essential paths public
+            ],
+            testing_mode=(settings.env == "development")
+        )
+        logger.info("✅ Session-based authentication middleware ENABLED")
+    except Exception as e:
+        logger.error(f"❌ Failed to add authentication middleware: {e}", exc_info=True)
+        if settings.env == "production":
+            raise RuntimeError("Cannot start in production without authentication middleware")
+        logger.warning("Authentication middleware will be disabled")
+else:
+    logger.warning("⚠️ Authentication middleware DISABLED (debug mode)")
 
 # --- Add CSRF Middleware ---
-# TEMPORARILY DISABLED FOR TESTING
-# try:
-#     exclude_urls = [
-#         "/docs", "/redoc", "/openapi.json", "/api/health",
-#         "/api/csrf-token", "/api/chat", "/api/reset",
-#         "/api/suggestions", "/api/languages", "/api/feedback",
-#         "/api/sessions", "/", "/static", "/{full_path:path}"  # Exclude all paths for the demo
-#         # Auth endpoints removed as auth is disabled
-#     ]
+# SECURITY FIX: Enable CSRF protection with environment control
+if not settings.debug or settings.env == "production":
+    try:
+        exclude_urls = [
+            "/docs", "/redoc", "/openapi.json", "/api/health",
+            "/api/csrf-token", "/api/chat", "/api/reset",
+            "/api/suggestions", "/api/languages", "/api/feedback",
+            "/api/sessions", "/", "/static", "/{full_path:path}"
+            # Exclude read-only API endpoints but protect state-changing ones
+        ]
 
-#     add_csrf_middleware(
-#         app=app,
-#         secret=settings.jwt_secret,
-#         exclude_urls=exclude_urls,
-#         cookie_secure=settings.env != "development"
-#     )
-#     logger.info("CSRF middleware added")
-# except Exception as e:
-#     logger.error(f"Failed to add CSRF middleware: {e}", exc_info=True)
-#     logger.warning("CSRF protection will be disabled")
-logger.warning("CSRF middleware DISABLED for testing")
+        add_csrf_middleware(
+            app=app,
+            secret=settings.jwt_secret,
+            exclude_urls=exclude_urls,
+            cookie_secure=(settings.env == "production")
+        )
+        logger.info("✅ CSRF middleware ENABLED")
+    except Exception as e:
+        logger.error(f"❌ Failed to add CSRF middleware: {e}", exc_info=True)
+        if settings.env == "production":
+            raise RuntimeError("Cannot start in production without CSRF protection")
+        logger.warning("CSRF protection will be disabled")
+else:
+    logger.warning("⚠️ CSRF middleware DISABLED (debug mode)")
 
 # --- Include routers ---
 app.include_router(chat_router, prefix="/api")
@@ -391,8 +399,9 @@ app.include_router(database_router)
 app.include_router(health_router)
 logger.info("API routers included")
 
-# Basic health check endpoint
+# Basic health check endpoint with CORS support
 @app.get("/api/health", tags=["Health"])
+@app.options("/api/health", tags=["Health"])
 async def health_check():
     """Check the health status of the API."""
     # Simply return OK status without checking for initialized chatbot

@@ -19,7 +19,7 @@ from src.utils.container import container
 from src.utils.exceptions import ChatbotError, ResourceNotFoundError, ServiceError, ConfigurationError
 from src.utils.factory import component_factory
 from src.knowledge.database import DatabaseManager # Import DatabaseManager - NEW
-from src.utils.llm_config import use_llm_first, toggle_llm_first, get_config # Import LLM configuration
+from src.config_unified import settings # Import unified configuration
 
 # Professional polish: suppress dependency warnings for clean output
 warnings.filterwarnings("ignore", message="Unable to avoid copy while creating an array")
@@ -127,7 +127,7 @@ class Chatbot:
         logger.info("🧠 Full NLU processing required")
 
         # Get the current LLM configuration
-        USE_LLM_FIRST = use_llm_first()
+        USE_LLM_FIRST = getattr(settings, 'use_llm_first', False)  # Default to False for database-first approach
         logger.info(f"Chatbot configured to use {'LLM' if USE_LLM_FIRST else 'database'} first (USE_LLM_FIRST = {USE_LLM_FIRST})")
 
         try:

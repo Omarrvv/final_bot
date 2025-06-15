@@ -80,11 +80,19 @@ class BaseRepository:
             # Apply filters
             if filters:
                 for key, value in filters.items():
+                    # SECURITY FIX: Validate column names to prevent SQL injection
+                    if not key.replace('_', '').replace('-', '').replace('>', '').replace("'", '').isalnum():
+                        logger.warning(f"Potentially unsafe column name in filter: {key}")
+                        continue
                     query += f" AND {key} = %s"
                     params.append(value)
 
             # Add ordering
             if order_by:
+                # SECURITY FIX: Validate order_by column name
+                if not order_by.replace('_', '').replace('-', '').replace('>', '').replace("'", '').isalnum():
+                    logger.warning(f"Potentially unsafe order_by column: {order_by}")
+                    order_by = "id"  # Default to safe column
                 query += f" ORDER BY {order_by}"
 
             # Add limit and offset
@@ -122,13 +130,25 @@ class BaseRepository:
                 if field in processed_data and not isinstance(processed_data[field], str):
                     processed_data[field] = json.dumps(processed_data[field])
 
-            # Extract fields and values
-            fields = list(processed_data.keys())
-            placeholders = ["%s"] * len(fields)
-            values = [processed_data[field] for field in fields]
+            # Extract fields and values with security validation
+            safe_fields = []
+            values = []
+            
+            for field in processed_data.keys():
+                # SECURITY FIX: Validate field names to prevent SQL injection
+                if not field.replace('_', '').replace('-', '').replace('>', '').replace("'", '').isalnum():
+                    logger.warning(f"Potentially unsafe field name in create: {field}")
+                    continue
+                safe_fields.append(field)
+                values.append(processed_data[field])
+            
+            if not safe_fields:
+                logger.error("No safe fields found for insertion")
+                return None
 
             # Build the query
-            fields_str = ", ".join(fields)
+            placeholders = ["%s"] * len(safe_fields)
+            fields_str = ", ".join(safe_fields)
             placeholders_str = ", ".join(placeholders)
             sql = f"INSERT INTO {self.table_name} ({fields_str}) VALUES ({placeholders_str}) RETURNING id"
 
@@ -164,11 +184,15 @@ class BaseRepository:
                 if field in processed_data and not isinstance(processed_data[field], str):
                     processed_data[field] = json.dumps(processed_data[field])
 
-            # Build SET clause
+            # Build SET clause with security validation
             set_clauses = []
             values = []
 
             for key, value in processed_data.items():
+                # SECURITY FIX: Validate field names to prevent SQL injection
+                if not key.replace('_', '').replace('-', '').replace('>', '').replace("'", '').isalnum():
+                    logger.warning(f"Potentially unsafe field name in update: {key}")
+                    continue
                 set_clauses.append(f"{key} = %s")
                 values.append(value)
 

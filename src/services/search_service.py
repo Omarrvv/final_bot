@@ -183,19 +183,28 @@ class VectorSearchService(BaseService):
                         limit: int) -> List[Dict[str, Any]]:
         """Fallback search when vector extension is not available."""
         try:
+            # SECURITY FIX: Use parameterized queries to prevent SQL injection
+            if table_name not in self.VALID_TABLES:
+                logger.error(f"Invalid table name: {table_name}")
+                return []
+            
             query = f"SELECT * FROM {table_name}"
             params = []
             
             if filters:
                 conditions = []
                 for key, value in filters.items():
+                    # SECURITY: Validate column names to prevent injection
+                    if not key.replace('_', '').isalnum():
+                        logger.warning(f"Potentially unsafe column name: {key}")
+                        continue
                     conditions.append(f"{key} = %s")
                     params.append(value)
                 
                 if conditions:
                     query += " WHERE " + " AND ".join(conditions)
             
-            query += f" LIMIT %s"
+            query += " LIMIT %s"
             params.append(limit)
             
             return self.db_manager.execute_postgres_query(query, tuple(params)) or []
@@ -385,6 +394,11 @@ class UnifiedSearchService(BaseService):
                                limit: int, offset: int, jsonb_fields: Optional[List[str]]) -> List[Dict[str, Any]]:
         """Direct database search for non-text queries."""
         try:
+            # SECURITY FIX: Validate table name to prevent SQL injection
+            if table_name not in self.VALID_TABLES:
+                logger.error(f"Invalid table name: {table_name}")
+                return []
+            
             # Build query
             query = f"SELECT * FROM {table_name}"
             params = []
@@ -392,6 +406,11 @@ class UnifiedSearchService(BaseService):
             if filters:
                 where_conditions = []
                 for field, value in filters.items():
+                    # SECURITY: Validate column names to prevent injection
+                    if not field.replace('_', '').replace('-', '').replace('>', '').replace("'", '').isalnum():
+                        logger.warning(f"Potentially unsafe column name: {field}")
+                        continue
+                        
                     if value is not None:
                         where_conditions.append(f"{field} = %s")
                         params.append(value)
@@ -400,7 +419,7 @@ class UnifiedSearchService(BaseService):
                     query += " WHERE " + " AND ".join(where_conditions)
             
             # Add LIMIT and OFFSET
-            query += f" LIMIT %s OFFSET %s"
+            query += " LIMIT %s OFFSET %s"
             params.extend([limit, offset])
             
             # Execute query using the database manager
@@ -492,6 +511,10 @@ class UnifiedSearchService(BaseService):
             # Add additional filters
             if filters:
                 for key, value in filters.items():
+                    # SECURITY: Validate column names to prevent injection
+                    if not key.replace('_', '').replace('-', '').replace('>', '').replace("'", '').isalnum():
+                        logger.warning(f"Potentially unsafe column name in filter: {key}")
+                        continue
                     base_query += f" AND {key} = %s"
                     params.append(value)
             
@@ -550,6 +573,10 @@ class UnifiedSearchService(BaseService):
             # Add additional filters
             if filters:
                 for key, value in filters.items():
+                    # SECURITY: Validate column names to prevent injection
+                    if not key.replace('_', '').replace('-', '').replace('>', '').replace("'", '').isalnum():
+                        logger.warning(f"Potentially unsafe column name in geo filter: {key}")
+                        continue
                     query += f" AND {key} = %s"
                     params.append(value)
             

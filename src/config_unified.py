@@ -370,9 +370,24 @@ class UnifiedSettings(BaseSettings):
         # Ensure log level is uppercase
         self.log_level = self.log_level.upper()
 
-        # Initialize JWT secret from main secret if not set
-        if self.jwt_secret == "generate_a_strong_secret_key_here":
-            self.jwt_secret = self.secret_key
+        # SECURITY FIX: Enforce proper JWT secret in production
+        if self.env == "production":
+            if not os.getenv("JWT_SECRET") or self.jwt_secret == "generate_a_strong_secret_key_here":
+                raise ValueError(
+                    "SECURITY ERROR: JWT_SECRET environment variable must be set to a strong, unique value in production. "
+                    "Never use default secrets in production environments."
+                )
+            if self.secret_key == "egypt-tourism-chatbot-secret-key-change-in-production":
+                raise ValueError(
+                    "SECURITY ERROR: SECRET_KEY environment variable must be set to a strong, unique value in production. "
+                    "Never use default secrets in production environments."
+                )
+        elif self.jwt_secret == "generate_a_strong_secret_key_here":
+            # In development, auto-generate but warn
+            import secrets
+            self.jwt_secret = secrets.token_urlsafe(32)
+            logger.warning("⚠️  JWT_SECRET not set. Generated temporary secret for development use only.")
+            logger.warning("   Set JWT_SECRET environment variable for production deployment.")
 
     # ============================================================================
     # BACKWARD COMPATIBILITY PROPERTIES
