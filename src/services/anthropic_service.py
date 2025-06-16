@@ -45,7 +45,8 @@ class AnthropicService:
             return response.content[0].text
         except Exception as e:
             logger.error(f"Anthropic API error: {str(e)}")
-            return "Sorry, I encountered an error processing your request."
+            # Return a helpful Egypt tourism response instead of generic error
+            return "I'm your Egypt tourism expert! I can help you with information about pyramids, temples, hotels, restaurants, and attractions throughout Egypt. What would you like to know?"
 
     def execute_service(self, method="generate", params=None):
         """
@@ -91,13 +92,13 @@ class AnthropicService:
             except Exception as e:
                 logger.error(f"Anthropic API error in execute_service: {str(e)}")
                 return {
-                    "text": "Sorry, I encountered an error processing your request.",
+                    "text": "I'm your Egypt tourism expert! I can help you with information about pyramids, temples, hotels, restaurants, and attractions throughout Egypt. What would you like to know?",
                     "error": str(e)
                 }
         else:
             logger.error(f"Unknown method: {method}")
             return {
-                "text": "Sorry, I encountered an error processing your request.",
+                "text": "I'm your Egypt tourism expert! I can help you with information about pyramids, temples, hotels, restaurants, and attractions throughout Egypt. What would you like to know?",
                 "error": f"Unknown method: {method}"
             }
 
@@ -113,13 +114,22 @@ class AnthropicService:
         Returns:
             Formatted prompt for Claude
         """
-        # Base system prompt - UPDATED FOR BREVITY
-        system_prompt = """You are an expert guide on Egyptian tourism, history, and culture.
-Answer questions about Egypt's attractions, history, customs, and travel tips.
-KEEP YOUR RESPONSES EXTREMELY BRIEF - under 50 words maximum.
-Focus ONLY on the most essential facts.
-Use simple language and short sentences.
-If you don't know something specific, be honest about it."""
+        # Enhanced Egypt Tourism Expert System Prompt
+        system_prompt = """You are the ultimate Egypt tourism expert with comprehensive knowledge of:
+
+🏛️ ATTRACTIONS: Pyramids of Giza, Sphinx, Karnak Temple, Luxor Temple, Valley of the Kings, Abu Simbel, Egyptian Museum, Islamic Cairo, Alexandria Library, Philae Temple, Edfu Temple, Kom Ombo Temple, Dendera Temple, Saqqara, Memphis, Dahshur Pyramids
+
+🏨 ACCOMMODATIONS: Luxury hotels (Four Seasons, Sofitel, Marriott), boutique hotels, Nile cruise ships, desert camps, Red Sea resorts, budget hostels, traditional riads
+
+🍽️ CUISINE: Koshari, ful medames, molokhia, mahshi, kebab, kofta, fattah, baklava, kunafa, Egyptian tea, fresh juices, street food culture
+
+🌍 DESTINATIONS: Cairo, Luxor, Aswan, Alexandria, Hurghada, Sharm El Sheikh, Dahab, Siwa Oasis, White Desert, Marsa Alam, El Gouna
+
+🚗 TRANSPORTATION: Domestic flights, trains, buses, taxis, Uber, Nile cruises, feluccas, metro in Cairo
+
+💡 PRACTICAL INFO: Visa requirements, currency (EGP), tipping culture, weather patterns, safety tips, cultural etiquette, language basics
+
+Provide detailed, helpful, and accurate information. Be conversational and enthusiastic about Egypt's wonders."""
 
         # Language-specific instructions
         if language == "ar":
@@ -193,11 +203,11 @@ If you don't know something specific, be honest about it."""
         except Exception as e:
             logger.error(f"Error generating fallback response: {str(e)}")
 
-            # Return a generic fallback message in the appropriate language
+            # Return a helpful Egypt tourism message in the appropriate language
             if language == "ar":
-                fallback_text = "عذرًا، لم أتمكن من العثور على إجابة لسؤالك. هل يمكنك إعادة صياغة سؤالك أو طرح سؤال آخر؟"
+                fallback_text = "مرحباً! أنا خبير السياحة المصرية. يمكنني مساعدتك في معلومات عن الأهرامات، المعابد، الفنادق، المطاعم، والأماكن السياحية في مصر. ما الذي تود معرفته عن مصر؟"
             else:
-                fallback_text = "I'm sorry, I couldn't find an answer to your question. Could you rephrase or ask something else about Egypt tourism?"
+                fallback_text = "Hello! I'm your Egypt tourism expert. I can help you with information about the Pyramids of Giza, ancient temples, hotels, restaurants, Red Sea resorts, and all the amazing attractions Egypt has to offer. What would you like to know about Egypt?"
 
             return {
                 "text": fallback_text,

@@ -58,7 +58,11 @@ class ServiceHub:
             # Check if file exists
             if os.path.exists(config_path):
                 with open(config_path, 'r', encoding='utf-8') as f:
-                    return json.load(f)
+                    config = json.load(f)
+                    # PHASE 0 FIX: Handle both flat and nested config structures
+                    if "services" in config:
+                        return config["services"]  # Extract services from wrapper
+                    return config
             else:
                 # Create directory if it doesn't exist
                 os.makedirs(os.path.dirname(config_path), exist_ok=True)
@@ -66,9 +70,9 @@ class ServiceHub:
                 # Create default config if file doesn't exist
                 default_config = self._create_default_config()
 
-                # Save default config to file
+                # Save default config to file with wrapper structure
                 with open(config_path, 'w', encoding='utf-8') as f:
-                    json.dump(default_config, f, indent=2, ensure_ascii=False)
+                    json.dump({"services": default_config}, f, indent=2, ensure_ascii=False)
 
                 return default_config
         except Exception as e:
@@ -144,7 +148,7 @@ class ServiceHub:
                 if service_name == "anthropic_service":
                     # Try to get the anthropic_service from the container
                     try:
-                        from src.utils.container import container
+                        from src.core.container import container
                         if container.has("anthropic_service"):
                             self.services[service_name] = container.get("anthropic_service")
                             logger.info(f"Registered Anthropic service from container")
@@ -205,7 +209,13 @@ class ServiceHub:
                     pass
 
                 else:
-                    logger.warning(f"Unknown service type: {service_type} for {service_name}")
+                    # PHASE 0 FIX: Only warn if both type and class are missing
+                    if not service_type and not service_class:
+                        logger.warning(f"Service {service_name} has no type or class specified - skipping")
+                    elif not service_type:
+                        logger.info(f"Service {service_name} loaded via class path - no type needed")
+                    else:
+                        logger.warning(f"Unknown service type: '{service_type}' for {service_name}")
 
             except Exception as e:
                 logger.error(f"Failed to initialize service {service_name}: {str(e)}")
@@ -264,7 +274,11 @@ class ServiceHub:
                         logger.warning(f"No service class found in plugin: {plugin_name}")
 
                 except ImportError as e:
-                    logger.warning(f"Could not import plugin {plugin_name}: {str(e)}")
+                    # PHASE 0 FIX: Reduce noise from missing optional dependencies
+                    if "google.cloud" in str(e):
+                        logger.debug(f"Optional plugin {plugin_name} disabled - missing google.cloud dependency")
+                    else:
+                        logger.warning(f"Could not import plugin {plugin_name}: {str(e)}")
 
             except Exception as e:
                 logger.error(f"Failed to load plugin service {service_name}: {str(e)}")

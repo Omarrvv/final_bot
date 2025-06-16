@@ -1,0 +1,463 @@
+{
+  "intent_hierarchy": {
+    "conversational": {
+      "description": "Conversational and social interaction intents",
+      "intents": ["greeting", "farewell", "general_query"],
+      "priority": 1,
+      "context_sensitive": false
+    },
+    "information_seeking": {
+      "description": "Information requests about tourism and travel",
+      "intents": [
+        "attraction_info",
+        "practical_info",
+        "location_query",
+        "faq_query"
+      ],
+      "priority": 2,
+      "context_sensitive": true
+    },
+    "service_requests": {
+      "description": "Service-related queries and requests",
+      "intents": [
+        "hotel_query",
+        "restaurant_query",
+        "tour_query",
+        "event_query"
+      ],
+      "priority": 3,
+      "context_sensitive": true
+    },
+    "transaction": {
+      "description": "Booking, reservations, and transaction-related queries",
+      "intents": ["booking_query"],
+      "priority": 4,
+      "context_sensitive": true
+    },
+    "planning": {
+      "description": "Travel planning and itinerary requests",
+      "intents": ["itinerary_query"],
+      "priority": 3,
+      "context_sensitive": true
+    },
+    "support": {
+      "description": "Support, emergency, and feedback queries",
+      "intents": ["emergency_query", "feedback_query"],
+      "priority": 5,
+      "context_sensitive": false
+    }
+  },
+  "intent_relationships": {
+    "hotel_query": {
+      "related_intents": ["booking_query", "location_query", "practical_info"],
+      "disambiguation_keywords": {
+        "booking": ["book", "reserve", "reservation", "availability"],
+        "location": ["near", "close to", "around", "area"],
+        "practical": ["amenities", "facilities", "services", "wifi"]
+      }
+    },
+    "restaurant_query": {
+      "related_intents": ["booking_query", "location_query", "event_query"],
+      "disambiguation_keywords": {
+        "booking": ["book", "reserve", "table", "reservation"],
+        "location": ["near", "close to", "around", "area"],
+        "event": ["festival", "event", "celebration", "special"]
+      }
+    },
+    "tour_query": {
+      "related_intents": [
+        "booking_query",
+        "itinerary_query",
+        "attraction_info"
+      ],
+      "disambiguation_keywords": {
+        "booking": ["book", "reserve", "availability", "price"],
+        "itinerary": ["plan", "schedule", "days", "itinerary"],
+        "attraction": ["about", "information", "details", "history"]
+      }
+    },
+    "location_query": {
+      "related_intents": ["hotel_query", "restaurant_query", "attraction_info"],
+      "disambiguation_keywords": {
+        "hotel": ["stay", "accommodation", "hotel", "room"],
+        "restaurant": ["eat", "food", "restaurant", "dining"],
+        "attraction": ["visit", "see", "attraction", "monument"]
+      }
+    },
+    "practical_info": {
+      "related_intents": ["faq_query", "location_query"],
+      "disambiguation_keywords": {
+        "faq": ["cost", "price", "how much", "when"],
+        "location": ["where", "how to get", "transportation"]
+      }
+    }
+  },
+  "context_rules": {
+    "hotel_context": {
+      "triggers": ["hotel_query", "booking_query"],
+      "boosts": {
+        "booking_query": 0.2,
+        "location_query": 0.1,
+        "practical_info": 0.1
+      },
+      "duration": 3
+    },
+    "restaurant_context": {
+      "triggers": ["restaurant_query"],
+      "boosts": {
+        "booking_query": 0.2,
+        "location_query": 0.1,
+        "event_query": 0.1
+      },
+      "duration": 3
+    },
+    "tour_context": {
+      "triggers": ["tour_query", "itinerary_query"],
+      "boosts": {
+        "booking_query": 0.2,
+        "attraction_info": 0.15,
+        "practical_info": 0.1
+      },
+      "duration": 4
+    },
+    "emergency_context": {
+      "triggers": ["emergency_query"],
+      "boosts": {
+        "practical_info": 0.3,
+        "location_query": 0.2
+      },
+      "duration": 5
+    }
+  },
+  "disambiguation_rules": {
+    "hotel_vs_restaurant": {
+      "condition": "similarity_difference < 0.2",
+      "primary_intent": "hotel_query",
+      "secondary_intent": "restaurant_query",
+      "keywords": {
+        "hotel_indicators": [
+          "hotel",
+          "stay",
+          "accommodation",
+          "room",
+          "lodge",
+          "resort"
+        ],
+        "restaurant_indicators": [
+          "eat",
+          "food",
+          "restaurant",
+          "dining",
+          "meal",
+          "cuisine"
+        ]
+      },
+      "resolution": "keyword_based"
+    },
+    "hotel_vs_location": {
+      "condition": "similarity_difference < 0.15",
+      "primary_intent": "hotel_query",
+      "secondary_intent": "location_query",
+      "keywords": {
+        "hotel_indicators": [
+          "hotel",
+          "stay",
+          "accommodation",
+          "room",
+          "booking",
+          "reserve"
+        ],
+        "location_indicators": [
+          "near",
+          "around",
+          "area",
+          "where",
+          "close",
+          "location"
+        ]
+      },
+      "resolution": "keyword_based"
+    },
+    "restaurant_vs_event": {
+      "condition": "similarity_difference < 0.2",
+      "primary_intent": "restaurant_query",
+      "secondary_intent": "event_query",
+      "keywords": {
+        "restaurant_indicators": [
+          "eat",
+          "food",
+          "restaurant",
+          "dining",
+          "meal",
+          "cuisine"
+        ],
+        "event_indicators": [
+          "festival",
+          "event",
+          "celebration",
+          "show",
+          "concert"
+        ]
+      },
+      "resolution": "keyword_based"
+    },
+    "tour_vs_hotel": {
+      "condition": "similarity_difference < 0.2",
+      "primary_intent": "tour_query",
+      "secondary_intent": "hotel_query",
+      "keywords": {
+        "tour_indicators": [
+          "tour",
+          "guide",
+          "sightseeing",
+          "visit",
+          "excursion"
+        ],
+        "hotel_indicators": ["hotel", "stay", "accommodation", "room", "lodge"]
+      },
+      "resolution": "keyword_based"
+    },
+    "tour_vs_booking": {
+      "condition": "similarity_difference < 0.15",
+      "primary_intent": "tour_query",
+      "secondary_intent": "booking_query",
+      "keywords": {
+        "tour_indicators": [
+          "tour",
+          "guide",
+          "sightseeing",
+          "visit",
+          "about",
+          "information"
+        ],
+        "booking_indicators": [
+          "book",
+          "reserve",
+          "reservation",
+          "availability",
+          "price"
+        ]
+      },
+      "resolution": "keyword_based"
+    },
+    "general_vs_practical": {
+      "condition": "similarity_difference < 0.1",
+      "primary_intent": "practical_info",
+      "secondary_intent": "general_query",
+      "keywords": {
+        "practical_indicators": [
+          "tip",
+          "currency",
+          "transport",
+          "safety",
+          "how much",
+          "cost"
+        ],
+        "general_indicators": [
+          "what",
+          "tell me",
+          "about",
+          "information",
+          "facts"
+        ]
+      },
+      "resolution": "keyword_based"
+    },
+    "practical_vs_faq": {
+      "condition": "similarity_difference < 0.08",
+      "primary_intent": "practical_info",
+      "secondary_intent": "faq_query",
+      "keywords": {
+        "practical_indicators": [
+          "tip",
+          "currency",
+          "transport",
+          "safety",
+          "how to"
+        ],
+        "faq_indicators": ["cost", "price", "how much", "when", "expensive"]
+      },
+      "resolution": "keyword_based"
+    },
+    "attraction_vs_hotel": {
+      "condition": "similarity_difference < 0.15",
+      "primary_intent": "hotel_query",
+      "secondary_intent": "attraction_info",
+      "keywords": {
+        "hotel_indicators": [
+          "hotel",
+          "stay",
+          "accommodation",
+          "room",
+          "lodge",
+          "resort"
+        ],
+        "attraction_indicators": [
+          "pyramid",
+          "temple",
+          "monument",
+          "site",
+          "attraction",
+          "visit",
+          "see"
+        ]
+      },
+      "resolution": "keyword_based"
+    },
+    "restaurant_vs_attraction": {
+      "condition": "similarity_difference < 0.05",
+      "primary_intent": "restaurant_query",
+      "secondary_intent": "attraction_info",
+      "keywords": {
+        "restaurant_indicators": [
+          "restaurant",
+          "eat",
+          "food",
+          "dining",
+          "meal",
+          "cuisine"
+        ],
+        "attraction_indicators": [
+          "pyramid",
+          "temple",
+          "monument",
+          "site",
+          "attraction"
+        ]
+      },
+      "resolution": "keyword_based"
+    },
+    "booking_vs_hotel": {
+      "condition": "similarity_difference < 0.25",
+      "primary_intent": "booking_query",
+      "secondary_intent": "hotel_query",
+      "keywords": {
+        "booking_indicators": [
+          "book",
+          "reserve",
+          "reservation",
+          "availability",
+          "confirm"
+        ],
+        "hotel_indicators": ["hotel", "room", "accommodation", "stay", "lodge"]
+      },
+      "resolution": "keyword_based"
+    },
+    "nile_hotel_vs_tour": {
+      "condition": "similarity_difference < 0.2",
+      "primary_intent": "hotel_query",
+      "secondary_intent": "tour_query",
+      "keywords": {
+        "hotel_indicators": [
+          "فنادق",
+          "فندق",
+          "hotel",
+          "hotels",
+          "accommodation",
+          "stay",
+          "room",
+          "suite"
+        ],
+        "tour_indicators": [
+          "cruise",
+          "جولة",
+          "رحلة",
+          "tour",
+          "trip",
+          "package",
+          "excursion"
+        ]
+      },
+      "resolution": "prefer_hotel_if_accommodation_keywords"
+    },
+    "restaurant_location_vs_hotel": {
+      "condition": "similarity_difference < 0.2",
+      "primary_intent": "restaurant_query",
+      "secondary_intent": "hotel_query",
+      "keywords": {
+        "restaurant_indicators": [
+          "restaurant",
+          "مطعم",
+          "food",
+          "eat",
+          "dining",
+          "vegetarian",
+          "vegan"
+        ],
+        "location_indicators": ["near", "close", "قريب", "جنب", "بجانب"]
+      },
+      "resolution": "prefer_restaurant_if_food_keywords"
+    },
+    "attraction_specific_vs_faq": {
+      "condition": "similarity_difference < 0.2",
+      "primary_intent": "attraction_info",
+      "secondary_intent": "faq_query",
+      "keywords": {
+        "attraction_specific": [
+          "pyramid",
+          "أهرامات",
+          "temple",
+          "معبد",
+          "museum",
+          "متحف",
+          "citadel",
+          "قلعة",
+          "alexandria",
+          "الإسكندرية"
+        ],
+        "info_indicators": [
+          "hours",
+          "tickets",
+          "entrance",
+          "opening",
+          "ساعات",
+          "تذاكر",
+          "دخول",
+          "information",
+          "معلومات"
+        ]
+      },
+      "resolution": "prefer_attraction_if_specific_site"
+    },
+    "guided_tours_vs_location": {
+      "condition": "similarity_difference < 0.2",
+      "primary_intent": "tour_query",
+      "secondary_intent": "location_query",
+      "keywords": {
+        "tour_indicators": ["guided", "مرشد", "جولة", "tour", "guide", "مرشدة"],
+        "temple_indicators": ["temple", "معبد", "معابد", "temples"]
+      },
+      "resolution": "prefer_tour_if_guided_keywords"
+    },
+    "explicit_booking_vs_tour": {
+      "condition": "similarity_difference < 0.2",
+      "primary_intent": "booking_query",
+      "secondary_intent": "tour_query",
+      "keywords": {
+        "booking_indicators": [
+          "عايز أحجز",
+          "أحجز",
+          "احجز",
+          "book a",
+          "reserve a",
+          "I want to book"
+        ],
+        "tour_indicators": ["tour", "جولة", "trip", "رحلة"]
+      },
+      "resolution": "prefer_booking_if_explicit_request"
+    }
+  },
+  "confidence_thresholds": {
+    "high_confidence": 0.8,
+    "medium_confidence": 0.6,
+    "low_confidence": 0.4,
+    "disambiguation_threshold": 0.1,
+    "context_boost_threshold": 0.05
+  },
+  "quality_metrics": {
+    "min_examples_per_intent": 40,
+    "target_examples_per_intent": 60,
+    "max_similarity_overlap": 0.7,
+    "min_confidence_for_production": 0.6
+  }
+}

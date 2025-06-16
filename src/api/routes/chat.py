@@ -14,8 +14,8 @@ from ...utils.error_responses import SecureErrorHandler
 from ...middleware.error_handler import get_request_id
 
 # Phase 4: Import the new ComponentFactory instead of legacy factory
-from ...knowledge.factory import ComponentFactory
-from ...chatbot import Chatbot
+from ...services.component_factory import ComponentFactory
+from ...services.chatbot_service import Chatbot
 from ...config_unified import settings
 
 # Create router

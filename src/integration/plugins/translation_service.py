@@ -6,10 +6,19 @@ Provides text translation functionality using external translation APIs.
 import logging
 import os
 from typing import Dict, List, Optional, Any
-from google.cloud import translate_v2 as translate # Import Google client
-from google.api_core.exceptions import GoogleAPICallError, Forbidden
 
-from integration.service_hub import Service
+# Make google.cloud import optional to avoid external dependency failures
+try:
+    from google.cloud import translate_v2 as translate # Import Google client
+    from google.api_core.exceptions import GoogleAPICallError, Forbidden
+    GOOGLE_CLOUD_AVAILABLE = True
+except ImportError:
+    GOOGLE_CLOUD_AVAILABLE = False
+    translate = None
+    GoogleAPICallError = Exception
+    Forbidden = Exception
+
+from src.integration.service_hub import Service
 
 logger = logging.getLogger(__name__)
 
@@ -36,8 +45,14 @@ class TranslationService(Service):
         self.client = None
         self.initialized = False
         
-        if not self.api_key:
+        if not GOOGLE_CLOUD_AVAILABLE:
+            logger.warning("TranslationService: Google Cloud libraries not available. Service will work in fallback mode.")
+            self.client = None
+            self.initialized = False
+        elif not self.api_key:
             logger.warning("TranslationService: TRANSLATION_API_KEY not found in config or environment. Service will not function.")
+            self.client = None
+            self.initialized = False
         else:
             try:
                 # Initialize the client using the API key
@@ -52,9 +67,11 @@ class TranslationService(Service):
             except Forbidden as e:
                  logger.error(f"TranslationService Init Failed: Permission denied. Ensure API key is valid, has Translation API enabled, and billing might be required. Error: {e}")
                  self.client = None # Ensure client is None if init fails
+                 self.initialized = False
             except Exception as e:
                 logger.error(f"TranslationService Init Failed: Could not initialize Google Translate client. Error: {e}", exc_info=True)
                 self.client = None # Ensure client is None if init fails
+                self.initialized = False
         
         # Define supported languages
         self.supported_languages = {
@@ -76,6 +93,9 @@ class TranslationService(Service):
     
     def _is_ready(self) -> bool:
         """Check if the service is initialized and ready."""
+        if not GOOGLE_CLOUD_AVAILABLE:
+            logger.debug("Google Cloud libraries not available, translation service disabled.")
+            return False
         if not self.initialized or not self.client:
             logger.error("TranslationService called but not initialized properly (check API key and configuration).")
             return False

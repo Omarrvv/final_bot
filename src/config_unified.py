@@ -72,9 +72,16 @@ class FeatureFlags(BaseSettings):
     
     # FastAPI specific flags - removed use_new_api as new API is default
     enable_redis_sessions: bool = Field(
-        default=False, 
+        default=False,
         description="Enable Redis-based session management",
         env="ENABLE_REDIS_SESSIONS"
+    )
+
+    # 🚀 URGENT DEMO FIX: Direct LLM processing
+    use_llm_first: bool = Field(
+        default=True,  # FORCE LLM-FIRST FOR DEMO RELIABILITY
+        description="Use Anthropic LLM directly for all queries, bypassing complex routing",
+        env="USE_LLM_FIRST"
     )
 
     model_config = SettingsConfigDict(
@@ -324,7 +331,7 @@ class UnifiedSettings(BaseSettings):
         env="SERVICES_CONFIG"
     )
     templates_path: str = Field(
-        default="./configs/response_templates",
+        default="./src/configs/response_templates",
         description="Path to response templates",
         env="TEMPLATES_PATH"
     )

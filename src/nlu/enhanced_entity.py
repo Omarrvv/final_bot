@@ -150,6 +150,10 @@ class EnhancedEntityExtractor:
             "transportation": []
         }
         
+        # Check if knowledge base is available
+        if self.knowledge_base is None:
+            return entity_lists
+        
         # Load attractions
         attractions = self.knowledge_base.search_attractions(limit=500, language=self.language)
         if attractions:  # Check if attractions is not None

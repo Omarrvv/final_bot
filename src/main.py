@@ -54,8 +54,8 @@ load_dotenv(dotenv_path=dotenv_path)
 # Environment variables are loaded from .env file
 
 # Import models and routers
-from src.chatbot import Chatbot
-from src.utils.factory import component_factory
+from src.services.chatbot_service import Chatbot
+from src.services.component_factory import component_factory
 # NOTE: settings imported from unified config above - no more conflicts!
 # Import routers
 from src.api.analytics_api import analytics_router
@@ -69,7 +69,7 @@ from src.api.auth import router as auth_router
 from src.api.routes.db_routes import router as database_router
 # Import enhanced session manager
 from src.session.enhanced_session_manager import EnhancedSessionManager
-from src.session.integration import integrate_enhanced_session_manager
+from src.session.integration import SessionMiddleware
 # Phase 4: Health check router
 try:
     from .api.routes.health import router as health_router
@@ -152,19 +152,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     component_factory.initialize()
     logger.info("LIFESPAN: component_factory.initialize() finished.")
 
-    # Create enhanced session manager first
-    logger.info("Setting up enhanced session manager...")
-    try:
-        # Use our enhanced session manager
-        session_manager = integrate_enhanced_session_manager(app)
-        app.state.session_manager = session_manager
-        logger.info(f"Enhanced session manager initialized: {type(session_manager).__name__}")
-    except Exception as e:
-        logger.error(f"Failed to set up enhanced session manager: {e}", exc_info=True)
-        logger.warning("Falling back to standard session manager")
+    # Session manager is now initialized before middleware configuration
+    # Get session manager from app state
+    session_manager = getattr(app.state, 'session_manager', None)
+    if session_manager:
+        logger.info(f"Using pre-initialized session manager: {type(session_manager).__name__}")
+    else:
+        logger.warning("No session manager found in app state, creating fallback")
         try:
             # Fallback to cached container session manager (Phase 1 optimization)
-            from src.utils.container import container
+            from src.core.container import container
             session_manager = container.get("session_manager")
             app.state.session_manager = session_manager
             logger.info(f"Fallback session manager initialized via cached container: {type(session_manager).__name__}")
@@ -178,7 +175,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     
     # Create chatbot using cached container (Phase 1 optimization)
     logger.info("LIFESPAN: Creating chatbot via cached container...")
-    from src.utils.container import container
+    from src.core.container import container
     chatbot_instance = container.get("chatbot")
     logger.info("LIFESPAN: Chatbot created via cached container (Phase 1 optimized).")
 
@@ -188,19 +185,23 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     
     try:
         # Get NLU engine from container for async model loading
-        from src.utils.container import container
+        from src.core.container import container
         nlu_engine = container.get("nlu_engine")
         
-        # Phase 3: Trigger async model loading in background
-        logger.info("⚡ Phase 3: Starting async model loading in background...")
-        
-        # Check if the engine supports async loading
-        if hasattr(nlu_engine, '_load_models_async'):
-            # Load models asynchronously for maximum speed
-            await nlu_engine._load_models_async()
-            logger.info("🎯 Phase 3: Async model loading completed successfully")
+        # PERFORMANCE FIX: Skip async loading if models are already loaded
+        if hasattr(nlu_engine, '_models_loaded') and nlu_engine._models_loaded:
+            logger.info("🚀 PERFORMANCE: Models already loaded - skipping duplicate async loading")
         else:
-            logger.info("📚 Using synchronous model loading (models already loaded)")
+            # Phase 3: Trigger async model loading in background
+            logger.info("⚡ Phase 3: Starting async model loading in background...")
+
+            # Check if the engine supports async loading
+            if hasattr(nlu_engine, '_load_models_async'):
+                # Load models asynchronously for maximum speed
+                await nlu_engine._load_models_async()
+                logger.info("🎯 Phase 3: Async model loading completed successfully")
+            else:
+                logger.info("📚 Using synchronous model loading (models already loaded)")
         
         # Phase 3: Smart Model Warmup (only if models are loaded)
         if hasattr(nlu_engine, '_models_loaded') and nlu_engine._models_loaded:
@@ -238,19 +239,32 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         model_load_time = time.time() - model_load_start
         logger.info(f"🏆 PHASE 3: Complete model optimization finished in {model_load_time:.2f}s")
         
-        # Force regenerate intent embeddings after successful model loading
-        logger.info("🔄 Force regenerating intent embeddings after async model loading...")
+        # PERFORMANCE FIX: Skip force regeneration if embeddings are already cached and valid
+        logger.info("🔍 Checking intent embedding cache validity...")
         try:
-            if hasattr(nlu_engine, 'force_regenerate_intent_embeddings'):
-                success = nlu_engine.force_regenerate_intent_embeddings()
-                if success:
-                    logger.info("✅ Intent embeddings successfully regenerated during startup")
+            if hasattr(nlu_engine, 'intent_classifier') and nlu_engine.intent_classifier:
+                classifier = nlu_engine.intent_classifier
+
+                # Check if embeddings are already loaded and valid
+                if (hasattr(classifier, 'intent_embeddings') and
+                    classifier.intent_embeddings and
+                    len(classifier.intent_embeddings) > 0):
+
+                    logger.info("🚀 PERFORMANCE: Intent embeddings already cached and loaded - skipping force regeneration")
+                    logger.info(f"   Cached embeddings: {len(classifier.intent_embeddings)} intents with {sum(len(emb) for emb in classifier.intent_embeddings.values())} total embeddings")
+
                 else:
-                    logger.warning("⚠️ Intent embedding regeneration failed during startup")
+                    logger.info("🔄 No valid cached embeddings found - regenerating in background...")
+                    # Schedule background regeneration instead of blocking startup
+                    import asyncio
+                    asyncio.create_task(nlu_engine._regenerate_embeddings_background())
+
             else:
-                logger.warning("⚠️ NLU engine does not support intent embedding regeneration")
+                logger.warning("⚠️ Intent classifier not available for embedding validation")
+
         except Exception as regenerate_error:
-            logger.error(f"❌ Error regenerating intent embeddings: {regenerate_error}")
+            logger.error(f"❌ Error checking embedding cache: {regenerate_error}")
+            logger.warning("⚠️ Proceeding with startup - embeddings will be generated on demand")
         
     except Exception as e:
         logger.error(f"❌ Phase 3 model optimization failed: {e}", exc_info=True)
@@ -298,6 +312,44 @@ logger.info("FastAPI app instance created.")
 # Add core middleware first so it captures all requests including those that might be rejected by CORS
 add_core_middleware(app, log_request_body=False, log_response_body=False, debug=settings.debug)
 logger.info("Core middleware (logging, error handling, request ID) added")
+
+# --- Add Session Middleware ---
+# CRITICAL FIX: Add session middleware BEFORE lifespan startup to avoid runtime errors
+logger.info("Setting up session middleware...")
+try:
+    # Create enhanced session manager instance
+    redis_uri = os.environ.get("REDIS_URI", "redis://localhost:6379/0")
+    session_ttl = int(os.environ.get("SESSION_TTL", 604800))
+
+    session_manager = EnhancedSessionManager(redis_uri=redis_uri, ttl=session_ttl)
+
+    # Add session middleware to app
+    app.add_middleware(
+        SessionMiddleware,
+        session_manager=session_manager,
+        cookie_name=settings.session_cookie_name,
+        cookie_secure=settings.session_cookie_secure
+    )
+
+    # Store session manager in app state for later use
+    app.state.session_manager = session_manager
+    logger.info(f"✅ Session middleware added successfully: {type(session_manager).__name__}")
+
+except Exception as e:
+    logger.error(f"❌ Failed to set up session middleware: {e}", exc_info=True)
+    logger.warning("Falling back to basic session management")
+    try:
+        # Fallback to cached container session manager
+        from src.core.container import container
+        session_manager = container.get("session_manager")
+        app.state.session_manager = session_manager
+        logger.info("✅ Fallback session manager configured")
+    except Exception as fallback_error:
+        logger.error(f"❌ Fallback session manager also failed: {fallback_error}")
+        # Create a minimal session manager as last resort
+        session_manager = None
+        app.state.session_manager = None
+        logger.warning("⚠️ No session management available")
 
 # Phase 1C: Add standardized error handling middleware
 try:

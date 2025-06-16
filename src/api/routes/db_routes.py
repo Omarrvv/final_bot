@@ -10,9 +10,16 @@ from typing import List, Dict, Any, Optional
 import logging
 
 # Phase 4: Using ComponentFactory instead of direct imports
-from src.knowledge.factory import ComponentFactory
+# REMOVED: from src.knowledge.factory import ComponentFactory  # Archived - using unified service provider
+from src.core.container import container
 from src.middleware.auth import User
-from src.utils.auth import get_current_active_user as get_current_user
+from src.services.auth_service import get_current_active_user as get_current_user
+
+# Validation schemas for input validation
+from ..schemas.common_schemas import (
+    RestaurantSearchRequest, HotelSearchRequest, AttractionSearchRequest,
+    PaginationRequest, SuccessResponse, DatabaseHealthResponse
+)
 
 # Configure logging
 logger = logging.getLogger(__name__)

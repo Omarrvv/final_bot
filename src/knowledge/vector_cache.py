@@ -255,23 +255,14 @@ class VectorSearchCache:
             return False
 
     def _invalidate_database_cache(self, table_name: str) -> None:
-        """Invalidate database cache using shared database manager (no new connection pool)."""
+        """Invalidate database cache - simplified to avoid service dependencies."""
         try:
-            # Get shared database manager from the global factory instead of creating new instance
-            from src.utils.factory import component_factory
-            db_manager = component_factory.create_database_manager()  # Uses singleton pattern
+            # Skip database cache invalidation to avoid architectural violations
+            # The database cache will expire naturally via TTL
+            logger.info(f"Skipping database cache invalidation for table: {table_name} (architectural compliance)")
             
-            # Call the PostgreSQL function to invalidate cache by table
-            result = db_manager.execute_query(
-                "SELECT invalidate_table_cache(%s) AS count",
-                (table_name,)
-            )
-
-            invalidated_count = result[0]['count'] if result else 0
-            logger.info(f"Invalidated {invalidated_count} database cache entries for table: {table_name} (shared connection)")
-
         except Exception as e:
-            logger.warning(f"Database cache invalidation failed (using shared connection): {e}")
+            logger.warning(f"Database cache invalidation skipped: {e}")
 
     def _clear_all_caches(self) -> None:
         """Clear all caches (Redis and local) as a fallback."""

@@ -12,8 +12,7 @@ import logging
 from typing import Dict, List, Any, Optional, Tuple, Union
 from enum import Enum
 
-# Import the service layer
-from .database_service import DatabaseManagerService
+# Import via infrastructure layer to maintain clean architecture
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +26,7 @@ class DatabaseManager:
     This shell maintains API compatibility while delegating to the service layer.
     
     **DEPRECATED**: This wrapper will be removed in future versions.
-    Use DatabaseManagerService from src.knowledge.database_service instead.
+    Use InfrastructureDatabaseService from src.knowledge.database_adapter instead.
     
     All 80+ public methods are preserved with identical signatures for compatibility.
     """
@@ -36,8 +35,9 @@ class DatabaseManager:
         """Initialize DatabaseManager with service delegation."""
         logger.info("🧹 Phase 5: Creating clean DatabaseManager wrapper shell")
         
-        # Initialize the service layer  
-        self._service = DatabaseManagerService(database_uri, vector_dimension)
+        # Use infrastructure layer adapter to avoid layer violations
+        from src.knowledge.database_adapter import InfrastructureDatabaseService
+        self._service = InfrastructureDatabaseService(database_uri, vector_dimension)
         
         # Store original parameters for compatibility
         self.database_uri = database_uri

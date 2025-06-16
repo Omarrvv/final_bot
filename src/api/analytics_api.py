@@ -9,10 +9,18 @@ from collections import Counter, defaultdict
 from dateutil.parser import isoparse
 
 # Import authentication dependencies and container/db_manager access method
-from src.utils.auth import get_current_active_user, get_current_admin_user
-from src.utils.container import container
+from src.services.auth_service import get_current_active_user, get_current_admin_user
+from src.core.container import container
 from src.knowledge.database import DatabaseManager # For type hinting
 from typing import List, Dict, Any, Optional
+
+# Validation schemas for input validation
+from .schemas.analytics_schemas import (
+    AnalyticsRequest, DailyStatsRequest, SessionStatsRequest, MessageStatsRequest,
+    OverviewStatsResponse, DailyStatsResponse, SessionStatsResponse,
+    IntentDistributionResponse, EntityDistributionResponse, FeedbackStatsResponse,
+    MessageStatsResponse
+)
 
 logger = logging.getLogger(__name__)
 

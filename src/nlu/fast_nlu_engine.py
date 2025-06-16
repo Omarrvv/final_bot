@@ -188,8 +188,9 @@ class FastNLUEngine:
             else:
                 return fallback_responses[0]
     
-    async def process_async(self, text: str, session_id: str, language: Optional[str] = None) -> Dict[str, Any]:
+    async def process_async(self, text: str, session_id: str, language: Optional[str] = None, context: Optional[Dict] = None) -> Dict[str, Any]:
         """Async version of process (just calls sync version for fast processing)."""
+        # FastNLU ignores context for speed, but accepts it for compatibility
         return self.process(text, session_id, language)
     
     def is_models_loaded(self) -> bool:

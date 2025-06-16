@@ -1,7 +1,50 @@
 from typing import Any, Dict, Optional
 import logging
+import time
+from collections import defaultdict
 
 logger = logging.getLogger(__name__)
+
+class ReliabilityTracker:
+    """Track service reliability and error patterns."""
+    
+    def __init__(self):
+        self.error_counts = defaultdict(int)
+        self.success_counts = defaultdict(int)
+        self.last_error_time = defaultdict(float)
+        self.error_patterns = defaultdict(list)
+    
+    def record_success(self, service: str):
+        """Record a successful operation."""
+        self.success_counts[service] += 1
+    
+    def record_error(self, service: str, error: Exception):
+        """Record an error."""
+        self.error_counts[service] += 1
+        self.last_error_time[service] = time.time()
+        self.error_patterns[service].append({
+            'error': str(error),
+            'timestamp': time.time(),
+            'type': type(error).__name__
+        })
+        
+        # Keep only last 100 errors per service
+        if len(self.error_patterns[service]) > 100:
+            self.error_patterns[service] = self.error_patterns[service][-100:]
+    
+    def get_reliability_score(self, service: str) -> float:
+        """Get reliability score for a service (0-1)."""
+        total_operations = self.success_counts[service] + self.error_counts[service]
+        if total_operations == 0:
+            return 1.0
+        return self.success_counts[service] / total_operations
+    
+    def is_service_healthy(self, service: str, threshold: float = 0.8) -> bool:
+        """Check if service is healthy based on reliability threshold."""
+        return self.get_reliability_score(service) >= threshold
+
+# Global reliability tracker instance
+reliability_tracker = ReliabilityTracker()
 
 class UnifiedErrorHandler:
     """Unified error handling for consistent error responses."""
@@ -11,6 +54,7 @@ class UnifiedErrorHandler:
                             fallback_value: Any = None) -> Any:
         """Handle database operation errors consistently."""
         logger.error(f"Database error in {operation}: {str(error)}")
+        reliability_tracker.record_error("database", error)
 
         if fallback_value is not None:
             return fallback_value
@@ -24,6 +68,7 @@ class UnifiedErrorHandler:
                         language: str = "en") -> Dict[str, Any]:
         """Handle API service errors consistently."""
         logger.error(f"API error in {service}: {str(error)}")
+        reliability_tracker.record_error(service, error)
 
         fallback_messages = {
             "en": "I'm sorry, I'm having trouble processing your request right now. Please try again later.",

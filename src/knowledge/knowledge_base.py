@@ -42,7 +42,7 @@ class KnowledgeBase:
     This shell maintains API compatibility while delegating to the service layer.
     
     **DEPRECATED**: This wrapper will be removed in future versions.
-    Use KnowledgeBaseService from src.knowledge.knowledge_base_service instead.
+    Use KnowledgeBaseService from src.services.knowledge_base_service instead.
     
     All 35+ public methods are preserved with identical signatures for compatibility.
     """

@@ -14,7 +14,7 @@ from ...models.api_models import (
 )
 from ...utils.exceptions import ChatbotError
 from ..routes.chat import get_chatbot
-from ...utils.dependencies import get_container_debug_info
+from ...api.dependencies import get_container_debug_info
 
 # Create router
 router = APIRouter(tags=["Misc"])
@@ -83,7 +83,7 @@ async def debug_phase1_comprehensive(request: Request):
     Tests singleton behavior, timing, and performance improvements.
     """
     import time
-    from src.utils.container import container
+    from src.core.container import container
     
     # Test singleton behavior by getting components multiple times
     start_time = time.time()

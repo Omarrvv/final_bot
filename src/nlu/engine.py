@@ -28,7 +28,6 @@ from src.nlu.intent import IntentClassifier
 from src.nlu.entity import EntityExtractor
 from src.nlu.language import LanguageDetector
 from src.utils.cache import LRUCache
-from src.utils.embedding_service import StandardizedEmbeddingService
 from src.nlu.enhanced_entity import EnhancedEntityExtractor
 from src.nlu.continuous_learning import EntityLearner, FeedbackCollector
 
@@ -40,26 +39,57 @@ class NLUEngine:
     Handles language detection, intent classification, and entity extraction.
     """
     
-    def __init__(self, models_config: str, knowledge_base):
+    def __init__(self, models_config: str, knowledge_base=None, lightweight_init=False):
         """
         Initialize the NLU engine with specified models.
         
         Args:
             models_config (str): Path to model configuration file
-            knowledge_base: Reference to the knowledge base for entity lookup
+            knowledge_base: Reference to the knowledge base for entity lookup (can be None to break circular dependencies)
+            lightweight_init (bool): If True, skip heavy model loading for fast initialization
         """
         self.knowledge_base = knowledge_base
         self.models_config = self._load_config(models_config)
+        self.lightweight_init = lightweight_init
         
-        # Define supported languages
+        # CRITICAL FIX: Define supported languages including Arabic variants
         self._supported_languages = self.models_config.get("entity_extraction", {}).get(
-            "supported_languages", ["en", "ar"]
+            "supported_languages", ["en", "ar", "ar_eg"]
         )
         
         # Phase 3: Initialize model loading state tracking
         self._models_loaded = False
         self._fallback_mode = False
         
+        if lightweight_init:
+            logger.info("🚀 NLU Engine initialized in LIGHTWEIGHT mode (models will load on first use)")
+            self._init_lightweight()
+        else:
+            logger.info("🚀 NLU Engine initializing with FULL model loading...")
+            self._init_full()
+    
+    def _init_lightweight(self):
+        """Lightweight initialization without heavy model loading"""
+        # CRITICAL FIX: Initialize basic components needed for processing
+        from src.utils.cache import LRUCache
+
+        # Initialize basic cache for processing (required by process method)
+        self.cache = LRUCache(max_size=1000)
+        self.embedding_cache = LRUCache(max_size=1000)
+
+        # Initialize basic structures
+        self.embedding_service = None
+        self.intent_classifier = None
+        self.entity_extractors = {}
+        self.nlp_models = {}
+        self.transformer_models = {}
+        self.transformer_tokenizers = {}
+        self.language_detector = None
+        self._models_loaded = False
+        logger.info("✅ Lightweight NLU initialization complete with basic cache")
+    
+    def _init_full(self):
+        """Full initialization with all model loading"""
         # Phase 4: Initialize Smart Model Manager and Memory Monitor
         from .smart_model_manager import SmartModelManager
         from .memory_monitor_new import MemoryMonitor
@@ -107,8 +137,9 @@ class NLUEngine:
         self.transformer_tokenizers = {}
         self._load_transformer_models()
         
-        # Initialize standardized embedding service AFTER models and cache are loaded
-        self.embedding_service = StandardizedEmbeddingService(
+        # Initialize infrastructure embedding service to avoid layer violations
+        from src.nlu.embedding_adapter import InfrastructureEmbeddingService
+        self.embedding_service = InfrastructureEmbeddingService(
             models=self.transformer_models,
             tokenizers=self.transformer_tokenizers,
             cache=self.embedding_cache
@@ -119,7 +150,7 @@ class NLUEngine:
         self.intent_classifier = AdvancedIntentClassifier(
             config=self.models_config.get("intent_classification", {}),
             embedding_service=self.embedding_service,  # Use standardized service instead of function
-            knowledge_base=knowledge_base
+            knowledge_base=self.knowledge_base  # Use the instance variable (can be None)
         )
         
         # Initialize entity extractors
@@ -143,8 +174,13 @@ class NLUEngine:
             storage_path="data/feedback"
         )
         
+        # PERFORMANCE FIX: Skip precomputation during startup for faster initialization
         # Phase 2: Precompute common tourism embeddings during initialization
-        self._precompute_common_embeddings()
+        skip_precomputation = self.models_config.get("model_loading", {}).get("skip_startup_precomputation", True)
+        if not skip_precomputation:
+            self._precompute_common_embeddings()
+        else:
+            logger.info("🚀 PERFORMANCE: Skipping precomputation during startup for faster initialization")
         
         # Phase 4: Register model loaders with Smart Model Manager
         self._register_model_loaders()
@@ -156,6 +192,31 @@ class NLUEngine:
         self._ensure_intent_embeddings_ready()
         
         logger.info("🚀 NLU Engine initialized successfully with Phase 4 optimizations")
+
+    async def _regenerate_embeddings_background(self):
+        """Regenerate intent embeddings in background without blocking startup."""
+        try:
+            logger.info("🔄 Starting background intent embedding regeneration...")
+
+            # Run embedding regeneration in executor to avoid blocking
+            import asyncio
+            loop = asyncio.get_event_loop()
+
+            def regenerate_sync():
+                if hasattr(self, 'intent_classifier') and self.intent_classifier:
+                    return self.intent_classifier.force_regenerate_embeddings()
+                return False
+
+            success = await loop.run_in_executor(None, regenerate_sync)
+
+            if success:
+                logger.info("✅ Background intent embedding regeneration completed successfully")
+            else:
+                logger.warning("⚠️ Background intent embedding regeneration failed")
+
+        except Exception as e:
+            logger.error(f"❌ Background embedding regeneration error: {e}")
+            logger.warning("⚠️ Embeddings will be generated on demand")
     
     def _load_persistent_cache(self):
         """Load embeddings from persistent storage (Phase 2 optimization)."""
@@ -610,6 +671,9 @@ class NLUEngine:
         Returns:
             dict: Processed NLU result including intent, entities, and other metadata
         """
+        # PHASE 0 FIX: Ensure models are loaded before processing
+        self._ensure_models_loaded()
+        
         start_time = time.time()
         # Create a safe cache key that won't include numpy arrays
         cache_key = f"{hash(text)}_{language or 'auto'}_{hash(session_id)}"
@@ -625,10 +689,15 @@ class NLUEngine:
             if not language:
                 language, lang_confidence = self.language_detector.detect(text)
                 logger.debug(f"Detected language: {language} (confidence: {lang_confidence:.2f})")
+
+                # CRITICAL FIX: Normalize language code for Arabic variants
+                language = self._normalize_language_code(language)
+                logger.debug(f"Normalized language: {language}")
             else:
                 # Set a default confidence if language is provided
                 lang_confidence = 1.0
-            
+                language = self._normalize_language_code(language)
+
             # Default to English if unsupported language
             if language not in self.nlp_models:
                 logger.warning(f"Unsupported language: {language}, falling back to English")
@@ -662,7 +731,15 @@ class NLUEngine:
                 "entities": entity_result.get("entities", {}),
                 "entity_confidence": entity_result.get("confidence", {}),
                 "session_id": session_id,
-                "processing_time": time.time() - start_time
+                "processing_time": time.time() - start_time,
+
+                # CRITICAL FIX: Include hierarchical classification results
+                "disambiguation_applied": intent_result.get("disambiguation_applied"),
+                "original_intent": intent_result.get("original_intent"),
+                "domain": intent_result.get("domain"),
+                "hierarchy_info": intent_result.get("hierarchy_info"),
+                "top_intents": intent_result.get("top_intents", []),
+                "needs_disambiguation": intent_result.get("needs_disambiguation", False)
             }
             
             # Add intent metadata if available
@@ -706,6 +783,9 @@ class NLUEngine:
         Returns:
             dict: Processed NLU result including intent, entities, and other metadata
         """
+        # PHASE 0 FIX: Ensure models are loaded before processing
+        self._ensure_models_loaded()
+        
         start_time = time.time()
         # Create a safe cache key that won't include numpy arrays
         cache_key = f"{hash(text)}_{language or 'auto'}_{hash(session_id)}"
@@ -721,10 +801,15 @@ class NLUEngine:
             if not language:
                 language, lang_confidence = self.language_detector.detect(text)
                 logger.debug(f"Detected language: {language} (confidence: {lang_confidence:.2f})")
+
+                # CRITICAL FIX: Normalize language code for Arabic variants
+                language = self._normalize_language_code(language)
+                logger.debug(f"Normalized language: {language}")
             else:
                 # Set a default confidence if language is provided
                 lang_confidence = 1.0
-            
+                language = self._normalize_language_code(language)
+
             # Default to English if unsupported language
             if language not in self.nlp_models:
                 logger.warning(f"Unsupported language: {language}, falling back to English")
@@ -810,6 +895,39 @@ class NLUEngine:
         # This could include normalizing Arabic characters, handling diacritics, etc.
         # For now, just return the text as is
         return text
+
+    def _normalize_language_code(self, language: str) -> str:
+        """
+        Normalize language codes to supported formats for Egypt Tourism.
+
+        Args:
+            language (str): Detected language code
+
+        Returns:
+            str: Normalized language code
+        """
+        if not language:
+            return "en"
+
+        # Normalize Arabic variants to supported codes
+        arabic_variants = ['ar-eg', 'ar_EG', 'arz', 'ar-EG']
+        if language in arabic_variants:
+            return "ar_eg"
+
+        # Handle standard Arabic
+        if language == 'ar':
+            return "ar"
+
+        # Handle Egyptian Arabic specifically detected
+        if language == 'ar_eg':
+            return "ar_eg"
+
+        # Default to English for unsupported languages
+        if language not in self._supported_languages:
+            logger.debug(f"Language {language} not in supported languages {self._supported_languages}, defaulting to English")
+            return "en"
+
+        return language
 
     def process_feedback(self, message_id: str, user_message: str, extracted_entities: Dict[str, List[str]],
                       correct_entities: Dict[str, List[str]], user_id: Optional[str] = None) -> bool:
@@ -897,8 +1015,42 @@ class NLUEngine:
             for key, model_name in transformer_configs.items():
                 def make_transformer_loader(model_name):
                     def load_transformer():
-                        from sentence_transformers import SentenceTransformer
-                        return SentenceTransformer(model_name)
+                        # CRITICAL FIX: Use AutoModel instead of SentenceTransformer to avoid meta device issues
+                        from transformers import AutoModel, AutoTokenizer
+                        import torch
+
+                        # Load model and tokenizer
+                        tokenizer = AutoTokenizer.from_pretrained(model_name)
+                        model = AutoModel.from_pretrained(model_name)
+
+                        # CRITICAL FIX: Force model to CPU to avoid meta device issues
+                        model = model.to('cpu')
+
+                        # Return a wrapper that mimics SentenceTransformer interface
+                        class FixedTransformerWrapper:
+                            def __init__(self, model, tokenizer):
+                                self.model = model
+                                self.tokenizer = tokenizer
+
+                            def encode(self, texts, convert_to_tensor=False):
+                                if isinstance(texts, str):
+                                    texts = [texts]
+
+                                embeddings = []
+                                for text in texts:
+                                    inputs = self.tokenizer(text, return_tensors="pt", padding=True, truncation=True, max_length=512)
+                                    with torch.no_grad():
+                                        outputs = self.model(**inputs)
+                                        # Use mean pooling
+                                        embedding = outputs.last_hidden_state.mean(dim=1).squeeze()
+                                        embeddings.append(embedding)
+
+                                if convert_to_tensor:
+                                    return torch.stack(embeddings)
+                                else:
+                                    return [emb.numpy() for emb in embeddings]
+
+                        return FixedTransformerWrapper(model, tokenizer)
                     return load_transformer
                 
                 priority = 12 if key == 'multilingual' else 6
@@ -1034,3 +1186,26 @@ class NLUEngine:
             self.shutdown_phase4()
         except:
             pass  # Ignore errors during cleanup
+
+    def _ensure_models_loaded(self):
+        """Ensure models are loaded (lazy loading for lightweight init)"""
+        if not self._models_loaded and self.lightweight_init:
+            logger.info("🔄 Loading models on first use (lazy initialization)...")
+            self._init_full()
+            self._models_loaded = True
+
+        # CRITICAL FIX: Ensure basic components are available even if full init fails
+        if self.cache is None:
+            from src.utils.cache import LRUCache
+            self.cache = LRUCache(max_size=1000)
+            logger.warning("⚠️  Cache was None, created basic cache for processing")
+
+        if self.language_detector is None:
+            from src.nlu.language import LanguageDetector
+            # CRITICAL FIX: Create language detector with proper model path
+            model_path = self.models_config.get("language_detection", {}).get("model_path")
+            self.language_detector = LanguageDetector(
+                model_path=model_path,
+                confidence_threshold=0.8
+            )
+            logger.warning("⚠️  Language detector was None, created basic detector")

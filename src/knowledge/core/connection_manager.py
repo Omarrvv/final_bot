@@ -52,6 +52,14 @@ class ConnectionManager:
         }
         
         logger.debug(f"ConnectionManager initialized with URI: {self._mask_uri(self.database_uri)}")
+        
+        # Initialize the connection pool
+        if self.database_uri:
+            success = self.initialize_connection_pool()
+            if success:
+                logger.info(f"✅ Database connection pool initialized successfully")
+            else:
+                logger.warning(f"⚠️ Database connection pool initialization failed")
     
     def _mask_uri(self, uri: str) -> str:
         """Mask sensitive information in URI for logging."""

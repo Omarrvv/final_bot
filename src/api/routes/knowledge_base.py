@@ -8,10 +8,19 @@ from typing import Dict, List, Optional, Any
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 # Phase 4: Using ComponentFactory instead of adapter
-from src.knowledge.factory import ComponentFactory
-from src.utils.dependencies import get_optional_user
+# REMOVED: from src.knowledge.factory import ComponentFactory  # Archived - using unified service provider
+from src.core.container import container
+from src.api.dependencies import get_optional_user
 # FIXED: get_optional_user returns Dict, not User object
 from src.utils.logger import get_logger
+
+# Validation schemas for input validation
+from ..schemas.knowledge_schemas import (
+    AttractionSearchRequest, HotelSearchRequest, RestaurantSearchRequest,
+    PracticalInfoSearchRequest, FAQSearchRequest, AttractionByIdRequest,
+    HotelByIdRequest, RestaurantByIdRequest, CityByIdRequest
+)
+from ..schemas.common_schemas import PaginationRequest, SuccessResponse
 
 logger = get_logger(__name__)
 

@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from typing import Dict, Any, List
 
-from src.utils.dependencies import require_auth
+from src.api.dependencies import require_auth
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)

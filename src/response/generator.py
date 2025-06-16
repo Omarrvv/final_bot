@@ -262,14 +262,20 @@ class ResponseGenerator:
         # Generate response based on type
         if response_type == "attraction_details":
             return self._generate_attraction_details(template, params, language)
+        elif response_type == "attraction_results":
+            return self._generate_attraction_results(template, params, language)
         elif response_type == "restaurant_list":
             return self._generate_restaurant_list(template, params, language)
         elif response_type == "restaurant_details":
             return self._generate_restaurant_details(template, params, language)
+        elif response_type == "restaurant_results":
+            return self._generate_restaurant_results(template, params, language)
         elif response_type == "hotel_list":
             return self._generate_hotel_list(template, params, language)
         elif response_type == "hotel_details":
             return self._generate_hotel_details(template, params, language)
+        elif response_type == "hotel_results":
+            return self._generate_hotel_results(template, params, language)
         elif response_type == "practical_info":
             return self._generate_practical_info(template, params, language)
         elif response_type == "transportation_info":
@@ -322,14 +328,20 @@ class ResponseGenerator:
             response_text = template
         elif response_type == "attraction_details":
             response_text = self._generate_attraction_details(template, entities, language)
+        elif response_type == "attraction_results":
+            response_text = self._generate_attraction_results(template, entities, language)
         elif response_type == "restaurant_list":
             response_text = self._generate_restaurant_list(template, entities, language)
         elif response_type == "restaurant_details":
             response_text = self._generate_restaurant_details(template, entities, language)
+        elif response_type == "restaurant_results":
+            response_text = self._generate_restaurant_results(template, entities, language)
         elif response_type == "hotel_list":
             response_text = self._generate_hotel_list(template, entities, language)
         elif response_type == "hotel_details":
             response_text = self._generate_hotel_details(template, entities, language)
+        elif response_type == "hotel_results":
+            response_text = self._generate_hotel_results(template, entities, language)
         elif response_type == "practical_info":
             response_text = self._generate_practical_info(template, entities, language)
         elif response_type == "transportation_info":
@@ -544,6 +556,68 @@ class ResponseGenerator:
             best_time=best_time
         )
 
+    def _generate_attraction_results(self, template: str, entities: Dict, language: str) -> str:
+        """Generate attraction search results text."""
+        # Check if we have pre-fetched results
+        if "results" in entities:
+            attractions = entities["results"]
+            search_term = entities.get("search_term", "")
+        else:
+            # Extract search term from entities
+            search_term = entities.get("search_term", "")
+
+            # Search for attractions using the knowledge base
+            try:
+                attractions = self.knowledge_base.search_attractions(
+                    query=search_term,
+                    filters={},
+                    language=language,
+                    limit=5
+                )
+            except Exception as e:
+                logger.error(f"Error searching attractions: {e}")
+                attractions = []
+
+        if not attractions:
+            no_results = "I couldn't find any attractions matching your search." if language == "en" else "لم أتمكن من العثور على أي معالم تطابق بحثك."
+            return template.format(
+                search_term=search_term,
+                attraction_list=no_results
+            ) if "{search_term}" in template else no_results
+
+        # Format attraction list
+        attraction_list = ""
+        for i, attraction in enumerate(attractions):
+            # Handle multilingual names
+            if isinstance(attraction.get("name"), dict):
+                name = attraction["name"].get(language, attraction["name"].get("en", "Unknown"))
+            else:
+                name = attraction.get("name", "Unknown")
+
+            # Handle multilingual descriptions
+            if isinstance(attraction.get("description"), dict):
+                description = attraction["description"].get(language, attraction["description"].get("en", ""))
+            else:
+                description = attraction.get("description", "")
+
+            attraction_list += f"{i+1}. {name}\n"
+            if description:
+                # Truncate long descriptions
+                desc_preview = description[:100] + "..." if len(description) > 100 else description
+                attraction_list += f"   {desc_preview}\n"
+            attraction_list += "\n"
+
+        # Fill template with correct parameters
+        try:
+            return template.format(
+                count=len(attractions),
+                attraction_list=attraction_list.strip()
+            )
+        except KeyError as e:
+            logger.warning(f"Template formatting error for attraction_results: {e}")
+            # Fallback: use template as intro text
+            return f"{template}\n\n{attraction_list.strip()}"
+
     def _generate_restaurant_list(self, template: str, entities: Dict, language: str) -> str:
         """Generate restaurant list text."""
         # Get location entity
@@ -593,6 +667,78 @@ class ResponseGenerator:
             location=location_entity,
             restaurant_list=restaurant_list.strip()
         )
+
+    def _generate_restaurant_results(self, template: str, entities: Dict, language: str) -> str:
+        """Generate restaurant search results text."""
+        # Check if we have pre-fetched results
+        if "results" in entities:
+            restaurants = entities["results"]
+            search_term = entities.get("search_term", "")
+        else:
+            # Extract search term from entities
+            search_term = entities.get("search_term", "")
+
+            # Search for restaurants using the knowledge base
+            try:
+                restaurants = self.knowledge_base.search_restaurants(
+                    query={"text": search_term},
+                    limit=5,
+                    language=language
+                )
+            except Exception as e:
+                logger.error(f"Error searching restaurants: {e}")
+                restaurants = []
+
+        if not restaurants:
+            no_results = "I couldn't find any restaurants matching your search." if language == "en" else "لم أتمكن من العثور على أي مطاعم تطابق بحثك."
+            return template.format(
+                search_term=search_term,
+                restaurant_list=no_results
+            ) if "{search_term}" in template else no_results
+
+        # Format restaurant list
+        restaurant_list = ""
+        for i, restaurant in enumerate(restaurants):
+            # Handle multilingual names
+            if isinstance(restaurant.get("name"), dict):
+                name = restaurant["name"].get(language, restaurant["name"].get("en", "Unknown"))
+            else:
+                name = restaurant.get("name", "Unknown")
+
+            # Handle multilingual descriptions
+            if isinstance(restaurant.get("description"), dict):
+                description = restaurant["description"].get(language, restaurant["description"].get("en", ""))
+            else:
+                description = restaurant.get("description", "")
+
+            cuisine = restaurant.get("cuisine", "")
+            price_range = restaurant.get("price_range", "")
+
+            restaurant_list += f"{i+1}. {name}\n"
+
+            if cuisine:
+                restaurant_list += f"   {'المطبخ' if language == 'ar' else 'Cuisine'}: {cuisine}\n"
+
+            if price_range:
+                restaurant_list += f"   {'نطاق السعر' if language == 'ar' else 'Price'}: {price_range}\n"
+
+            if description:
+                # Truncate long descriptions
+                desc_preview = description[:80] + "..." if len(description) > 80 else description
+                restaurant_list += f"   {desc_preview}\n"
+
+            restaurant_list += "\n"
+
+        # Fill template with correct parameters
+        try:
+            return template.format(
+                count=len(restaurants),
+                restaurant_list=restaurant_list.strip()
+            )
+        except KeyError as e:
+            logger.warning(f"Template formatting error for restaurant_results: {e}")
+            # Fallback: use template as intro text
+            return f"{template}\n\n{restaurant_list.strip()}"
 
     def _generate_restaurant_details(self, template: str, entities: Dict, language: str) -> str:
         """Generate restaurant details text."""
@@ -722,6 +868,89 @@ class ResponseGenerator:
             location=location_entity,
             hotel_list=hotel_list.strip()
         )
+
+    def _generate_hotel_results(self, template: str, entities: Dict, language: str) -> str:
+        """Generate hotel search results text."""
+        # Check if we have pre-fetched results
+        if "results" in entities:
+            hotels = entities["results"]
+            search_term = entities.get("search_term", "")
+        else:
+            # Extract search term from entities
+            search_term = entities.get("search_term", "")
+
+            # Search for hotels using the knowledge base
+            try:
+                hotels = self.knowledge_base.search_hotels(
+                    query={"text": search_term},
+                    limit=5,
+                    language=language
+                )
+            except Exception as e:
+                logger.error(f"Error searching hotels: {e}")
+                hotels = []
+
+        if not hotels:
+            no_results = "I couldn't find any hotels matching your search." if language == "en" else "لم أتمكن من العثور على أي فنادق تطابق بحثك."
+            return template.format(
+                search_term=search_term,
+                hotel_list=no_results
+            ) if "{search_term}" in template else no_results
+
+        # Format hotel list
+        hotel_list = ""
+        for i, hotel in enumerate(hotels):
+            # Handle multilingual names
+            if isinstance(hotel.get("name"), dict):
+                name = hotel["name"].get(language, hotel["name"].get("en", "Unknown"))
+            else:
+                name = hotel.get("name", "Unknown")
+
+            # Handle multilingual descriptions
+            if isinstance(hotel.get("description"), dict):
+                description = hotel["description"].get(language, hotel["description"].get("en", ""))
+            else:
+                description = hotel.get("description", "")
+
+            category = hotel.get("category", "")
+            stars = hotel.get("stars", "")
+
+            # Handle price range
+            price_range = hotel.get("price_range", {})
+            if isinstance(price_range, dict):
+                price_min = price_range.get("min", "")
+                price_max = price_range.get("max", "")
+                price_text = f"{price_min} - {price_max}" if price_min and price_max else ""
+            else:
+                price_text = str(price_range) if price_range else ""
+
+            hotel_list += f"{i+1}. {name}\n"
+
+            if stars:
+                hotel_list += f"   {'النجوم' if language == 'ar' else 'Stars'}: {stars}\n"
+            elif category:
+                hotel_list += f"   {'الفئة' if language == 'ar' else 'Category'}: {category}\n"
+
+            if price_text:
+                hotel_list += f"   {'نطاق السعر' if language == 'ar' else 'Price Range'}: {price_text}\n"
+
+            if description:
+                # Truncate long descriptions
+                desc_preview = description[:80] + "..." if len(description) > 80 else description
+                hotel_list += f"   {desc_preview}\n"
+
+            hotel_list += "\n"
+
+        # Fill template with correct parameters
+        try:
+            return template.format(
+                count=len(hotels),
+                hotel_list=hotel_list.strip()
+            )
+        except KeyError as e:
+            logger.warning(f"Template formatting error for hotel_results: {e}")
+            # Fallback: use template as intro text
+            return f"{template}\n\n{hotel_list.strip()}"
 
     def _generate_hotel_details(self, template: str, entities: Dict, language: str) -> str:
         """Generate hotel details text."""

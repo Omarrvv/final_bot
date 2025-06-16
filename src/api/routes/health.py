@@ -16,9 +16,16 @@ import sys
 import os
 sys.path.append('src')
 
-from src.knowledge.database_service import DatabaseManagerService
-from src.knowledge.knowledge_base_service import KnowledgeBaseService
+from src.services.database_manager_service import DatabaseManagerService
+from src.services.knowledge_base_service import KnowledgeBaseService
 from src.nlu.engine import NLUEngine
+
+# Validation schemas for input validation  
+from ..schemas.health_schemas import (
+    HealthCheckResponse, DetailedHealthResponse, PerformanceMetricsResponse,
+    ReadinessCheckResponse, LivenessCheckResponse, RequestMetricsRequest,
+    HealthAlertsResponse
+)
 
 logger = logging.getLogger(__name__)
 

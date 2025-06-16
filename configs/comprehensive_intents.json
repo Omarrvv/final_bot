@@ -72,7 +72,13 @@
         "إقامة في أسوان",
         "احجز فندق قريب من الأهرامات",
         "فنادق فاخرة القاهرة",
-        "فنادق بمطلة على النيل"
+        "فنادق بمطلة على النيل",
+        "فنادق على النيل",
+        "hotels on the nile",
+        "nile view hotels",
+        "hotels with nile view",
+        "accommodation with river view",
+        "nile side hotels"
       ]
     },
     "restaurant_query": {
@@ -104,7 +110,12 @@
         "أين آكل في الأقصر",
         "طعام مصري تقليدي",
         "مطاعم سمك في الإسكندرية",
-        "مطاعم نباتية القاهرة"
+        "مطاعم نباتية القاهرة",
+        "vegetarian restaurants near my hotel",
+        "vegetarian food near hotel",
+        "plant based restaurants near accommodation",
+        "vegan restaurants close to hotel",
+        "vegetarian dining near where I stay"
       ]
     },
     "tour_query": {
@@ -142,7 +153,19 @@
         "رحلات سياحية",
         "جولات منظمة",
         "حجز جولات سياحية",
-        "عروض سياحية"
+        "عروض سياحية",
+        "nile cruise packages",
+        "cruise tour packages",
+        "river cruise tours",
+        "nile boat tours",
+        "photography tours of ancient sites",
+        "photo tours egypt",
+        "guided photography tours",
+        "جولات مرشدة للمعابد",
+        "guided temple tours",
+        "temple guided tours",
+        "معابد مع مرشد",
+        "tours with guide to temples"
       ]
     },
     "attraction_info": {
@@ -189,7 +212,22 @@
         "المتحف المصري",
         "متاحف في القاهرة",
         "مواقع تاريخية قريبة من الاقصر",
-        "معابد قديمة في اسوان"
+        "معابد قديمة في اسوان",
+        "pyramid opening hours and tickets",
+        "pyramid entrance fees",
+        "pyramid visiting hours",
+        "pyramid ticket prices",
+        "alexandria library information",
+        "bibliotheca alexandrina info",
+        "library of alexandria details",
+        "citadel of saladin cairo",
+        "saladin citadel information",
+        "cairo citadel details",
+        "آثار الإسكندرية القديمة",
+        "ancient alexandria monuments",
+        "alexandria ancient sites",
+        "قلعة صلاح الدين",
+        "معلومات قلعة القاهرة"
       ]
     },
     "practical_info": {
@@ -380,6 +418,68 @@
         "من هي كليوباترا",
         "معلومات عامة",
         "مساعدة"
+      ]
+    },
+    "booking_query": {
+      "examples": [
+        "I want to book a hotel room",
+        "book a table for dinner",
+        "reserve a restaurant table",
+        "make a reservation",
+        "book a tour",
+        "reserve tickets",
+        "I need to book transportation",
+        "can I book online",
+        "book a nile cruise",
+        "confirm my reservation",
+        "cancel my booking",
+        "modify my reservation",
+        "عايز أحجز جولة للأهرامات",
+        "أحجز فندق",
+        "احجز طرابيزة في المطعم",
+        "حجز تذاكر",
+        "أريد أن أحجز",
+        "إلغاء الحجز",
+        "تعديل الحجز",
+        "تأكيد الحجز"
+      ]
+    },
+    "emergency_query": {
+      "examples": [
+        "I lost my passport",
+        "where is the nearest hospital",
+        "I need police help",
+        "emergency contact numbers",
+        "I was robbed",
+        "tourist police contact",
+        "I'm sick and need a doctor",
+        "emergency services",
+        "help me",
+        "urgent assistance",
+        "ضاع جوازي",
+        "فين أقرب مستشفى",
+        "محتاج مساعدة عاجلة",
+        "أرقام الطوارئ",
+        "اتسرقت",
+        "شرطة السياحة"
+      ]
+    },
+    "feedback_query": {
+      "examples": [
+        "the hotel service was excellent",
+        "this restaurant is overpriced",
+        "I loved the tour guide",
+        "the food was terrible",
+        "great value for money",
+        "highly recommend this place",
+        "staff was very rude",
+        "amazing experience",
+        "poor service",
+        "الخدمة كانت حلوة جداً",
+        "المكان مش حلو",
+        "الأكل كان لذيذ جداً",
+        "الخدمة سيئة",
+        "أنصح بالمكان ده"
       ]
     }
   }

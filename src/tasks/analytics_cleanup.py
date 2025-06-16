@@ -41,7 +41,7 @@ def cleanup_analytics_data():
         
         # Use shared database manager instead of creating new instance (PERFORMANCE OPTIMIZED)
         logger.info("🔄 Using shared database manager for analytics cleanup (connection pool reuse)")
-        from src.utils.factory import component_factory
+        from src.services.component_factory import component_factory
         db_manager = component_factory.create_database_manager()  # Uses singleton pattern
         
         # Delete old detailed events

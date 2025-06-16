@@ -9,8 +9,8 @@ from pydantic import BaseModel
 from typing import Optional, Dict, Any
 
 from src.utils.logger import get_logger
-from src.utils.dependencies import get_session_auth
-from src.utils.auth import SessionAuth
+from src.api.dependencies import get_session_auth
+from src.services.auth_service import SessionAuth
 
 logger = get_logger(__name__)
 
