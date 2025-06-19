@@ -1,0 +1,511 @@
+/* Chat Button Component - Qatar Tourism Style */
+
+.chat-button-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Qatar-Style Chat Button */
+.chat-button {
+  position: relative;
+  min-width: 200px;
+  height: 60px;
+  border-radius: 30px;
+  border: none;
+
+  /* Qatar-style clean white background */
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+
+  /* Professional layout */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 0 24px;
+
+  /* Clean Qatar-style elevation */
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-subtle);
+
+  /* Smooth professional transitions */
+  transition: all 0.3s var(--ease-out-expo);
+  font-size: 14px;
+  font-weight: 500;
+  overflow: visible;
+}
+
+.chat-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--primary-color);
+  background: var(--surface-elevated);
+}
+
+.chat-button:active {
+  transform: translateY(-1px);
+  animation: buttonPressQatar 0.15s ease-out;
+}
+
+.chat-button:focus {
+  outline: none;
+  box-shadow: var(--shadow-xl), 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+/* Qatar-Style Button Content Layout */
+.button-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.chat-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary-color);
+  color: var(--text-inverse);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: transform 0.3s var(--ease-out-back);
+  box-shadow: var(--shadow-sm);
+}
+
+.button-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.country-flag {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  font-size: 16px;
+  background: var(--surface-primary);
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+  border: 2px solid var(--surface-primary);
+  transition: all 0.2s var(--ease-in-out);
+}
+
+/* Minimized state - Compact version */
+.chat-button.minimized {
+  min-width: 56px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  padding: 0;
+}
+
+.chat-button.minimized .button-text {
+  display: none;
+}
+
+.chat-button.minimized .chat-icon {
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
+}
+
+.chat-button.minimized .country-flag {
+  width: 18px;
+  height: 18px;
+  font-size: 12px;
+  top: -2px;
+  right: -2px;
+}
+
+/* Professional Hover Effects */
+.chat-button.hovered .chat-icon {
+  transform: scale(1.1);
+  background: var(--primary-hover);
+}
+
+.chat-button.hovered .country-flag {
+  transform: scale(1.05);
+}
+
+/* Clean Unread Badge */
+.unread-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ef4444;
+  color: var(--text-inverse);
+  border-radius: 12px;
+  min-width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  border: 2px solid var(--surface-primary);
+  box-shadow: var(--shadow-sm);
+  animation: gentleBounceQatar 0.6s var(--ease-out-back);
+  z-index: 10;
+}
+
+.badge-count {
+  padding: 0 4px;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+
+/* Clean Pulse Animation */
+.pulse-ring {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  right: -6px;
+  bottom: -6px;
+  border-radius: 36px;
+  border: 2px solid var(--primary-color);
+  opacity: 0;
+  animation: pulseBlue 3s infinite;
+  pointer-events: none;
+}
+
+/* Qatar-Style Message Notification */
+.message-notification {
+  position: absolute;
+  bottom: 80px;
+  right: 0;
+  max-width: 300px;
+  min-width: 220px;
+
+  /* Clean Qatar-style notification */
+  background: var(--surface-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+
+  animation: slideInUpQatar 0.4s var(--ease-out-expo);
+  z-index: 15;
+  overflow: hidden;
+}
+
+.notification-content {
+  padding: 16px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.notification-text {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+
+.notification-close {
+  background: var(--surface-secondary);
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 4px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s var(--ease-in-out);
+  font-weight: 500;
+}
+
+.notification-close:hover {
+  background: var(--surface-tertiary);
+  color: var(--text-primary);
+  transform: scale(1.05);
+}
+
+/* Clean Tooltip */
+.chat-tooltip {
+  position: absolute;
+  bottom: 80px;
+  right: 0;
+  max-width: 200px;
+  animation: fadeInQatar 0.3s var(--ease-out-expo);
+  z-index: 10;
+}
+
+.tooltip-content {
+  background: var(--text-primary);
+  color: var(--surface-primary);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.3;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  letter-spacing: -0.01em;
+}
+
+.tooltip-content::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  right: 20px;
+  border: 6px solid transparent;
+  border-top-color: var(--text-primary);
+}
+
+/* Position adjustments - Qatar style */
+.egypt-tourism-widget.bottom-left .message-notification,
+.egypt-tourism-widget.bottom-left .chat-tooltip {
+  left: 0;
+  right: auto;
+}
+
+.egypt-tourism-widget.bottom-left .tooltip-content::after {
+  left: 20px;
+  right: auto;
+}
+
+.egypt-tourism-widget.top-right .message-notification,
+.egypt-tourism-widget.top-right .chat-tooltip,
+.egypt-tourism-widget.top-left .message-notification,
+.egypt-tourism-widget.top-left .chat-tooltip {
+  bottom: auto;
+  top: 80px;
+}
+
+.egypt-tourism-widget.top-left .message-notification,
+.egypt-tourism-widget.top-left .chat-tooltip {
+  left: 0;
+  right: auto;
+}
+
+.egypt-tourism-widget.top-left .tooltip-content::after,
+.egypt-tourism-widget.top-right .tooltip-content::after {
+  top: auto;
+  bottom: 100%;
+  border-top-color: transparent;
+  border-bottom-color: var(--text-primary);
+}
+
+.egypt-tourism-widget.top-left .tooltip-content::after {
+  left: 20px;
+  right: auto;
+}
+
+/* Mobile-First Responsive Design */
+@media (max-width: 640px) {
+  .chat-button {
+    min-width: 160px;
+    height: 50px;
+    border-radius: 25px;
+    font-size: 13px;
+    padding: 0 20px;
+    gap: 10px;
+  }
+
+  .chat-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+
+  .button-text {
+    font-size: 13px;
+  }
+
+  .country-flag {
+    width: 18px;
+    height: 18px;
+    font-size: 12px;
+    top: -2px;
+    right: -2px;
+  }
+
+  .unread-badge {
+    min-width: 18px;
+    height: 18px;
+    font-size: 10px;
+    top: -6px;
+    right: -6px;
+  }
+
+  .message-notification {
+    max-width: calc(100vw - 60px);
+    min-width: 180px;
+    bottom: 70px;
+  }
+
+  .chat-tooltip {
+    max-width: calc(100vw - 60px);
+    bottom: 70px;
+  }
+
+  .notification-content {
+    padding: 14px 16px;
+  }
+}
+
+/* Tablet Responsive */
+@media (max-width: 768px) and (min-width: 641px) {
+  .chat-button {
+    min-width: 180px;
+    height: 55px;
+  }
+
+  .message-notification {
+    max-width: 260px;
+  }
+}
+
+/* Clean Dark Theme */
+.egypt-tourism-widget.dark .chat-button {
+  background: var(--surface-elevated);
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+}
+
+.egypt-tourism-widget.dark .chat-button:hover {
+  background: var(--surface-primary);
+  border-color: var(--primary-color);
+}
+
+.egypt-tourism-widget.dark .country-flag {
+  background: var(--surface-primary);
+  border-color: var(--surface-primary);
+}
+
+.egypt-tourism-widget.dark .message-notification {
+  background: var(--surface-elevated);
+  border-color: var(--border-subtle);
+}
+
+.egypt-tourism-widget.dark .notification-close {
+  background: var(--surface-tertiary);
+  color: var(--text-secondary);
+}
+
+.egypt-tourism-widget.dark .notification-close:hover {
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .chat-button {
+    border: 2px solid var(--text-primary);
+    box-shadow: none;
+  }
+
+  .unread-badge {
+    border: 2px solid var(--surface-primary);
+    background: #ef4444;
+  }
+
+  .country-flag {
+    border: 2px solid var(--text-primary);
+  }
+
+  .message-notification,
+  .chat-tooltip {
+    border: 2px solid var(--text-primary);
+    box-shadow: none;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .chat-button {
+    transition: none;
+  }
+
+  .chat-button:hover {
+    transform: none;
+  }
+
+  .pulse-ring {
+    animation: none;
+  }
+
+  .unread-badge {
+    animation: none;
+  }
+
+  .message-notification,
+  .chat-tooltip {
+    animation: fadeInQatar 0.1s ease-out;
+  }
+
+  .chat-icon {
+    transition: none;
+  }
+
+  .chat-button.hovered .chat-icon {
+    transform: none;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .chat-button-container {
+    display: none;
+  }
+}
+
+/* Professional Focus States */
+.chat-button:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-lg), 0 0 0 3px rgba(37, 99, 235, 0.3);
+}
+
+/* Accessibility */
+.chat-button[aria-expanded="true"] {
+  background: var(--surface-elevated);
+  border-color: var(--primary-color);
+}
+
+/* Loading State */
+.chat-button.loading {
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.chat-button.loading .chat-icon {
+  animation: loadingDotsQatar 1.5s infinite;
+}
+
+/* Error State */
+.chat-button.error {
+  border-color: #ef4444;
+  animation: gentleBounceQatar 0.5s ease-out;
+}
+
+/* Success State */
+.chat-button.success {
+  border-color: var(--secondary-color);
+}
+
+.chat-button.success .chat-icon {
+  background: var(--secondary-color);
+  animation: gentleBounceQatar 0.4s var(--ease-out-back);
+}

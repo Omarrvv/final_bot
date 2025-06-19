@@ -1,0 +1,264 @@
+/* Suggestion Chips Component - Professional Qatar-Style */
+
+.suggestion-chips {
+  padding: 16px 20px;
+  background: #ffffff;
+  border-top: 1px solid #e5e7eb;
+}
+
+.chips-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+/* Qatar-style chip design */
+.suggestion-chip {
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  max-width: 250px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: inherit;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+}
+
+/* Remove ALL focus outlines */
+.suggestion-chip:focus,
+.suggestion-chip:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.suggestion-chip:hover {
+  background: #e5e7eb;
+  color: #1f2937;
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+}
+
+.suggestion-chip:active {
+  transform: translateY(0);
+  background: #d1d5db;
+}
+
+.chip-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+/* Clean animation for chips appearing */
+.suggestion-chip {
+  animation: fadeInUp 0.3s ease-out;
+  animation-fill-mode: both;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.suggestion-chip:nth-child(1) {
+  animation-delay: 0.05s;
+}
+.suggestion-chip:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.suggestion-chip:nth-child(3) {
+  animation-delay: 0.15s;
+}
+.suggestion-chip:nth-child(4) {
+  animation-delay: 0.2s;
+}
+.suggestion-chip:nth-child(5) {
+  animation-delay: 0.25s;
+}
+.suggestion-chip:nth-child(n + 6) {
+  animation-delay: 0.3s;
+}
+
+/* Selected chip state */
+.suggestion-chip.selected {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+}
+
+.suggestion-chip.selected:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+/* RTL Support for Arabic */
+.egypt-tourism-widget[dir="rtl"] .chips-container {
+  justify-content: flex-start;
+  direction: rtl;
+}
+
+/* Mobile-First Responsive Design */
+@media (max-width: 640px) {
+  .suggestion-chips {
+    padding: 14px 16px;
+  }
+
+  .suggestion-chip {
+    padding: 10px 16px;
+    font-size: 13px;
+    max-width: 200px;
+  }
+
+  .chips-container {
+    gap: 10px;
+  }
+}
+
+/* Tablet Responsive */
+@media (max-width: 768px) and (min-width: 641px) {
+  .suggestion-chip {
+    padding: 11px 18px;
+    max-width: 220px;
+  }
+}
+
+/* Dark Theme Support */
+.egypt-tourism-widget.dark .suggestion-chips {
+  background: #1f2937;
+  border-top-color: #374151;
+}
+
+.egypt-tourism-widget.dark .suggestion-chip {
+  background: #374151;
+  border-color: #4b5563;
+  color: #d1d5db;
+}
+
+.egypt-tourism-widget.dark .suggestion-chip:hover {
+  background: #4b5563;
+  color: #f9fafb;
+  border-color: #6b7280;
+}
+
+.egypt-tourism-widget.dark .suggestion-chip.selected {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .suggestion-chip {
+    border: 2px solid #000000;
+  }
+
+  .suggestion-chip:hover {
+    border: 2px solid #2563eb;
+    background: #f3f4f6;
+  }
+
+  .suggestion-chip.selected {
+    background: #1e40af;
+    color: #ffffff;
+    border-color: #1e40af;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .suggestion-chip {
+    animation: none;
+  }
+
+  .suggestion-chip:hover {
+    transform: none;
+  }
+
+  .suggestion-chip:active {
+    transform: none;
+  }
+}
+
+/* Loading State */
+.suggestion-chips.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.suggestion-chips.loading .suggestion-chip {
+  cursor: wait;
+}
+
+/* Empty State */
+.suggestion-chips.empty {
+  display: none;
+}
+
+/* Popular suggestion highlight */
+.suggestion-chip.popular {
+  background: #fef3c7;
+  border-color: #fcd34d;
+  color: #92400e;
+}
+
+.suggestion-chip.popular:hover {
+  background: #fde68a;
+  border-color: #f59e0b;
+}
+
+/* Recent suggestion styling */
+.suggestion-chip.recent {
+  background: #ebf5ff;
+  border-color: #93bbfb;
+  color: #1e40af;
+}
+
+.suggestion-chip.recent:hover {
+  background: #dbeafe;
+  border-color: #60a5fa;
+}
+
+/* Accessibility improvements */
+.suggestion-chip[aria-pressed="true"] {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+}
+
+/* Focus management for keyboard navigation */
+.chips-container:focus-within .suggestion-chip:focus {
+  z-index: 1;
+  position: relative;
+  box-shadow: 0 0 0 2px #2563eb;
+}
+
+/* Clean hover effects */
+.suggestion-chip:hover .chip-text {
+  color: inherit;
+}
+
+/* Print styles */
+@media print {
+  .suggestion-chips {
+    display: none;
+  }
+}

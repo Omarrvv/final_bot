@@ -1,0 +1,465 @@
+/* Message Input Component - Egypt Tourism Design */
+
+.message-input-container {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  padding: 16px 20px 20px;
+  background: #ffffff;
+  border-top: 1px solid #e5e7eb;
+  border-radius: 0 0 16px 16px;
+}
+
+/* Input wrapper for the text field */
+.input-wrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 24px;
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+/* Remove ALL focus outlines */
+.input-wrapper:focus,
+.input-wrapper:focus-visible,
+.input-wrapper:focus-within {
+  outline: none !important;
+  border-color: #2563eb !important;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Text input field */
+.message-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 14px 20px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #1f2937;
+  resize: none;
+  font-family: inherit;
+  letter-spacing: 0.01em;
+  min-height: 24px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+/* Remove focus outline from input */
+.message-input:focus,
+.message-input:focus-visible {
+  outline: none !important;
+}
+
+.message-input::placeholder {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+/* Attachment button */
+.attachment-button {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 8px;
+  margin-left: 4px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+.attachment-button:hover {
+  background: #f3f4f6;
+  color: #374151;
+  transform: scale(1.05);
+}
+
+.attachment-button:focus {
+  outline: none !important;
+}
+
+.attachment-icon {
+  font-size: 18px;
+}
+
+/* Send button - Egypt Tourism style */
+.send-button {
+  background: #2563eb;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.send-button:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+}
+
+.send-button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.send-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.send-button:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+.send-icon {
+  font-size: 18px;
+  transform: rotate(-45deg);
+  margin-right: 2px;
+  margin-bottom: 2px;
+}
+
+/* Voice input button */
+.voice-button {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 8px;
+  margin-right: 4px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+.voice-button:hover {
+  background: #f3f4f6;
+  color: #374151;
+  transform: scale(1.05);
+}
+
+.voice-button.listening {
+  background: #fee2e2;
+  color: #ef4444;
+  animation: pulse 1.5s infinite;
+}
+
+.voice-button:focus {
+  outline: none !important;
+}
+
+.voice-icon {
+  font-size: 18px;
+}
+
+/* Character counter */
+.char-counter {
+  position: absolute;
+  bottom: 4px;
+  right: 12px;
+  font-size: 11px;
+  color: #9ca3af;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}
+
+.char-counter.warning {
+  color: #f59e0b;
+}
+
+.char-counter.error {
+  color: #ef4444;
+}
+
+/* File upload preview */
+.file-preview {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.file-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.file-icon {
+  font-size: 20px;
+  color: #6b7280;
+}
+
+.file-name {
+  font-size: 13px;
+  color: #1f2937;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.file-size {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-left: 8px;
+}
+
+.remove-file {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-file:hover {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+/* Animations */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+/* Mobile responsive design */
+@media (max-width: 640px) {
+  .message-input-container {
+    padding: 16px 20px;
+    gap: 10px;
+  }
+
+  .message-input {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+
+  .send-button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .send-icon {
+    font-size: 16px;
+  }
+
+  .attachment-button,
+  .voice-button {
+    width: 32px;
+    height: 32px;
+  }
+
+  .attachment-icon,
+  .voice-icon {
+    font-size: 16px;
+  }
+
+  .file-name {
+    max-width: 150px;
+  }
+}
+
+/* Dark theme support */
+.egypt-tourism-widget.dark .message-input-container {
+  background: #1f2937;
+  border-top-color: #374151;
+}
+
+.egypt-tourism-widget.dark .input-wrapper {
+  background: #374151;
+  border-color: #4b5563;
+}
+
+.egypt-tourism-widget.dark .input-wrapper:focus-within {
+  background: #1f2937;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+.egypt-tourism-widget.dark .message-input {
+  color: #f9fafb;
+}
+
+.egypt-tourism-widget.dark .message-input::placeholder {
+  color: #6b7280;
+}
+
+.egypt-tourism-widget.dark .attachment-button,
+.egypt-tourism-widget.dark .voice-button {
+  color: #9ca3af;
+}
+
+.egypt-tourism-widget.dark .attachment-button:hover,
+.egypt-tourism-widget.dark .voice-button:hover {
+  background: #4b5563;
+  color: #d1d5db;
+}
+
+.egypt-tourism-widget.dark .send-button {
+  background: #2563eb;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+}
+
+.egypt-tourism-widget.dark .send-button:hover:not(:disabled) {
+  background: #3b82f6;
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.4);
+}
+
+.egypt-tourism-widget.dark .char-counter {
+  color: #6b7280;
+}
+
+.egypt-tourism-widget.dark .file-preview {
+  background: #374151;
+  border-color: #4b5563;
+  box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.egypt-tourism-widget.dark .file-name {
+  color: #f9fafb;
+}
+
+.egypt-tourism-widget.dark .file-size {
+  color: #6b7280;
+}
+
+.egypt-tourism-widget.dark .remove-file {
+  color: #9ca3af;
+}
+
+.egypt-tourism-widget.dark .remove-file:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #fca5a5;
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .input-wrapper {
+    border: 2px solid #000000;
+  }
+
+  .input-wrapper:focus-within {
+    border-color: #2563eb;
+    box-shadow: none;
+  }
+
+  .send-button {
+    background: #1e40af;
+    border: 2px solid #000000;
+  }
+
+  .send-button:hover:not(:disabled) {
+    background: #2563eb;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .input-wrapper,
+  .send-button,
+  .attachment-button,
+  .voice-button,
+  .remove-file {
+    transition: none;
+  }
+
+  .send-button:hover,
+  .attachment-button:hover,
+  .voice-button:hover {
+    transform: none;
+  }
+
+  .voice-button.listening {
+    animation: none;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.4);
+  }
+}
+
+/* RTL support */
+.egypt-tourism-widget[dir="rtl"] .message-input-container {
+  flex-direction: row-reverse;
+}
+
+.egypt-tourism-widget[dir="rtl"] .attachment-button {
+  margin-left: 0;
+  margin-right: 4px;
+}
+
+.egypt-tourism-widget[dir="rtl"] .voice-button {
+  margin-right: 0;
+  margin-left: 4px;
+}
+
+.egypt-tourism-widget[dir="rtl"] .send-icon {
+  transform: rotate(45deg);
+  margin-left: 2px;
+  margin-right: 0;
+}
+
+.egypt-tourism-widget[dir="rtl"] .char-counter {
+  left: 12px;
+  right: auto;
+}
+
+.egypt-tourism-widget[dir="rtl"] .file-info {
+  flex-direction: row-reverse;
+}
+
+/* Print styles */
+@media print {
+  .message-input-container {
+    display: none;
+  }
+}

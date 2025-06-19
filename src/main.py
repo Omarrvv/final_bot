@@ -373,17 +373,30 @@ try:
     from src.middleware.security import add_cors_middleware, get_default_origins
 
     # Get allowed origins from settings
-    allowed_origins = settings.allowed_origins
+    allowed_origins = settings.cors_origins
+    
+    # DEVELOPMENT FIX: Handle null origins for local file testing
+    if settings.debug and ("null" in allowed_origins or "file://" in allowed_origins):
+        logger.warning("⚠️ Development mode: Detected null/file origins. Using wildcard CORS for local file testing.")
+        logger.warning("   This disables credentials but allows local file access.")
+        allowed_origins = ["*"]
+        # Note: With wildcard origins, allow_credentials must be False
+        credentials_enabled = False
+    else:
+        credentials_enabled = True
+    
     if not allowed_origins:
         # Use the default origins function if no origins specified
         allowed_origins = get_default_origins(settings.frontend_url)
         logger.warning(f"No CORS allowed_origins specified. Using defaults: {allowed_origins}")
+    else:
+        logger.info(f"Using CORS origins: {allowed_origins} (credentials: {credentials_enabled})")
 
     # Add CORS middleware with comprehensive configuration
     add_cors_middleware(
         app=app,
         allowed_origins=allowed_origins,
-        allow_credentials=True,
+        allow_credentials=credentials_enabled,
         # Use default methods and headers from security middleware (more comprehensive)
         # This ensures proper CORS headers are sent for OPTIONS requests
     )

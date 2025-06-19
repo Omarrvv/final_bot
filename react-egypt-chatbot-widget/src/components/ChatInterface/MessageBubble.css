@@ -1,0 +1,452 @@
+/* Message Bubble Component - Professional Qatar-Style */
+
+/* Base message wrapper */
+.message {
+  display: flex;
+  margin-bottom: 20px; /* Generous spacing between messages */
+  position: relative;
+  animation: messageSlideIn 0.3s ease-out;
+  padding: 0 4px;
+}
+
+/* Remove ALL focus outlines everywhere */
+.message:focus,
+.message:focus-visible,
+.message *:focus,
+.message *:focus-visible,
+.message-bubble:focus,
+.message-bubble:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* User messages aligned right */
+.message.user {
+  justify-content: flex-end;
+}
+
+/* Bot messages aligned left */
+.message.bot {
+  justify-content: flex-start;
+}
+
+/* Message content container */
+.message-content-wrapper {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px; /* Space between avatar and bubble */
+  max-width: 85%;
+}
+
+.message.user .message-content-wrapper {
+  flex-direction: row-reverse;
+}
+
+/* Avatar styling */
+.message-avatar {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 4px;
+}
+
+.message.bot .message-avatar {
+  background: #ebf5ff;
+}
+
+.message.user .message-avatar {
+  background: #e0e7ff;
+}
+
+/* Message bubble with generous padding */
+.message-bubble {
+  position: relative;
+  padding: 16px 20px; /* Very generous padding */
+  border-radius: 18px;
+  word-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+  font-size: 14px;
+  line-height: 1.7; /* Improved line height */
+  letter-spacing: 0.01em;
+  transition: transform 0.2s ease;
+}
+
+/* No focus outlines on bubbles */
+.message-bubble:focus,
+.message-bubble:focus-visible {
+  outline: none !important;
+}
+
+/* User message styling - Qatar blue */
+.message.user .message-bubble {
+  background: #2563eb;
+  color: #ffffff;
+  border-bottom-right-radius: 4px;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+}
+
+/* Bot message styling - Clean white */
+.message.bot .message-bubble {
+  background: #ffffff;
+  color: #1f2937;
+  border: 1px solid #e5e7eb;
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Message text with proper spacing */
+.message-text {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  display: block;
+}
+
+/* Ensure code blocks are visible */
+.message-text code {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: "SF Mono", "Monaco", "Consolas", monospace;
+}
+
+.message.user .message-text code {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.message.bot .message-text code {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+/* Links styling */
+.message-text a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  opacity: 0.9;
+  transition: opacity 0.2s ease;
+}
+
+.message-text a:hover {
+  opacity: 1;
+}
+
+.message.user .message-text a {
+  color: #ffffff;
+  text-decoration-color: rgba(255, 255, 255, 0.6);
+}
+
+.message.bot .message-text a {
+  color: #2563eb;
+  text-decoration-color: #93bbfb;
+}
+
+/* Timestamp with proper spacing */
+.message-time {
+  font-size: 11px;
+  margin-top: 8px;
+  opacity: 0.7;
+  display: block;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+}
+
+.message.user .message-time {
+  color: rgba(255, 255, 255, 0.8);
+  text-align: right;
+  padding-right: 2px;
+}
+
+.message.bot .message-time {
+  color: #9ca3af;
+  padding-left: 2px;
+}
+
+/* Status indicators */
+.message-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  font-size: 11px;
+}
+
+.message.user .message-status {
+  justify-content: flex-end;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.status-icon {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* Loading animation */
+.message.loading .message-bubble {
+  padding: 14px 24px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+}
+
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.typing-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #6b7280;
+  animation: typingBounce 1.4s ease-in-out infinite;
+}
+
+.typing-dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+/* Error message styling */
+.message.error .message-bubble {
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
+  color: #991b1b;
+}
+
+.message.error .message-avatar {
+  background: #fee2e2;
+}
+
+/* System message styling */
+.message.system {
+  justify-content: center;
+  margin: 24px 0;
+}
+
+.message.system .message-bubble {
+  background: #f3f4f6;
+  color: #6b7280;
+  font-size: 13px;
+  padding: 10px 16px;
+  border: 1px solid #e5e7eb;
+  max-width: fit-content;
+}
+
+/* Hover effect - subtle */
+.message-bubble:hover {
+  transform: translateY(-1px);
+}
+
+.message.user .message-bubble:hover {
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.25);
+}
+
+.message.bot .message-bubble:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Animations */
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes typingBounce {
+  0%,
+  80%,
+  100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Mobile responsive design */
+@media (max-width: 640px) {
+  .message {
+    margin-bottom: 16px;
+  }
+
+  .message-content-wrapper {
+    max-width: 90%;
+    gap: 10px;
+  }
+
+  .message-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+
+  .message-bubble {
+    padding: 14px 18px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .message-time {
+    font-size: 10px;
+    margin-top: 6px;
+  }
+}
+
+/* Tablet responsive */
+@media (max-width: 768px) and (min-width: 641px) {
+  .message-content-wrapper {
+    max-width: 85%;
+  }
+}
+
+/* Dark theme support */
+.egypt-tourism-widget.dark .message-avatar {
+  background: #374151;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.egypt-tourism-widget.dark .message.bot .message-avatar {
+  background: #1e293b;
+}
+
+.egypt-tourism-widget.dark .message.user .message-avatar {
+  background: #312e81;
+}
+
+.egypt-tourism-widget.dark .message.bot .message-bubble {
+  background: #374151;
+  color: #f9fafb;
+  border-color: #4b5563;
+}
+
+.egypt-tourism-widget.dark .message.bot .message-text code {
+  background: #1f2937;
+  color: #d1d5db;
+}
+
+.egypt-tourism-widget.dark .message.bot .message-text a {
+  color: #60a5fa;
+}
+
+.egypt-tourism-widget.dark .message.bot .message-time {
+  color: #9ca3af;
+}
+
+.egypt-tourism-widget.dark .message.loading .message-bubble {
+  background: #374151;
+  border-color: #4b5563;
+}
+
+.egypt-tourism-widget.dark .typing-dot {
+  background: #9ca3af;
+}
+
+.egypt-tourism-widget.dark .message.system .message-bubble {
+  background: #1f2937;
+  color: #9ca3af;
+  border-color: #374151;
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .message-bubble {
+    border: 2px solid currentColor !important;
+  }
+
+  .message-avatar {
+    border: 2px solid currentColor;
+  }
+
+  .message.user .message-bubble {
+    background: #1e40af;
+  }
+
+  .message.bot .message-bubble {
+    background: #ffffff;
+    color: #000000;
+    border-color: #000000 !important;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .message,
+  .message-bubble,
+  .typing-dot {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .message-bubble:hover {
+    transform: none;
+  }
+}
+
+/* RTL support */
+.egypt-tourism-widget[dir="rtl"] .message.user {
+  justify-content: flex-start;
+}
+
+.egypt-tourism-widget[dir="rtl"] .message.bot {
+  justify-content: flex-end;
+}
+
+.egypt-tourism-widget[dir="rtl"] .message.user .message-content-wrapper {
+  flex-direction: row;
+}
+
+.egypt-tourism-widget[dir="rtl"] .message.bot .message-content-wrapper {
+  flex-direction: row-reverse;
+}
+
+.egypt-tourism-widget[dir="rtl"] .message.user .message-time {
+  text-align: left;
+  padding-left: 2px;
+  padding-right: 0;
+}
+
+.egypt-tourism-widget[dir="rtl"] .message.bot .message-time {
+  text-align: right;
+  padding-right: 2px;
+  padding-left: 0;
+}
+
+/* Print styles */
+@media print {
+  .message {
+    page-break-inside: avoid;
+    margin-bottom: 12px;
+  }
+
+  .message-bubble {
+    box-shadow: none !important;
+    border: 1px solid #000 !important;
+  }
+
+  .message-avatar {
+    display: none;
+  }
+}

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Karim's Website - Egypt Tourism</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Arial", sans-serif;
+        height: 100vh;
+        overflow: hidden;
+        position: relative;
+        background: linear-gradient(
+          135deg,
+          #667eea 0%,
+          #764ba2 25%,
+          #f093fb 50%,
+          #f5576c 75%,
+          #4facfe 100%
+        );
+        background-size: 400% 400%;
+        animation: gradientShift 15s ease infinite;
+      }
+
+      @keyframes gradientShift {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+      .blur-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .content {
+        position: relative;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        text-align: center;
+        color: white;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .main-title {
+        font-size: 4rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+        background: linear-gradient(45deg, #fff, #f0f0f0, #fff, #e0e0e0);
+        background-size: 400% 400%;
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: textShine 3s ease-in-out infinite;
+      }
+
+      @keyframes textShine {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+      .subtitle {
+        font-size: 1.5rem;
+        margin-bottom: 2rem;
+        opacity: 0.9;
+      }
+
+      .features {
+        display: flex;
+        gap: 2rem;
+        margin-top: 3rem;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .feature-card {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        transition: all 0.3s ease;
+        min-width: 200px;
+      }
+
+      .feature-card:hover {
+        transform: translateY(-5px);
+        background: rgba(255, 255, 255, 0.3);
+      }
+
+      .feature-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .chat-status {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 10px 15px;
+        border-radius: 25px;
+        font-size: 0.9rem;
+        z-index: 1000;
+      }
+
+      .status-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 8px;
+      }
+
+      .status-loading {
+        background: orange;
+        animation: pulse 1.5s infinite;
+      }
+
+      .status-ready {
+        background: #00ff00;
+      }
+
+      .status-error {
+        background: #ff4444;
+      }
+
+      @keyframes pulse {
+        0% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+
+      .particles {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: 5;
+      }
+
+      .particle {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: 50%;
+        animation: float 6s infinite ease-in-out;
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(100vh) rotate(0deg);
+          opacity: 0;
+        }
+        10% {
+          opacity: 1;
+        }
+        90% {
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(-100px) rotate(360deg);
+          opacity: 0;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .main-title {
+          font-size: 2.5rem;
+        }
+
+        .features {
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .feature-card {
+          max-width: 300px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="blur-overlay"></div>
+
+    <!-- Floating particles -->
+    <div class="particles" id="particles"></div>
+
+    <!-- Chat status indicator -->
+    <div class="chat-status" id="chatStatus">
+      <span class="status-indicator status-loading" id="statusIndicator"></span>
+      <span id="statusText">Loading Chat System...</span>
+    </div>
+
+    <div class="content">
+      <h1 class="main-title">Karim's Website</h1>
+      <p class="subtitle">Discover the Magic of Egypt 🇪🇬</p>
+
+      <div class="features">
+        <div class="feature-card">
+          <div class="feature-icon">🏛️</div>
+          <h3>Ancient Monuments</h3>
+          <p>Explore pyramids and temples</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🏨</div>
+          <h3>Luxury Hotels</h3>
+          <p>Find perfect accommodations</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🍽️</div>
+          <h3>Local Cuisine</h3>
+          <p>Taste authentic Egyptian food</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🗺️</div>
+          <h3>Trip Planning</h3>
+          <p>Get personalized itineraries</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Egypt Tourism Chatbot Widget -->
+    <script>
+      // Create floating particles
+      function createParticles() {
+        const particlesContainer = document.getElementById("particles");
+        const particleCount = 15;
+
+        for (let i = 0; i < particleCount; i++) {
+          const particle = document.createElement("div");
+          particle.className = "particle";
+          particle.style.left = Math.random() * 100 + "%";
+          particle.style.width = particle.style.height =
+            Math.random() * 4 + 2 + "px";
+          particle.style.animationDelay = Math.random() * 6 + "s";
+          particle.style.animationDuration = Math.random() * 4 + 4 + "s";
+          particlesContainer.appendChild(particle);
+        }
+      }
+
+      // Update chat status
+      function updateChatStatus(status, text) {
+        const indicator = document.getElementById("statusIndicator");
+        const statusText = document.getElementById("statusText");
+
+        indicator.className = `status-indicator status-${status}`;
+        statusText.textContent = text;
+      }
+
+      // Initialize particles
+      createParticles();
+
+      // Widget configuration
+      window.EgyptChatbotConfig = {
+        apiUrl: "http://localhost:5050",
+        theme: "light",
+        position: "bottom-right",
+        language: "en",
+        autoInit: true,
+      };
+
+      // Test backend connection
+      async function testBackendConnection() {
+        try {
+          updateChatStatus("loading", "Connecting to chat service...");
+          const response = await fetch("http://localhost:5050/api/health");
+          if (response.ok) {
+            updateChatStatus("ready", "Chat Assistant Ready! 💬");
+            return true;
+          } else {
+            throw new Error("Backend unhealthy");
+          }
+        } catch (error) {
+          updateChatStatus("error", "Chat service unavailable");
+          console.warn("Backend connection failed:", error);
+          return false;
+        }
+      }
+
+      // Auto-test backend connection
+      testBackendConnection();
+
+      // Re-test every 10 seconds if failed
+      setInterval(() => {
+        const indicator = document.getElementById("statusIndicator");
+        if (
+          indicator.classList.contains("status-error") ||
+          indicator.classList.contains("status-loading")
+        ) {
+          testBackendConnection();
+        }
+      }, 10000);
+
+      // Widget loading
+      let widgetLoadAttempts = 0;
+      const maxAttempts = 30;
+
+      function loadWidget() {
+        widgetLoadAttempts++;
+
+        if (typeof window.EgyptChatbot !== "undefined") {
+          updateChatStatus("ready", "Chat Assistant Ready! 💬");
+          console.log("✅ Egypt Tourism Chatbot Widget loaded successfully!");
+
+          // Initialize widget if auto-init is enabled
+          if (window.EgyptChatbotConfig.autoInit) {
+            try {
+              window.EgyptChatbot.init(window.EgyptChatbotConfig);
+              console.log("✅ Widget auto-initialized");
+            } catch (error) {
+              console.error("❌ Widget auto-initialization failed:", error);
+            }
+          }
+        } else if (widgetLoadAttempts < maxAttempts) {
+          console.log(
+            `⏳ Waiting for widget to load... (${widgetLoadAttempts}/${maxAttempts})`
+          );
+          setTimeout(loadWidget, 500);
+        } else {
+          updateChatStatus("error", "Widget failed to load");
+          console.error(
+            "❌ Widget failed to load after",
+            maxAttempts,
+            "attempts"
+          );
+        }
+      }
+
+      // Start trying to load widget
+      setTimeout(loadWidget, 1000);
+    </script>
+
+    <!-- Load the Egypt Tourism Chatbot Widget -->
+    <script
+      src="http://localhost:8080/react-egypt-chatbot-widget/build/egypt-tourism-widget.min.js"
+      onload="console.log('✅ Widget script loaded')"
+      onerror="console.error('❌ Failed to load widget script'); updateChatStatus('error', 'Widget script failed to load');"
+    ></script>
+  </body>
+</html>

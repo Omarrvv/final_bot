@@ -1,0 +1,429 @@
+/* Message List Component - Egypt Tourism Design */
+
+.message-list-container {
+  /* Container with proper spacing */
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  background: #fafbfc;
+  scroll-behavior: smooth;
+  padding: 20px 16px;
+}
+
+/* Beautiful scrollbar */
+.message-list-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.message-list-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.message-list-container::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+.message-list-container::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Message list with proper spacing */
+.message-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 100%;
+  padding-bottom: 16px;
+}
+
+/* Welcome Section - Clean and minimal */
+.welcome-section {
+  text-align: center;
+  padding: 32px 20px 40px; /* More breathing room */
+  max-width: 320px;
+  margin: 0 auto;
+  animation: fadeIn 0.6s ease-out;
+}
+
+.welcome-avatar {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 20px; /* More space below avatar */
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.welcome-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 12px 0;
+  letter-spacing: -0.025em;
+  line-height: 1.3;
+}
+
+.welcome-subtitle {
+  font-size: 14px;
+  font-weight: 400;
+  color: #6b7280;
+  line-height: 1.6;
+  margin: 0;
+  letter-spacing: 0.01em;
+}
+
+/* Message wrapper with proper spacing */
+.message-wrapper {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px; /* Space between avatar and message */
+  animation: messageSlideIn 0.3s ease-out;
+  padding: 0 4px; /* Slight horizontal padding */
+}
+
+.message-wrapper.user {
+  justify-content: flex-end;
+  flex-direction: row-reverse;
+}
+
+.message-wrapper.bot {
+  justify-content: flex-start;
+}
+
+/* Avatar styling */
+.message-avatar {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  margin-bottom: 2px; /* Align with message bottom */
+}
+
+.bot .message-avatar {
+  background: #ebf5ff;
+}
+
+/* Message bubble with proper padding */
+.message-bubble {
+  max-width: 75%;
+  word-wrap: break-word;
+  position: relative;
+  padding: 14px 18px; /* Generous padding for text */
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+/* Remove all focus outlines on messages */
+.message-bubble:focus,
+.message-bubble:focus-visible {
+  outline: none !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* User messages - Egypt Tourism Blue */
+.user .message-bubble {
+  background: #2563eb;
+  color: #ffffff;
+  border-bottom-right-radius: 4px;
+}
+
+/* Bot messages - Clean white */
+.bot .message-bubble {
+  background: #ffffff;
+  color: #1f2937;
+  border: 1px solid #e5e7eb;
+  border-bottom-left-radius: 4px;
+}
+
+/* Message content with proper spacing */
+.message-content {
+  display: block;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Ensure links are visible */
+.message-content a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  opacity: 0.9;
+}
+
+.user .message-content a {
+  color: #ffffff;
+}
+
+.bot .message-content a {
+  color: #2563eb;
+}
+
+/* Timestamp styling */
+.message-time {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 6px;
+  display: block;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+.user .message-time {
+  color: rgba(255, 255, 255, 0.7);
+  text-align: right;
+}
+
+/* Loading indicator with spacing */
+.loading-message {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  justify-content: center;
+  gap: 16px; /* Space between dots and text */
+  margin: 20px 0; /* Vertical spacing */
+}
+
+.loading-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.loading-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2563eb;
+  opacity: 0.3;
+}
+
+.loading-dot:nth-child(1) {
+  animation: loadingPulse 1.4s ease-in-out infinite;
+}
+
+.loading-dot:nth-child(2) {
+  animation: loadingPulse 1.4s ease-in-out 0.2s infinite;
+}
+
+.loading-dot:nth-child(3) {
+  animation: loadingPulse 1.4s ease-in-out 0.4s infinite;
+}
+
+.loading-text {
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+/* Error message styling */
+.error-message {
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
+  color: #991b1b;
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin: 20px;
+  font-size: 14px;
+  line-height: 1.5;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.error-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+/* Empty state styling */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.empty-state-icon {
+  font-size: 48px;
+  opacity: 0.3;
+  margin-bottom: 16px;
+}
+
+/* Professional animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes loadingPulse {
+  0%,
+  80%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Mobile responsive design */
+@media (max-width: 640px) {
+  .message-list-container {
+    padding: 20px 16px;
+  }
+
+  .message-list {
+    gap: 16px; /* Still good spacing on mobile */
+  }
+
+  .message-wrapper {
+    gap: 10px;
+  }
+
+  .message-bubble {
+    max-width: 85%;
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+
+  .message-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+
+  .welcome-section {
+    padding: 24px 16px 32px;
+  }
+
+  .welcome-title {
+    font-size: 18px;
+  }
+
+  .welcome-subtitle {
+    font-size: 13px;
+  }
+}
+
+/* Tablet responsive */
+@media (max-width: 768px) and (min-width: 641px) {
+  .message-bubble {
+    max-width: 80%;
+  }
+}
+
+/* Dark theme support */
+.egypt-tourism-widget.dark .message-list-container {
+  background: #1a1f2e;
+}
+
+.egypt-tourism-widget.dark .message-avatar {
+  background: #374151;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.egypt-tourism-widget.dark .bot .message-avatar {
+  background: #1e293b;
+}
+
+.egypt-tourism-widget.dark .bot .message-bubble {
+  background: #374151;
+  color: #f9fafb;
+  border-color: #4b5563;
+}
+
+.egypt-tourism-widget.dark .welcome-avatar {
+  background: #374151;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.egypt-tourism-widget.dark .welcome-title {
+  color: #f9fafb;
+}
+
+.egypt-tourism-widget.dark .welcome-subtitle {
+  color: #9ca3af;
+}
+
+.egypt-tourism-widget.dark .error-message {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .message-bubble {
+    border: 2px solid currentColor;
+  }
+
+  .message-avatar {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .message-wrapper,
+  .welcome-section {
+    animation: none;
+  }
+
+  .message-bubble {
+    transition: none;
+  }
+}
+
+/* Print styles */
+@media print {
+  .message-list-container {
+    overflow: visible;
+    padding: 0;
+  }
+
+  .message-bubble {
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+}

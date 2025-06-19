@@ -297,6 +297,10 @@ def get_default_origins(frontend_url: Optional[str] = None) -> List[str]:
         # Mobile development
         "http://10.0.2.2:3000",  # Android emulator
         "http://192.168.1.100:3000",  # Local network
+        
+        # File origins for local testing
+        "file://",
+        "null",  # Some browsers send "null" for file:// origins
     ]
     
     if frontend_url:
