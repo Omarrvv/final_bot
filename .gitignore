@@ -127,6 +127,8 @@ tests/
 app/
 config/
 public/
+# BUT allow the React widget's public directory
+!react-egypt-chatbot-widget/public/
 static/
 postgresql:/
 

@@ -224,8 +224,8 @@
     <!-- Floating particles -->
     <div class="particles" id="particles"></div>
 
-    <!-- Chat status indicator -->
-    <div class="chat-status" id="chatStatus">
+    <!-- Chat status indicator (hidden) -->
+    <div class="chat-status" id="chatStatus" style="display: none">
       <span class="status-indicator status-loading" id="statusIndicator"></span>
       <span id="statusText">Loading Chat System...</span>
     </div>
@@ -307,7 +307,7 @@
           updateChatStatus("loading", "Connecting to chat service...");
           const response = await fetch("http://localhost:5050/api/health");
           if (response.ok) {
-            updateChatStatus("ready", "Chat Assistant Ready! 💬");
+            updateChatStatus("ready", "Ready");
             return true;
           } else {
             throw new Error("Backend unhealthy");
@@ -341,7 +341,7 @@
         widgetLoadAttempts++;
 
         if (typeof window.EgyptChatbot !== "undefined") {
-          updateChatStatus("ready", "Chat Assistant Ready! 💬");
+          updateChatStatus("ready", "Ready");
           console.log("✅ Egypt Tourism Chatbot Widget loaded successfully!");
 
           // Initialize widget if auto-init is enabled

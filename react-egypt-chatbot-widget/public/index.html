@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Egypt Tourism Chatbot Widget - Development</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+        }
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .demo-title {
+            color: #1a56db;
+            margin-bottom: 20px;
+        }
+        .demo-description {
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+        .config-section {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        .config-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #374151;
+        }
+        .config-option {
+            margin-bottom: 10px;
+        }
+        .config-option label {
+            display: inline-block;
+            width: 120px;
+            font-weight: 500;
+        }
+        .config-option select, 
+        .config-option input {
+            padding: 6px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            margin-left: 10px;
+        }
+        .action-buttons {
+            margin-top: 20px;
+        }
+        .btn {
+            background: #1a56db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 10px;
+            font-weight: 500;
+        }
+        .btn:hover {
+            background: #1542a8;
+        }
+        .btn-secondary {
+            background: #6b7280;
+        }
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <h1 class="demo-title">🇪🇬 Egypt Tourism Chatbot Widget - Development Environment</h1>
+        <p class="demo-description">
+            This is the development environment for the Egypt Tourism Chatbot Widget. 
+            Use the controls below to test different configurations and see how the widget behaves.
+        </p>
+
+        <div class="config-section">
+            <div class="config-title">Widget Configuration</div>
+            
+            <div class="config-option">
+                <label>API URL:</label>
+                <input type="text" id="apiUrl" value="http://localhost:5050" style="width: 300px;">
+            </div>
+            
+            <div class="config-option">
+                <label>Theme:</label>
+                <select id="theme">
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                </select>
+            </div>
+            
+            <div class="config-option">
+                <label>Position:</label>
+                <select id="position">
+                    <option value="bottom-right">Bottom Right</option>
+                    <option value="bottom-left">Bottom Left</option>
+                    <option value="top-right">Top Right</option>
+                    <option value="top-left">Top Left</option>
+                </select>
+            </div>
+            
+            <div class="config-option">
+                <label>Language:</label>
+                <select id="language">
+                    <option value="en">English</option>
+                    <option value="ar">العربية (Arabic)</option>
+                </select>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn" onclick="initializeWidget()">Initialize Widget</button>
+                <button class="btn btn-secondary" onclick="destroyWidget()">Destroy Widget</button>
+                <button class="btn btn-secondary" onclick="updateConfig()">Update Config</button>
+            </div>
+        </div>
+
+        <div class="config-section">
+            <div class="config-title">Integration Code</div>
+            <p>Use this code to embed the widget on any website:</p>
+            <pre id="integrationCode" style="background: #1f2937; color: #f9fafb; padding: 15px; border-radius: 6px; overflow-x: auto;">
+&lt;div id="egypt-tourism-chatbot"&gt;&lt;/div&gt;
+&lt;script&gt;
+  window.EgyptTourismWidgetConfig = {
+    apiUrl: 'http://localhost:5050',
+    theme: 'light',
+    position: 'bottom-right',
+    language: 'en'
+  };
+&lt;/script&gt;
+&lt;script src="egypt-tourism-widget.js"&gt;&lt;/script&gt;</pre>
+        </div>
+    </div>
+
+    <!-- Widget Container -->
+    <div id="egypt-tourism-chatbot"></div>
+
+    <script>
+        let currentWidget = null;
+
+        function getConfig() {
+            return {
+                apiUrl: document.getElementById('apiUrl').value,
+                theme: document.getElementById('theme').value,
+                position: document.getElementById('position').value,
+                language: document.getElementById('language').value
+            };
+        }
+
+        function updateIntegrationCode() {
+            const config = getConfig();
+            const code = `&lt;div id="egypt-tourism-chatbot"&gt;&lt;/div&gt;
+&lt;script&gt;
+  window.EgyptTourismWidgetConfig = {
+    apiUrl: '${config.apiUrl}',
+    theme: '${config.theme}',
+    position: '${config.position}',
+    language: '${config.language}'
+  };
+&lt;/script&gt;
+&lt;script src="egypt-tourism-widget.js"&gt;&lt;/script&gt;`;
+            document.getElementById('integrationCode').innerHTML = code;
+        }
+
+        function initializeWidget() {
+            // Wait for widget to be available
+            const maxRetries = 50;
+            let retries = 0;
+            
+            function tryInit() {
+                if (typeof window.EgyptTourismWidget !== 'undefined') {
+                    destroyWidget(); // Destroy existing widget first
+                    
+                    const config = getConfig();
+                    try {
+                        currentWidget = new window.EgyptTourismWidget(config);
+                        currentWidget.mount('#egypt-tourism-chatbot');
+                        console.log('Widget initialized with config:', config);
+                    } catch (error) {
+                        console.error('Widget initialization error:', error);
+                        alert('Widget initialization failed: ' + error.message);
+                    }
+                } else {
+                    retries++;
+                    if (retries < maxRetries) {
+                        console.log(`Waiting for widget to load... (${retries}/${maxRetries})`);
+                        setTimeout(tryInit, 200);
+                    } else {
+                        alert('Widget failed to load after 10 seconds. Please refresh the page.');
+                    }
+                }
+            }
+            
+            tryInit();
+        }
+
+        function destroyWidget() {
+            if (currentWidget) {
+                currentWidget.unmount();
+                currentWidget = null;
+                console.log('Widget destroyed');
+            }
+        }
+
+        function updateConfig() {
+            if (currentWidget) {
+                const config = getConfig();
+                currentWidget.updateConfig(config);
+                console.log('Widget config updated:', config);
+            } else {
+                alert('Please initialize the widget first');
+            }
+        }
+
+        // Update integration code when config changes
+        document.addEventListener('change', updateIntegrationCode);
+        document.addEventListener('input', updateIntegrationCode);
+        
+        // Initialize integration code on load
+        updateIntegrationCode();
+
+        // Auto-initialize widget when available
+        let initAttempts = 0;
+        const maxAttempts = 50; // 5 seconds
+
+        function tryAutoInit() {
+            if (typeof window.EgyptTourismWidget !== 'undefined') {
+                initializeWidget();
+                return;
+            }
+            
+            initAttempts++;
+            if (initAttempts < maxAttempts) {
+                setTimeout(tryAutoInit, 100);
+            }
+        }
+
+        // Start trying to auto-initialize
+        tryAutoInit();
+    </script>
+</body>
+</html>
